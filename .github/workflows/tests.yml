@@ -37,12 +37,13 @@ jobs:
       - uses: actions/checkout@v3
 
       - if: startsWith(matrix.os, 'windows')
+        name: Windows: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ endswith(matrix.platform, '-32') && 'x86' || 'x64' }}
 
       - if: startsWith(matrix.os, 'windows')
-        name: Install make
+        name: Windows: Install make
         run: choco install --no-progress -y make
 
       - name: Compile
