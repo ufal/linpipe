@@ -1,7 +1,7 @@
 # LinPipe: Multilingual Processing Tool
 
 <div style="text-align: center"><a href="https://ufal.mff.cuni.cz/~straka/linpipe/figures/linpipe_predecessors.png">
-<img src="https://ufal.mff.cuni.cz/~straka/linpipe/figures/linpipe_predecessors.png" style="width: 60%">
+<img src="https://ufal.mff.cuni.cz/~straka/linpipe/figures/linpipe_predecessors.png" style="width: 60%; margin-bottom: 10px">
 </a></div>
 
 LinPipe is a multilingual processing tool, currently in preparation stage.
