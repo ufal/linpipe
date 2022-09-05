@@ -1,0 +1,8 @@
+/.build/
+linpipe
+linpipe.exe
+linpipe_test
+linpipe_test.exe
+liblinpipe.a
+liblinpipe.dyn.a
+liblinpipe.so

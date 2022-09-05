@@ -1,0 +1,55 @@
+name: Compile
+
+on: push
+
+jobs:
+  compile:
+    name: Compile
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux-gcc CXX=g++-9
+          - os: ubuntu-22.04
+            platform: linux-gcc CXX=c++-10
+          - os: ubuntu-22.04
+            platform: linux-gcc CXX=c++-11
+          - os: ubuntu-22.04
+            platform: linux-gcc
+            container: quay.io/pypa/manylinux2014_x86_64
+          - os: windows-2019
+            platform: win-vs-32
+          - os: windows-2019
+            platform: win-vs-64
+          - os: windows-2022
+            platform: win-vs-32
+          - os: windows-2022
+            platform: win-vs-64
+          - os: macos-11
+            platform: osx-clang-64
+          - os: macos-11
+            platform: osx-clang-arm64
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - if: startsWith(matrix.os, 'windows')
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ endswith(matrix.platform, '-32') && 'x86' || 'x64' }}
+
+      - if: startsWith(matrix.os, 'windows')
+        name: Install make
+        run: choco install --no-progress -y make
+
+      - name: Compile
+        run: make PLATFORM=${{ matrix.platform }} -k -C src all
+        env:
+          C_FLAGS: $(treat_warnings_as_errors)
+
+      - name: Run tests
+        run: src/linpipe_test
+        if: matrix.platform != 'osx-clang-arm64'
