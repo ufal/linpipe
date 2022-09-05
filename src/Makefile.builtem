@@ -18,7 +18,7 @@ ifndef PLATFORM
   ifeq ($(OS),Windows_NT)
     PLATFORM=win
   else ifeq ($(shell uname),Darwin)
-    PLATFORM=osx
+    PLATFORM=macos
   else
     PLATFORM=linux
   endif
@@ -29,8 +29,8 @@ ifeq ($(PLATFORM),linux)
   override PLATFORM=linux-gcc
 else ifeq ($(PLATFORM),win)
   override PLATFORM=win-vs
-else ifeq ($(PLATFORM),osx)
-  override PLATFORM=osx-clang
+else ifeq ($(PLATFORM),macos)
+  override PLATFORM=macos-clang
 endif
 
 # expand architecture if not specified
@@ -51,7 +51,7 @@ else ifneq ($(filter win-vs win-gcc,$(PLATFORM)),)
   else
     $(error Architecture $(PROCESSOR_ARCHITECTURE) is currently unsupported on platform $(PLATFORM))
   endif
-else ifneq ($(filter osx-clang,$(PLATFORM)),)
+else ifneq ($(filter macos-clang,$(PLATFORM)),)
   PLATFORM_ARCH:=$(shell uname -m)
   ifneq ($(filter x86_64,$(PLATFORM_ARCH)),)
     override PLATFORM:=$(PLATFORM)-64
@@ -65,7 +65,7 @@ endif
 # fail for unknown platforms
 PLATFORMS = linux-gcc-64 linux-gcc-32 linux-clang-64 linux-clang-32
 PLATFORMS += win-vs-64 win-vs-32 win-gcc-64 win-gcc-32
-PLATFORMS += osx-clang-64 osx-clang-arm64
+PLATFORMS += macos-clang-64 macos-clang-arm64
 ifeq ($(filter $(PLATFORMS),$(PLATFORM)),)
   $(error Unsupported platform $(PLATFORM), only $(PLATFORMS) are supported)
 endif
@@ -167,7 +167,7 @@ else ifneq ($(filter win-gcc-%,$(PLATFORM)),)
   dynlib = $(1:=.dll)
   obj = $(foreach obj,$(1),$(call builtem_obj,$(obj)).o)
   dynobj = $(call obj,$(1:%=%.dyn))
-else ifneq ($(filter osx-%,$(PLATFORM)),)
+else ifneq ($(filter macos-%,$(PLATFORM)),)
   exe = $(1)
   lib = $(1:=.a)
   dynlib = $(1:=.dylib)
@@ -231,7 +231,7 @@ else ifneq ($(filter win-vs-%,$(PLATFORM)),)
     DYN_C_FLAGS += /LDd
     LD_FLAGS += /DEBUG
   endif
-else ifneq ($(filter osx-clang-%,$(PLATFORM)),)
+else ifneq ($(filter macos-clang-%,$(PLATFORM)),)
   ifneq ($(filter undefined default,$(origin CXX)),)
     CXX = clang++
   endif

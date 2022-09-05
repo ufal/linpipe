@@ -29,9 +29,9 @@ jobs:
           - os: windows-2022
             platform: win-vs-64
           - os: macos-11
-            platform: osx-clang-64
+            platform: macos-clang-64
           - os: macos-11
-            platform: osx-clang-arm64
+            platform: macos-clang-arm64
 
     steps:
       - uses: actions/checkout@v3
@@ -52,4 +52,4 @@ jobs:
 
       - name: Run tests
         run: src/linpipe_test
-        if: matrix.platform != 'osx-clang-arm64'
+        if: matrix.platform != 'macos-clang-arm64'
