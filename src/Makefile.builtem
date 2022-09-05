@@ -188,7 +188,7 @@ endif
 # switches
 ifneq ($(filter linux-gcc-% linux-clang-% win-gcc-%,$(PLATFORM)),)
   ifneq ($(filter undefined default,$(origin CXX)),)
-    CXX = $(if $(filter %-gcc-%,$(PLATFORM)),g++,clang++)
+    CXX = $(if $(filter linux-clang-%,$(PLATFORM)),clang++,g++)
   endif
   C_FLAGS += -std=$(CPP_STANDARD) -W -Wall -mtune=generic -msse -msse2 -mfpmath=sse -fvisibility=hidden
   C_FLAGS += $(if $(filter win-%,$(PLATFORM)),-DUNICODE -D_UNICODE -D_WIN32_WINNT=0x0601)

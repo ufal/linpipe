@@ -1,10 +1,10 @@
-name: Compile
+name: Tests
 
 on: push
 
 jobs:
   compile:
-    name: Compile
+    name: Tests
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     strategy:
@@ -14,9 +14,9 @@ jobs:
           - os: ubuntu-22.04
             platform: linux-gcc CXX=g++-9
           - os: ubuntu-22.04
-            platform: linux-gcc CXX=c++-10
+            platform: linux-gcc CXX=g++-10
           - os: ubuntu-22.04
-            platform: linux-gcc CXX=c++-11
+            platform: linux-gcc CXX=g++-11
           - os: ubuntu-22.04
             platform: linux-gcc
             container: quay.io/pypa/manylinux2014_x86_64

@@ -15,7 +15,7 @@ include Makefile.include
 default: $(call exe,linpipe)
 lib: $(call lib,liblinpipe)
 test: $(call exe,linpipe_test)
-all: default lib test
+all: default test # lib will be added once we have at least one source
 
 # Flags
 C_FLAGS += $(call include_dir,.)
