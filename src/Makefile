@@ -11,11 +11,13 @@ CPP_STANDARD = c++17
 include Makefile.builtem
 include Makefile.include
 
-.PHONY: default all lib test
+.PHONY: default lib test_compile test all
 default: $(call exe,linpipe)
 lib: $(call lib,liblinpipe)
-test: $(call exe,linpipe_test)
-all: default test # lib will be added once we have at least one source
+test_compile: $(call exe,linpipe_test)
+test: test_compile
+	$(call platform_name,./$(call exe,linpipe_test))
+all: default test_compile # lib will be added once we have at least one source
 
 # Flags
 C_FLAGS += $(call include_dir,.)
