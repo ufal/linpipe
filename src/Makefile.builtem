@@ -65,7 +65,7 @@ endif
 # fail for unknown platforms
 PLATFORMS = linux-gcc-64 linux-gcc-32 linux-clang-64 linux-clang-32
 PLATFORMS += win-vs-64 win-vs-32 win-gcc-64 win-gcc-32
-PLATFORMS += osx-clang-64 osx-clang-32
+PLATFORMS += osx-clang-64 osx-clang-arm64
 ifeq ($(filter $(PLATFORMS),$(PLATFORM)),)
   $(error Unsupported platform $(PLATFORM), only $(PLATFORMS) are supported)
 endif
