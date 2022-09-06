@@ -188,7 +188,7 @@ endif
 # switches
 ifneq ($(filter linux-gcc-% linux-clang-% win-gcc-%,$(PLATFORM)),)
   ifneq ($(filter undefined default,$(origin CXX)),)
-    CXX = $(if $(filter linux-clang-%,$(PLATFORM)),clang++,g++)
+    CXX = $(if $(findstring -gcc-,$(PLATFORM)),g++,clang++)
   endif
   C_FLAGS += -std=$(CPP_STANDARD) -W -Wall -mtune=generic -msse -msse2 -mfpmath=sse -fvisibility=hidden
   C_FLAGS += $(if $(filter win-%,$(PLATFORM)),-DUNICODE -D_UNICODE -D_WIN32_WINNT=0x0601)
@@ -206,8 +206,8 @@ ifneq ($(filter linux-gcc-% linux-clang-% win-gcc-%,$(PLATFORM)),)
   else ifeq ($(MODE),debug)
     C_FLAGS += -g -DDEBUG
   else ifeq ($(MODE),profile)
-    C_FLAGS += -O3 $(if $(filter %-gcc-%,$(PLATFORM)),-g1 -pg,-gline-tables-only)
-    LD_FLAGS += $(if $(filter %-gcc-%,$(PLATFORM)),-pg)
+    C_FLAGS += -O3 $(if $(findstring -gcc-,$(PLATFORM)),-g1 -pg,-gline-tables-only)
+    LD_FLAGS += $(if $(findstring -gcc-,$(PLATFORM)),-pg)
   else ifeq ($(MODE),release)
     C_FLAGS += -O3 -flto
     LD_FLAGS += -s -static-libgcc -static-libstdc++
@@ -318,7 +318,7 @@ ifneq ($(filter linux-%,$(PLATFORM)),)
   use_threads = -pthread
 endif
 
-ifneq ($(filter %-gcc-%,$(PLATFORM)),)
+ifneq ($(findstring -gcc-,$(PLATFORM)),)
   use_linker = -fuse-ld=$(1)
 endif
 
