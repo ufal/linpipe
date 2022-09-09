@@ -21,4 +21,4 @@ NameTag2-cs-CNEC2.0-20220909
 
 ---
 
-![Architecture Overview](overview1.png)
+![Architecture Overview](overview_1.png)
