@@ -23,9 +23,6 @@ DOC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 %.html: %.fragment.html
 	$(DOC_DIR)scripts/html <$< >$@
 
-%.noheading.html: %.html
-	sed '/<h1/d' $< >$@
-
 .PHONY: clean
 clean:
 	rm -rf $(wildcard $(DOC_DIR)*.html) $(patsubst %.md.sh,%.md,$(wildcard $(DOC_DIR)*.md.sh))
