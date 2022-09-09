@@ -1,0 +1,4 @@
+JSON for Modern C++
+- licence: MIT
+- source: https://github.com/nlohmann/json
+- version: 3.11.2

@@ -9,4 +9,4 @@
 
 LINPIPE_OBJECTS =
 
-LINPIPE_TESTS =
+LINPIPE_TESTS = lib/json_test

@@ -21,6 +21,8 @@
 #include <string_view>
 #include <vector>
 
+#include "lib/json_fwd.h"
+
 namespace linpipe {
 
 using namespace std;
@@ -34,5 +36,8 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 #endif
 
 #define runtime_failure(message) exit((cerr << message << endl, 1))
+
+// Configuration of JSON for Modern C++
+using namespace nlohmann;
 
 } // namespace linpipe
