@@ -10,7 +10,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "common.h"
-#include "testing/testing.h"
+#include "lib/doctest.h"
 
 namespace linpipe {
 
