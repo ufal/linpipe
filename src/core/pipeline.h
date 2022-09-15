@@ -16,7 +16,7 @@ namespace linpipe {
 
 class Pipeline {
  public:
-  static unique_ptr<Pipeline> create(string_view description); // can throw something bad
+  static unique_ptr<Pipeline> create(const string_view description); // can throw something bad
 
   void execute(Corpus& corpus, SystemState& state);
 

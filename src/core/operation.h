@@ -19,7 +19,7 @@ class Operation {
  public:
   virtual ~Operation() {}
 
-  static unique_ptr<Operation> create(string_view description); // can throw something bad
+  static unique_ptr<Operation> create(const string_view description); // can throw something bad
 
   virtual void execute(Corpus& corpus, SystemState& state) = 0; // can throw something bad
 

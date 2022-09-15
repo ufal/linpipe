@@ -24,9 +24,9 @@ class Format {
  public:
   virtual ~Format() {}
 
-  static unique_ptr<Format> create(string_view description); // can throw someting bad
+  static unique_ptr<Format> create(const string_view description); // can throw someting bad
 
-  void set_source(istream& input, string_view source_path);
+  void set_source(istream& input, const string_view source_path);
   bool load(Document& document); // can throw FormatError
 
   void set_target(ostream& output);
