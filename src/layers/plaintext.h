@@ -14,22 +14,13 @@
 
 namespace linpipe {
 
-class Document {
+class PlainText : public Layer {
  public:
-  // The responsibility of the Document is to guarantee that layers
-  // have unique name.
-  Layer* get_layer(const string_view name);
-  Layer* add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate);
-  void rename_layer(const string_view name, const string_view target);
-  void del_layer(const string_view name);
+  virtual void from_json(const Json& json) override;
+  virtual void to_json(Json& json) override;
+  virtual void to_html(string& html) override;
 
-  const vector<unique_ptr<Layer>>& layers();
-  const string& source_path();
-
- private:
-  vector<unique_ptr<Layer>> _layers;
-
-  string _source_path;
+  string text;
 };
 
 } // namespace linpipe

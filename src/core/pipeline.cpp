@@ -13,7 +13,7 @@ namespace linpipe {
 
 unique_ptr<Pipeline> Pipeline::create(const string_view description) {
   // TODO: Construct the pipeline
-  throw LinpipeError("Invalid description '" + string(description) + "' in Pipeline::create");
+  throw LinpipeError{"Pipeline::create: Invalid description '", description, "'"};
 }
 
 bool Pipeline::execute(Corpus& corpus) {

@@ -14,7 +14,7 @@
 namespace linpipe {
 
 TEST_CASE("json") {
-  json j = {
+  Json j = {
     {"string", "abc"},
     {"bool", true},
     {"integer", 42},
@@ -27,7 +27,7 @@ TEST_CASE("json") {
   };
 
   SUBCASE("parsing json from string") {
-    REQUIRE(j == json::parse(R"(
+    REQUIRE(j == Json::parse(R"(
       {
         "string": "abc",
         "bool": true,

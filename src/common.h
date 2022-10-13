@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
+#include <initializer_list>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -29,7 +30,7 @@ namespace linpipe {
 using namespace std;
 
 // Configuration of JSON for Modern C++
-using namespace nlohmann;
+using Json = nlohmann::json;
 
 // Assert that int is at least 4B
 static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
@@ -41,12 +42,13 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 
 #define runtime_failure(message) exit((cerr << message << endl, 1))
 
-class LinpipeError : exception {
+class LinpipeError : public exception {
  public:
-  LinpipeError(const string_view error) : _error(error) {}
-  virtual const char* what() const noexcept override { return _error.c_str(); }
+  LinpipeError(const string_view text) : _text(text) {}
+  LinpipeError(initializer_list<string_view> texts) {for (auto&& text : texts) _text += text; }
+  virtual const char* what() const noexcept override { return _text.c_str(); }
  private:
-  string _error;
+  string _text;
 };
 
 } // namespace linpipe

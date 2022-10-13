@@ -7,19 +7,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
-#include "models/model_manager.h"
+#include "layers/plaintext.h"
+#include "lib/doctest.h"
+#include "lib/json.h"
 
 namespace linpipe {
 
-class PipelineState {
- public:
-  PipelineState():
-    model_manager(&ModelManager::singleton) {}
-
-  ModelManager* model_manager;
-};
+TEST_CASE("PlainText::from_json") {
+  PlainText plain_text;
+  CHECK_THROWS_AS(plain_text.from_json(Json(42)), LinpipeError);
+  CHECK_THROWS_AS(plain_text.from_json(Json::object()), LinpipeError);
+  CHECK_THROWS_AS(plain_text.from_json(Json{{"key", 42}}), LinpipeError);
+  CHECK_NOTHROW(plain_text.from_json(Json{{"text", "raw text"}}));
+}
 
 } // namespace linpipe

@@ -14,9 +14,7 @@ namespace linpipe {
 
 TEST_CASE("Pipeline::create") {
   CHECK_THROWS_AS(Pipeline::create(""), LinpipeError);
-
-  // TODO: Investigate why the following test fails.
-  // CHECK_THROWS_WITH_AS(Pipeline::create(""), "Invalid description '' in Pipeline::create", LinpipeError);
+  CHECK_THROWS_WITH_AS(Pipeline::create(""), "Pipeline::create: Invalid description ''", LinpipeError);
 }
 
 } // namespace linpipe

@@ -9,27 +9,26 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "common.h"
-#include "layers/layer.h"
+#include "models/model.h"
 
 namespace linpipe {
 
-class Document {
+class ModelManager {
  public:
-  // The responsibility of the Document is to guarantee that layers
-  // have unique name.
-  Layer* get_layer(const string_view name);
-  Layer* add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate);
-  void rename_layer(const string_view name, const string_view target);
-  void del_layer(const string_view name);
+  void reserve(const string_view name);
+  Model* load(const string_view name);
+  void release(const string_view name);
 
-  const vector<unique_ptr<Layer>>& layers();
-  const string& source_path();
+  // It is possible to configure when the models are unloaded after release,
+  // with default being never to unload.
+
+  static ModelManager singleton;
 
  private:
-  vector<unique_ptr<Layer>> _layers;
-
-  string _source_path;
+  unordered_map<string, unique_ptr<Model>> _models;
 };
 
 } // namespace linpipe

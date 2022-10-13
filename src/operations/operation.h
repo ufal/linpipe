@@ -23,7 +23,7 @@ class Operation {
 
   virtual void execute(Corpus& corpus, PipelineState& state) = 0;
 
-  virtual void reserve_models(PipelineState& state) {}
+  virtual void reserve_models(PipelineState& state);
 
  private:
   Operation();

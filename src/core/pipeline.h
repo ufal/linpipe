@@ -10,7 +10,7 @@
 #pragma once
 
 #include "common.h"
-#include "core/operation.h"
+#include "operations/operation.h"
 
 namespace linpipe {
 
