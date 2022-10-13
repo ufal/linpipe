@@ -10,18 +10,22 @@
 #pragma once
 
 #include "common.h"
+#include "core/operation.h"
 
 namespace linpipe {
 
-
 class Pipeline {
  public:
-  static unique_ptr<Pipeline> create(const string_view description); // can throw something bad
+  static unique_ptr<Pipeline> create(const string_view description);
 
-  void execute(Corpus& corpus, SystemState& state);
+  bool execute(Corpus& corpus);
+
+  PipelineState state;
 
  private:
-  Operation();
+  Pipeline();
+
+  unique_ptr<Operation> _operation;
 };
 
 } // namespace linpipe

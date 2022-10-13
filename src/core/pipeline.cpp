@@ -7,14 +7,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
+#include "core/pipeline.h"
 
 namespace linpipe {
 
-struct SystemState {
- public:
-};
+unique_ptr<Pipeline> Pipeline::create(const string_view description) {
+  // TODO: Construct the pipeline
+  throw LinpipeError("Invalid description '" + string(description) + "' in Pipeline::create");
+}
+
+bool Pipeline::execute(Corpus& corpus) {
+  // TODO: Initialize state
+
+  _operation->reserve_models(state);
+  _operation->execute(corpus, state);
+
+  // TODO: Correctly return true/false
+  return true;
+}
 
 } // namespace linpipe

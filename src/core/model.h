@@ -13,24 +13,14 @@
 
 namespace linpipe {
 
-class Document;
-
-class Layer {
+class Model {
  public:
-  virtual ~Layer() {}
-
-  virtual void serialize();
-  virtual void deserialize();
-  virtual void visualize();
-
   const string& name();
-  // add some structured metadata info
+
+  static unique_ptr<Model> create(istream& input);
 
  private:
-  Layer();
-
   string _name;
-  friend class Document;
 };
 
 } // namespace linpipe

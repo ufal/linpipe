@@ -18,19 +18,16 @@ class Document {
  public:
   // The responsibility of the Document is to guarantee that layers
   // have unique name.
-  Layer& get_layer(const string_view name);
-  Layer& add_layer(Layer&& layer, bool unique_name_if_duplicate);
+  Layer* get_layer(const string_view name);
+  Layer* add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate);
   void rename_layer(const string_view name, const string_view target);
   void del_layer(const string_view name);
 
-  // Iterate layers
-  begin();
-  end();
-
+  const vector<unique_ptr<Layer>>& layers();
   const string& source_path();
 
  private:
-  vector<Layer> layers;
+  vector<unique_ptr<Layer>> _layers;
 
   string _source_path;
 };

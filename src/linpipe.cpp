@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
+#include "core/pipeline.h"
 
 using namespace linpipe;
 

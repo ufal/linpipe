@@ -9,28 +9,26 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "common.h"
+#include "core/model.h"
 
 namespace linpipe {
 
-class Document;
-
-class Layer {
+class ModelManager {
  public:
-  virtual ~Layer() {}
+  void reserve(const string_view name);
+  Model* load(const string_view name);
+  void release(const string_view name);
 
-  virtual void serialize();
-  virtual void deserialize();
-  virtual void visualize();
+  // It is possible to configure when the models are unloaded after release,
+  // with default being never to unload.
 
-  const string& name();
-  // add some structured metadata info
+  static ModelManager singleton;
 
  private:
-  Layer();
-
-  string _name;
-  friend class Document;
+  unordered_map<string, unique_ptr<Model>> _models;
 };
 
 } // namespace linpipe

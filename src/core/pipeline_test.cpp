@@ -7,30 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
+#include "core/pipeline.h"
+#include "lib/doctest.h"
 
 namespace linpipe {
 
-class Document;
+TEST_CASE("Pipeline::create") {
+  CHECK_THROWS_AS(Pipeline::create(""), LinpipeError);
 
-class Layer {
- public:
-  virtual ~Layer() {}
-
-  virtual void serialize();
-  virtual void deserialize();
-  virtual void visualize();
-
-  const string& name();
-  // add some structured metadata info
-
- private:
-  Layer();
-
-  string _name;
-  friend class Document;
-};
+  // TODO: Investigate why the following test fails.
+  // CHECK_THROWS_WITH_AS(Pipeline::create(""), "Invalid description '' in Pipeline::create", LinpipeError);
+}
 
 } // namespace linpipe

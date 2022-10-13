@@ -10,27 +10,16 @@
 #pragma once
 
 #include "common.h"
+#include "core/model_manager.h"
 
 namespace linpipe {
 
-class Document;
-
-class Layer {
+class PipelineState {
  public:
-  virtual ~Layer() {}
+  PipelineState():
+    model_manager(&ModelManager::singleton) {}
 
-  virtual void serialize();
-  virtual void deserialize();
-  virtual void visualize();
-
-  const string& name();
-  // add some structured metadata info
-
- private:
-  Layer();
-
-  string _name;
-  friend class Document;
+  ModelManager* model_manager;
 };
 
 } // namespace linpipe

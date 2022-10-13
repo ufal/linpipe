@@ -9,32 +9,25 @@
 
 #pragma once
 
-#include <exception>
-
 #include "common.h"
 #include "core/document.h"
 
 namespace linpipe {
 
-class FormatError : exception {
-  // ...
-};
-
 class Format {
  public:
   virtual ~Format() {}
 
-  static unique_ptr<Format> create(const string_view description); // can throw someting bad
+  static unique_ptr<Format> create(const string_view description);
 
   void set_source(istream& input, const string_view source_path);
-  bool load(Document& document); // can throw FormatError
+  bool load(Document& document);
 
   void set_target(ostream& output);
   void save(const Document& document);
 
  private:
-  Format() = 0;
-
+  Format();
 };
 
 } // namespace linpipe

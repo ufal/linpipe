@@ -11,7 +11,7 @@
 
 #include "common.h"
 #include "core/corpus.h"
-#include "core/system_state.h"
+#include "core/pipeline_state.h"
 
 namespace linpipe {
 
@@ -19,12 +19,14 @@ class Operation {
  public:
   virtual ~Operation() {}
 
-  static unique_ptr<Operation> create(const string_view description); // can throw something bad
+  static unique_ptr<Operation> create(const string_view description);
 
-  virtual void execute(Corpus& corpus, SystemState& state) = 0; // can throw something bad
+  virtual void execute(Corpus& corpus, PipelineState& state) = 0;
+
+  virtual void reserve_models(PipelineState& state) {}
 
  private:
-  Operation() = 0;
+  Operation();
 };
 
 } // namespace linpipe
