@@ -17,7 +17,7 @@ TEST_CASE("PlainText::from_json") {
   PlainText plain_text;
   CHECK_THROWS_AS(plain_text.from_json(Json(42)), LinpipeError);
   CHECK_THROWS_AS(plain_text.from_json(Json::object()), LinpipeError);
-  CHECK_THROWS_AS(plain_text.from_json(Json{{"key", 42}}), LinpipeError);
+  CHECK_THROWS_AS(plain_text.from_json(Json{{"text", 42}}), LinpipeError);
   CHECK_NOTHROW(plain_text.from_json(Json{{"text", "raw text"}}));
 }
 
