@@ -7,24 +7,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
 #include "core/document.h"
 
 namespace linpipe {
 
-class Format {
- public:
-  virtual ~Format() {}
+Layer* Document::get_layer(const string_view name) {
+}
 
-  static unique_ptr<Format> create(const string_view description);
+Layer* Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
+}
 
-  virtual bool load(Document& document, istream& input, const string_view source_path) = 0;
-  virtual void save(const Document& document, ostream& output) = 0;
+void Document::rename_layer(const string_view name, const string_view target) {
+}
 
- private:
-  Format();
-};
+void Document::del_layer(const string_view name) {
+}
 
 } // namespace linpipe

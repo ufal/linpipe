@@ -10,21 +10,14 @@
 #pragma once
 
 #include "common.h"
-#include "core/document.h"
+#include "formats/format.h"
 
 namespace linpipe {
 
-class Format {
+class PlainTextFormat : public Format {
  public:
-  virtual ~Format() {}
-
-  static unique_ptr<Format> create(const string_view description);
-
-  virtual bool load(Document& document, istream& input, const string_view source_path) = 0;
-  virtual void save(const Document& document, ostream& output) = 0;
-
- private:
-  Format();
+  virtual bool load(Document& document, istream& input, string_view source_path) override;
+  virtual void save(const Document& document, ostream& output) override;
 };
 
 } // namespace linpipe
