@@ -7,16 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "formats/plaintextformat.h"
-#include "layers/plaintext.h"
+#include "formats/text.h"
+#include "layers/text.h"
 
-namespace linpipe {
+namespace linpipe::formats {
 
-bool PlainTextFormat::load(Document& document, istream& input, string_view source_path) {
+bool Text::load(Document& document, istream& input, string_view source_path) {
   stringstream strStream;
   strStream << input.rdbuf();
 
-  unique_ptr<PlainText> layer = unique_ptr<PlainText>(new PlainText());
+  unique_ptr<linpipe::layers::Text> layer = unique_ptr<linpipe::layers::Text>(new linpipe::layers::Text());
   layer->text = strStream.str();
 
   document.add_layer(move(layer), "text");
@@ -24,7 +24,7 @@ bool PlainTextFormat::load(Document& document, istream& input, string_view sourc
   return !input.eof();
 }
 
-void PlainTextFormat::save(const Document& document, ostream& output) {
+void Text::save(const Document& document, ostream& output) {
 }
 
 } // namespace linpipe

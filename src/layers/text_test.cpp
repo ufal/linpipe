@@ -7,17 +7,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include "layers/text.h"
+#include "lib/doctest.h"
+#include "lib/json.h"
 
-#include "common.h"
-#include "formats/format.h"
+namespace linpipe::layers {
 
-namespace linpipe {
-
-class PlainTextFormat : public Format {
- public:
-  virtual bool load(Document& document, istream& input, string_view source_path) override;
-  virtual void save(const Document& document, ostream& output) override;
-};
+TEST_CASE("Text::from_json") {
+  Text text;
+  CHECK_THROWS_AS(text.from_json(Json(42)), LinpipeError);
+  CHECK_THROWS_AS(text.from_json(Json::object()), LinpipeError);
+  CHECK_THROWS_AS(text.from_json(Json{{"text", 42}}), LinpipeError);
+  CHECK_NOTHROW(text.from_json(Json{{"text", "raw text"}}));
+}
 
 } // namespace linpipe
