@@ -24,12 +24,15 @@ class Layer {
   virtual void to_html(string& html) = 0;
 
   const string& name();
-  // add some structured metadata info
+  void set_name(const string_view name);
+
+  // TODO: add more structured metadata info
 
  protected:
   string _name;
   friend class Document;
 
+  // TODO: move this to layers/utils
   void _json_has_string(const string_view called_from, const Json& json, const string_view key);
 };
 
