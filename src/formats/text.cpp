@@ -12,14 +12,15 @@
 
 namespace linpipe::formats {
 
-bool Text::load(Document& document, istream& input, const string_view source_path) {
+bool Text::load(Document& document, istream& input, const string_view source_path, const string_view name) {
   stringstream strStream;
   strStream << input.rdbuf();
 
   unique_ptr<linpipe::layers::Text> layer = unique_ptr<linpipe::layers::Text>(new linpipe::layers::Text());
   layer->text = strStream.str();
+  layer->set_name(name);
 
-  document.add_layer(move(layer), "text");
+  document.add_layer(move(layer), true);
 
   document.set_source_path(source_path);
 
