@@ -21,6 +21,10 @@ void Layer::_json_has_string(const string_view called_from, const Json& json, co
     throw LinpipeError{called_from, ": The key '", key, "' does not contain a string, but a ", json.at(key).type_name()};
 }
 
+const string& Layer::name() {
+  return _name;
+}
+
 void Layer::set_name(const string_view name) {
   _name = name;
 }
