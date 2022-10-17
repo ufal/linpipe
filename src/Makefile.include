@@ -7,6 +7,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-LINPIPE_OBJECTS = core/document core/pipeline formats/text layers/layer layers/text operations/operation
+LINPIPE_OBJECTS = core/document core/pipeline formats/format formats/text layers/layer layers/text operations/operation
 
 LINPIPE_TESTS = core/pipeline_test layers/text_test lib/json_test
