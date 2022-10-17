@@ -26,6 +26,8 @@ class Document {
   const vector<unique_ptr<Layer>>& layers();
   const string& source_path();
 
+  void set_source_path(const string_view source_path);
+
  private:
   vector<unique_ptr<Layer>> _layers;
 

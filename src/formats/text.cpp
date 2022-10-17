@@ -12,7 +12,7 @@
 
 namespace linpipe::formats {
 
-bool Text::load(Document& document, istream& input, string_view source_path) {
+bool Text::load(Document& document, istream& input, const string_view source_path) {
   stringstream strStream;
   strStream << input.rdbuf();
 
@@ -20,6 +20,8 @@ bool Text::load(Document& document, istream& input, string_view source_path) {
   layer->text = strStream.str();
 
   document.add_layer(move(layer), "text");
+
+  document.set_source_path(source_path);
 
   return !input.eof();
 }

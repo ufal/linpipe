@@ -23,4 +23,8 @@ void Document::rename_layer(const string_view name, const string_view target) {
 void Document::del_layer(const string_view name) {
 }
 
+void Document::set_source_path(const string_view source_path) {
+  _source_path = source_path;
+}
+
 } // namespace linpipe
