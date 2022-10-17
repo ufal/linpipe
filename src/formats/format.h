@@ -21,7 +21,7 @@ class Format {
   static unique_ptr<Format> create(const string_view description);
 
   virtual bool load(Document& document, istream& input, const string_view source_path, const string_view name="layer") = 0;
-  virtual void save(const Document& document, ostream& output) = 0;
+  virtual void save(Document& document, ostream& output, const string_view name="layer") = 0;
 
  private:
   Format();

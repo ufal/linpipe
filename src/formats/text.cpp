@@ -9,6 +9,7 @@
 
 #include "formats/text.h"
 #include "layers/text.h"
+#include "lib/json.h"
 
 namespace linpipe::formats {
 
@@ -27,7 +28,13 @@ bool Text::load(Document& document, istream& input, const string_view source_pat
   return !input.eof();
 }
 
-void Text::save(const Document& document, ostream& output) {
+void Text::save(Document& document, ostream& output, const string_view name) {
+  linpipe::Layer* layer = document.get_layer(name);
+
+  Json json = Json::object();
+  layer->to_json(json);
+
+  output << json["text"];
 }
 
 } // namespace linpipe

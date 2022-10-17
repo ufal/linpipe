@@ -17,7 +17,7 @@ namespace linpipe::formats {
 class Text : public Format {
  public:
   virtual bool load(Document& document, istream& input, const string_view source_path, const string_view name="text") override;
-  virtual void save(const Document& document, ostream& output) override;
+  virtual void save(Document& document, ostream& output, const string_view name="text") override;
 };
 
 } // namespace linpipe
