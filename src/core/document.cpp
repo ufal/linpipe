@@ -23,6 +23,10 @@ void Document::rename_layer(const string_view name, const string_view target) {
 void Document::del_layer(const string_view name) {
 }
 
+const vector<unique_ptr<Layer>>& Document::layers() {
+  return _layers;
+}
+
 const string& Document::source_path() {
   return _source_path;
 }
