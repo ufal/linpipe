@@ -20,7 +20,7 @@ bool Text::load(Document& document, istream& input, const string_view source_pat
   layer->text = strStream.str();
   layer->set_name(name);
 
-  document.add_layer(move(layer), true);
+  document.add_layer(move(layer));
 
   document.set_source_path(source_path);
 
