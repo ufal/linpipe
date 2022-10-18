@@ -17,7 +17,7 @@ bool Text::load(Document& document, istream& input, const string_view source_pat
   stringstream strStream;
   strStream << input.rdbuf();
 
-  unique_ptr<linpipe::layers::Text> layer = make_unique<linpipe::layers::Text>();
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
   layer->text = strStream.str();
   layer->set_name(_name);
 
@@ -28,7 +28,7 @@ bool Text::load(Document& document, istream& input, const string_view source_pat
 }
 
 void Text::save(Document& document, ostream& output) {
-  linpipe::Layer& layer = document.get_layer(_name);
+  Layer& layer = document.get_layer(_name);
 
   Json json = Json::object();
   layer.to_json(json);

@@ -29,7 +29,7 @@ TEST_CASE("formats::Text::load") {
     CHECK(doc.source_path() == "source");
     CHECK(doc.layers()[0]->name() == "text");
 
-    linpipe::layers::Text* layer = dynamic_cast<linpipe::layers::Text*>(&doc.get_layer("text"));
+    layers::Text* layer = dynamic_cast<layers::Text*>(&doc.get_layer("text"));
     CHECK(layer->text == "Hello world!");
   }
 
