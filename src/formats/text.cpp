@@ -14,12 +14,13 @@
 namespace linpipe::formats {
 
 bool Text::load(Document& document, istream& input, const string_view source_path) {
-  stringstream strStream;
-  strStream << input.rdbuf();
-
   unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->text = strStream.str();
   layer->set_name(_name);
+
+  char block[4096];
+  while (input.read(block, sizeof(block)))
+    layer->text.append(block, sizeof(block));
+  layer->text.append(block, input.gcount());
 
   document.add_layer(move(layer));
   document.set_source_path(source_path);
