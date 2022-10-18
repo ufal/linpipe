@@ -11,10 +11,10 @@
 #include "lib/doctest.h"
 #include "lib/json.h"
 
-namespace linpipe::layers {
+namespace linpipe {
 
 TEST_CASE("Text::from_json") {
-  Text text;
+  layers::Text text;
   CHECK_THROWS_AS(text.from_json(Json(42)), LinpipeError);
   CHECK_THROWS_AS(text.from_json(Json::object()), LinpipeError);
   CHECK_THROWS_AS(text.from_json(Json{{"text", 42}}), LinpipeError);
