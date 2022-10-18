@@ -22,7 +22,7 @@ TEST_CASE("formats::Text::load") {
   Document doc;
 
   SUBCASE("loads text, adds text layer with default name") {
-    istringstream is("Hello world!");
+    istringstream is("Hello world!\n");
     text->load(doc, is, "source");
 
     CHECK(doc.layers().size() == 1);
@@ -30,7 +30,7 @@ TEST_CASE("formats::Text::load") {
     CHECK(doc.layers()[0]->name() == "text");
 
     layers::Text* layer = dynamic_cast<layers::Text*>(&doc.get_layer("text"));
-    CHECK(layer->text == "Hello world!");
+    CHECK(layer->text == "Hello world!\n");
   }
 
   SUBCASE("loads text, add text layer with given name") {
