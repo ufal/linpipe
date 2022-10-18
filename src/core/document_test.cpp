@@ -17,9 +17,8 @@ TEST_CASE("Document::add_layer") {
   Document doc;
 
   SUBCASE("adding layer increases layers vector size of the document") {
-    // TODO: Test aborts with SIGABRT
-    // doc.add_layer(move(make_unique<layers::Text>()));
-    // CHECK(doc.layers().size() == 1);
+    doc.add_layer(make_unique<layers::Text>());
+    CHECK(doc.layers().size() == 1);
   }
 }
 

@@ -14,12 +14,12 @@ namespace linpipe {
 Layer* Document::get_layer(const string_view name) {
 }
 
-Layer* Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
+Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
   // TODO: Document is responsible for maintaining unique layer names.
 
   _layers.push_back(move(layer));
 
-  // TODO: return
+  return *_layers.back().get();
 }
 
 void Document::rename_layer(const string_view name, const string_view target) {
