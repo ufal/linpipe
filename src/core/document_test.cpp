@@ -66,4 +66,27 @@ TEST_CASE("Document::del_layer") {
 
 }
 
+TEST_CASE("Document::rename_layer") {
+  Document doc;
+
+  SUBCASE("throws exception upon renaming on empty layers") {
+    CHECK_THROWS_AS(doc.rename_layer("test", "new_test"), LinpipeError);
+  }
+
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
+  layer->set_name("test");
+  doc.add_layer(move(layer));
+
+  SUBCASE("renames layer") {
+    doc.rename_layer("test", "new_test");
+    CHECK(doc.get_layer("new_test").name() == "new_test");
+    CHECK_THROWS_AS(doc.get_layer("test"), LinpipeError);
+  }
+
+  SUBCASE("throws exception upon renaming non-existent layer") {
+    CHECK_THROWS_AS(doc.rename_layer("bad_name", "new_test"), LinpipeError);
+  }
+
+}
+
 } // namespace linpipe
