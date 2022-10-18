@@ -13,23 +13,22 @@
 
 namespace linpipe::formats {
 
-bool Text::load(Document& document, istream& input, const string_view source_path, const string_view name) {
+bool Text::load(Document& document, istream& input, const string_view source_path) {
   stringstream strStream;
   strStream << input.rdbuf();
 
-  unique_ptr<linpipe::layers::Text> layer = unique_ptr<linpipe::layers::Text>(new linpipe::layers::Text());
+  unique_ptr<linpipe::layers::Text> layer = make_unique<linpipe::layers::Text>();
   layer->text = strStream.str();
-  layer->set_name(name);
+  layer->set_name(_name);
 
   document.add_layer(move(layer));
-
   document.set_source_path(source_path);
 
   return !input.eof();
 }
 
-void Text::save(Document& document, ostream& output, const string_view name) {
-  linpipe::Layer& layer = document.get_layer(name);
+void Text::save(Document& document, ostream& output) {
+  linpipe::Layer& layer = document.get_layer(_name);
 
   Json json = Json::object();
   layer.to_json(json);

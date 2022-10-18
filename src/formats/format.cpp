@@ -18,4 +18,12 @@ unique_ptr<Format> Format::create(const string_view description) {
   return nullptr;
 }
 
+const string& Format::name() {
+  return _name;
+}
+
+void Format::set_name(const string_view name) {
+  _name = name;
+}
+
 } // namespace linpipe

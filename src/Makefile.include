@@ -9,4 +9,4 @@
 
 LINPIPE_OBJECTS = core/document core/pipeline formats/format formats/text layers/layer layers/text operations/operation
 
-LINPIPE_TESTS = core/document_test core/pipeline_test layers/text_test lib/json_test
+LINPIPE_TESTS = core/document_test core/pipeline_test formats/text_test layers/text_test lib/json_test

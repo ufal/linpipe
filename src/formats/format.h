@@ -20,11 +20,15 @@ class Format {
 
   static unique_ptr<Format> create(const string_view description);
 
-  virtual bool load(Document& document, istream& input, const string_view source_path, const string_view name="layer") = 0;
-  virtual void save(Document& document, ostream& output, const string_view name="layer") = 0;
+  virtual bool load(Document& document, istream& input, const string_view source_path) = 0;
+  virtual void save(Document& document, ostream& output) = 0;
+
+  const string& name();
+  void set_name(const string_view name);
 
  protected:
-  Format() {};
+  Format(const string_view name) : _name(name) {};
+  string _name;
 };
 
 } // namespace linpipe
