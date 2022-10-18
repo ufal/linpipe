@@ -11,7 +11,7 @@
 
 namespace linpipe {
 
-Layer* Document::get_layer(const string_view name) {
+Layer& Document::get_layer(const string_view name) {
 }
 
 Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {

@@ -29,10 +29,10 @@ bool Text::load(Document& document, istream& input, const string_view source_pat
 }
 
 void Text::save(Document& document, ostream& output, const string_view name) {
-  linpipe::Layer* layer = document.get_layer(name);
+  linpipe::Layer& layer = document.get_layer(name);
 
   Json json = Json::object();
-  layer->to_json(json);
+  layer.to_json(json);
 
   output << json["text"];
 }
