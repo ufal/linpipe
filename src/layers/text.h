@@ -23,4 +23,4 @@ class Text : public Layer {
   string text;
 };
 
-} // namespace linpipe
+} // namespace linpipe::layers

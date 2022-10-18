@@ -41,4 +41,4 @@ TEST_CASE("formats::Text::load") {
   }
 }
 
-} // namespace linpipe::formats
+} // namespace linpipe

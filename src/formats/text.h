@@ -21,4 +21,4 @@ class Text : public Format {
   Text() : Format("text") {};
 };
 
-} // namespace linpipe
+} // namespace linpipe::formats

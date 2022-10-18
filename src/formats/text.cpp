@@ -36,4 +36,4 @@ void Text::save(Document& document, ostream& output) {
   output << json["text"];
 }
 
-} // namespace linpipe
+} // namespace linpipe::formats

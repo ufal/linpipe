@@ -25,4 +25,4 @@ void Text::to_json(Json& json) {
 void Text::to_html(string& /*html*/) {
 }
 
-} // namespace linpipe
+} // namespace linpipe::layers
