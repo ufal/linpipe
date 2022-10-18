@@ -13,6 +13,28 @@
 
 namespace linpipe {
 
+TEST_CASE("Document::get_layer") {
+  Document doc;
+
+  SUBCASE("throws exception when document has no layers") {
+    CHECK_THROWS_AS(doc.get_layer("test"), LinpipeError);
+  }
+
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
+  layer->set_name("test");
+  doc.add_layer(move(layer));
+
+  SUBCASE("gets layer of given name") {
+    CHECK_NOTHROW(doc.get_layer("test"));
+    CHECK(doc.get_layer("test").name() == "test");
+  }
+
+  SUBCASE("throws exception when layer of given name not found") {
+    CHECK_THROWS_AS(doc.get_layer("bad_name"), LinpipeError);
+  }
+
+}
+
 TEST_CASE("Document::add_layer") {
   Document doc;
 

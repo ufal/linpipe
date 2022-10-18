@@ -7,11 +7,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+
 #include "core/document.h"
 
 namespace linpipe {
 
 Layer& Document::get_layer(const string_view name) {
+  auto it = find_if(_layers.begin(), _layers.end(), [&](const unique_ptr<Layer>& l) { return l->name() == name; });
+
+  if (it == _layers.end()) {
+    throw LinpipeError{"Document::get_layer: Layer '", name, "' was not found in document."};
+  }
+
+  return **it;
 }
 
 Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
