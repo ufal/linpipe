@@ -44,4 +44,26 @@ TEST_CASE("Document::add_layer") {
   }
 }
 
+TEST_CASE("Document::del_layer") {
+  Document doc;
+
+  SUBCASE("throws exception when attempting to erase from empty layers") {
+    CHECK_THROWS_AS(doc.del_layer("test"), LinpipeError);
+  }
+
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
+  layer->set_name("test");
+  doc.add_layer(move(layer));
+
+  SUBCASE("throws exception when attempting to erase non-existent layer") {
+    CHECK_THROWS_AS(doc.del_layer("bad_name"), LinpipeError);
+  }
+
+  SUBCASE("deleting layer decreases size of layers") {
+    doc.del_layer("test");
+    CHECK(doc.layers().size() == 0);
+  }
+
+}
+
 } // namespace linpipe
