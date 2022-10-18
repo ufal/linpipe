@@ -23,7 +23,7 @@ Layer& Document::get_layer(const string_view name) {
   return **it;
 }
 
-Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
+Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool /*unique_name_if_duplicate*/) {
   // TODO: Document is responsible for maintaining unique layer names.
 
   _layers.push_back(move(layer));
