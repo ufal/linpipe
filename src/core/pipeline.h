@@ -16,7 +16,7 @@ namespace linpipe {
 
 class Pipeline {
  public:
-  static unique_ptr<Pipeline> create(const string_view description);
+  Pipeline(const string_view description);
 
   bool execute(Corpus& corpus);
 

@@ -11,7 +11,7 @@
 
 namespace linpipe {
 
-unique_ptr<Pipeline> Pipeline::create(const string_view description) {
+Pipeline::Pipeline(const string_view description) {
   // TODO: Construct the pipeline
   throw LinpipeError{"Pipeline::create: Invalid description '", description, "'"};
 }
