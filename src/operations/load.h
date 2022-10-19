@@ -16,7 +16,7 @@
 
 namespace linpipe {
 
-class Load : Operation {
+class Load : public Operation {
  public:
   Load(const string_view description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;

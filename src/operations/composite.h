@@ -16,7 +16,7 @@
 
 namespace linpipe {
 
-class Composite : Operation {
+class Composite : public Operation {
  public:
   Composite(const string_view description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
