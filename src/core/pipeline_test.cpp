@@ -13,8 +13,8 @@
 namespace linpipe {
 
 TEST_CASE("Pipeline::create") {
-  CHECK_THROWS_AS(Pipeline::create(""), LinpipeError);
-  CHECK_THROWS_WITH_AS(Pipeline::create(""), "Pipeline::create: Invalid description ''", LinpipeError);
+  CHECK_THROWS_AS(Pipeline(""), LinpipeError);
+  CHECK_THROWS_WITH_AS(Pipeline(""), "Pipeline::create: Invalid description ''", LinpipeError);
 }
 
 } // namespace linpipe
