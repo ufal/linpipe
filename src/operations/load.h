@@ -12,6 +12,7 @@
 #include "common.h"
 #include "core/corpus.h"
 #include "core/pipeline_state.h"
+#include "formats/format.h"
 #include "operations/operation.h"
 
 namespace linpipe {
@@ -20,6 +21,10 @@ class Load : public Operation {
  public:
   Load(const string_view description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
+
+ private:
+  unique_ptr<Format> _format;
+
 };
 
 } // namespace linpipe

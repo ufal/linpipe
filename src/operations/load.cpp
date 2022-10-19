@@ -7,23 +7,25 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
 #include "common.h"
-#include "core/corpus.h"
-#include "core/pipeline_state.h"
-#include "operations/operation.h"
+#include "operations/load.h"
+#include "operations/utils/arguments.h"
 
 namespace linpipe {
 
-Load::Load(const string_view /*description*/) {
-  // TODO
+Load::Load(const string_view description) {
+  unordered_map<string, string> args;
+
+  Arguments arguments;
+  arguments.parse(args, description);
+
+  _format = Format::create(args["format"]);
+
+  // TODO: process other arguments
 }
 
 void Load::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
   // TODO
 }
-
-};
 
 } // namespace linpipe

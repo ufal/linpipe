@@ -25,8 +25,8 @@ class Operation {
 
   virtual void reserve_models(PipelineState& state);
 
- private:
-  Operation();
+ protected:
+  Operation() {};
 };
 
 } // namespace linpipe

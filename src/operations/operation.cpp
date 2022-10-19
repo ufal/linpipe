@@ -33,6 +33,10 @@ unique_ptr<Operation> Operation::create(const string_view description) {
   //  }
   //}
 
+  if (description.rfind("-load", 0) == 0) { // Load
+    return make_unique<Load>(description);
+  }
+
   // Something went wrong, description was not parsed.
   throw LinpipeError{"Operation::create: Invalid description '", description, "'"};
 }
