@@ -19,5 +19,19 @@ int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; i++)
     cout << "Argument: " << argv[i] << endl;
 
+  // Concatenate commandline arguments into a string description
+  string description= "";
+  for (int i = 1; i < argc; i++) {
+    description.append(" ").append(string(argv[i]));
+  }
+
+  // Create pipeline
+  try {
+    Pipeline pipeline = Pipeline(description);
+  }
+  catch (LinpipeError& error) {
+    cerr << error.what() << endl;
+  }
+
   return 0;
 }

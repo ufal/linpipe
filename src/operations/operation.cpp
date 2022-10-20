@@ -33,7 +33,7 @@ unique_ptr<Operation> Operation::create(const string_view description) {
   //  }
   //}
 
-  if (description.rfind("-load", 0) == 0) { // Load
+  if (description.rfind(" -load", 0) == 0) { // Load
     return make_unique<operations::Load>(description);
   }
 
