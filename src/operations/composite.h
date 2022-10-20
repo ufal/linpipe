@@ -14,7 +14,7 @@
 #include "core/pipeline_state.h"
 #include "operations/operation.h"
 
-namespace linpipe {
+namespace linpipe::operations {
 
 class Composite : public Operation {
  public:
@@ -22,4 +22,4 @@ class Composite : public Operation {
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 };
 
-} // namespace linpipe
+} // namespace linpipe::operations

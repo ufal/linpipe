@@ -15,7 +15,7 @@
 #include "formats/format.h"
 #include "operations/operation.h"
 
-namespace linpipe {
+namespace linpipe::operations {
 
 class Load : public Operation {
  public:
@@ -27,4 +27,4 @@ class Load : public Operation {
 
 };
 
-} // namespace linpipe
+} // namespace linpipe::operations

@@ -11,7 +11,7 @@
 #include "operations/load.h"
 #include "operations/utils/arguments.h"
 
-namespace linpipe {
+namespace linpipe::operations {
 
 Load::Load(const string_view description) {
   unordered_map<string, string> args;
@@ -28,4 +28,4 @@ void Load::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
   // TODO
 }
 
-} // namespace linpipe
+} // namespace linpipe::operations
