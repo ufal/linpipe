@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "operations/load.h"
-#include "operations/utils/arguments.h"
+#include "utils/arguments.h"
 
 namespace linpipe::operations {
 
