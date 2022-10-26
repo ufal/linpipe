@@ -7,20 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include "operations/composite.h"
 
-#include <unordered_map>
+namespace linpipe::operations {
 
-#include "common.h"
+Composite::Composite(const string_view /*description*/) {
+  // TODO
+}
 
-namespace linpipe {
-
-class Arguments {
- public:
-  void parse_operations(vector<string_view>& operations, const string_view description);
-  void parse(unordered_map<string, string>& args, const string_view description);
- private:
-  size_t _find_next_operation(const string_view description, size_t offset);
+void Composite::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
+  // TODO
 };
 
-} // namespace linpipe
+} // namespace linpipe::operations

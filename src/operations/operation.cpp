@@ -10,31 +10,29 @@
 #include "operations/composite.h"
 #include "operations/load.h"
 #include "operations/operation.h"
+#include "utils/arguments.h"
 
 namespace linpipe {
 
 unique_ptr<Operation> Operation::create(const string_view description) {
-  // TODO:
-  // We want something along these lines, but with a third-party regex lib.
+  vector<string_view> descriptions;
 
-  //regex rx("-[a-z]+");
+  Arguments _args;
+  _args.parse_operations(descriptions, description);
 
-  //auto words_begin = sregex_iterator(description.begin(), description.end(), rx);
-  //auto words_end = sregex_iterator();
+  // Not sure if this can actually happen, probably will be already detected
+  // and thrown inside parse_operations.
+  if (descriptions.size() == 0) {
+    throw LinpipeError{"No operation specified in description '", description, "'"};
+  }
 
-  //int n = distance(words_begin, words_end);
-
-  //if (n > 1) { // Composite
-  //  return make_unique<Composite>(description);
-  //}
-  //else { // Simple operations
-  //  if (description.rfind("-load", 0) == 0) { // Load
-  //    return make_unique<Load>(description);
-  //  }
-  //}
-
-  if (description.rfind(" -load", 0) == 0) { // Load
-    return make_unique<operations::Load>(description);
+  if (descriptions.size() > 1) {  // Composite
+    return make_unique<operations::Composite>(description);
+  }
+  else {  // simple (leaf) operations
+    if (description.rfind(" -load", 0) == 0) { // Load
+      return make_unique<operations::Load>(description);
+    }
   }
 
   // Something went wrong, description was not parsed.
