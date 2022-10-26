@@ -13,15 +13,18 @@
 namespace linpipe::operations {
 
 Save::Save(const string_view description) {
+  // Create arguments map and fill default values
   unordered_map<string, string> args;
-  // TODO fill arguments with default values
+  args["format"] = "lif";
+  args["target_path"] = "";
 
+  // Parse arguments
   Arguments arguments;
   arguments.parse_arguments(args, description);
 
+  // Process parsed arguments
   _format = Format::create(args["format"]);
-
-  // TODO: process other arguments
+  _target_path = args["target_path"];
 }
 
 void Save::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {

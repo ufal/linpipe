@@ -21,7 +21,7 @@ class Save : public Operation {
 
  private:
   unique_ptr<Format> _format;
-
+  string _target_path;
 };
 
 } // namespace linpipe::operations
