@@ -8,11 +8,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "operations/composite.h"
+#include "utils/arguments.h"
 
 namespace linpipe::operations {
 
-Composite::Composite(const string_view /*description*/) {
-  // TODO
+Composite::Composite(const string_view description) {
+  vector<string_view> descriptions;
+
+  Arguments args;
+  args.parse_operations(descriptions, description);
+
+  for (string_view d : descriptions) {
+    _operations.push_back(Operation::create(d));
+  }
 }
 
 void Composite::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
