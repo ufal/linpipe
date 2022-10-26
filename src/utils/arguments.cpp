@@ -56,7 +56,7 @@ size_t Arguments::_find_next_operation(const string_view description, size_t off
       return op;
     }
 
-    offset = op; // argument found, search further
+    offset = op+2; // argument found, search further
   }
 
   return string_view::npos;
