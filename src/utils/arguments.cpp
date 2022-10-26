@@ -12,25 +12,20 @@
 
 namespace linpipe {
 
-void Arguments::parse_operations(vector<string_view>& operations, const string_view description) {
+void Arguments::parse_operations(vector<string_view>& descriptions, const string_view description) {
   size_t start = 0;
 
-  while (start != string_view::npos) {
+  while (start < description.length()) {
     // At this position, operation name should be found
     size_t op = _find_next_operation(description, start);
 
-    if (op == string_view::npos || op != start) {
+    if (op != start) {
       throw LinpipeError{"Operation name expected in description at position '", description.substr(start), "'"};
     }
 
     // Find next operation
     size_t next = _find_next_operation(description, op+2);
-    if (next == string_view::npos) { // can I subtract from string_view::npos?
-      operations.push_back(description.substr(op));
-    }
-    else {
-      operations.push_back(description.substr(op, next-op));
-    }
+    descriptions.push_back(description.substr(op, next-op));
 
     start = next;
   }
@@ -42,8 +37,8 @@ void Arguments::parse(unordered_map<string, string>& /*args*/, const string_view
 
 size_t Arguments::_find_next_operation(const string_view description, size_t offset) {
 
-  while (offset != string_view::npos) {
-    size_t op = description.rfind(" -", offset);
+  while (offset < description.length()) {
+    size_t op = description.find(" -", offset);
 
     if (op == string_view::npos) { // not found
       return string_view::npos;
@@ -64,7 +59,7 @@ size_t Arguments::_find_next_operation(const string_view description, size_t off
     offset = op; // argument found, search further
   }
 
-  return offset;
+  return string_view::npos;
 }
 
 } // namespace linpipe

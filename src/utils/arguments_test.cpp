@@ -7,20 +7,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include <unordered_map>
-
-#include "common.h"
+#include "lib/doctest.h"
+#include "utils/arguments.h"
 
 namespace linpipe {
 
-class Arguments {
- public:
-  void parse_operations(vector<string_view>& descriptions, const string_view description);
-  void parse(unordered_map<string, string>& args, const string_view description);
- private:
-  size_t _find_next_operation(const string_view description, size_t offset);
-};
+TEST_CASE("Arguments::parse_operations") {
+  Arguments args;
+  vector<string_view> parsed;
+  vector<string_view> gold;
+
+  SUBCASE("parses single operation name") {
+    gold.push_back(" -load");
+    CHECK_NOTHROW(args.parse_operations(parsed, " -load"));
+    CHECK(parsed == gold);
+  }
+}
 
 } // namespace linpipe
