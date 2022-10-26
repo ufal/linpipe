@@ -17,8 +17,8 @@ namespace linpipe {
 unique_ptr<Operation> Operation::create(const string_view description) {
   vector<string_view> descriptions;
 
-  Arguments _args;
-  _args.parse_operations(descriptions, description);
+  Arguments args;
+  args.parse_operations(descriptions, description);
 
   // Not sure if this can actually happen, probably will be already detected
   // and thrown inside parse_operations.
