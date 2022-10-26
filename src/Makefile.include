@@ -11,7 +11,7 @@ LINPIPE_OBJECTS = core/document core/pipeline
 LINPIPE_OBJECTS += formats/format formats/text
 LINPIPE_OBJECTS += layers/layer layers/text
 LINPIPE_OBJECTS += models/model_manager
-LINPIPE_OBJECTS += operations/composite operations/load operations/operation
+LINPIPE_OBJECTS += operations/composite operations/load operations/operation operations/save
 LINPIPE_OBJECTS += utils/arguments
 
 LINPIPE_TESTS = core/document_test core/pipeline_test

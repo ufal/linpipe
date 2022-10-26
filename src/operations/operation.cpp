@@ -10,6 +10,7 @@
 #include "operations/composite.h"
 #include "operations/load.h"
 #include "operations/operation.h"
+#include "operations/save.h"
 #include "utils/arguments.h"
 
 namespace linpipe {
@@ -30,8 +31,11 @@ unique_ptr<Operation> Operation::create(const string_view description) {
     return make_unique<operations::Composite>(description);
   }
   else {  // simple (leaf) operations
-    if (description.rfind(" -load", 0) == 0) { // Load
+    if (description.find(" -load", 0) == 0) { // Load
       return make_unique<operations::Load>(description);
+    }
+    if (description.find(" -save", 0) == 0) { // Save
+      return make_unique<operations::Save>(description);
     }
   }
 
