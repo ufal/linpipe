@@ -31,7 +31,7 @@ void Arguments::parse_operations(vector<string_view>& descriptions, const string
   }
 }
 
-void Arguments::parse_arguments(unordered_map<string, string>& /*args*/, const string_view /*description*/) {
+void Arguments::parse_arguments(unordered_map<string, string>& /*args*/, vector<string>& /*kwargs*/, const string_view /*description*/) {
   // TODO
 }
 
