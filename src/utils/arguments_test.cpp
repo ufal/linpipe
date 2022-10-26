@@ -22,6 +22,27 @@ TEST_CASE("Arguments::parse_operations") {
     CHECK_NOTHROW(args.parse_operations(parsed, " -load"));
     CHECK(parsed == gold);
   }
+
+  SUBCASE("parses single operation with argument") {
+    gold.push_back(" -load --format=text");
+    CHECK_NOTHROW(args.parse_operations(parsed, " -load --format=text"));
+    CHECK(parsed == gold);
+  }
+
+  SUBCASE("parses two operations") {
+    gold.push_back(" -load");
+    gold.push_back(" -save");
+    CHECK_NOTHROW(args.parse_operations(parsed, " -load -save"));
+    CHECK(parsed == gold);
+  }
+
+  SUBCASE("parses two operations with arguments") {
+    gold.push_back(" -load --format=text");
+    gold.push_back(" -save --format=text");
+    CHECK_NOTHROW(args.parse_operations(parsed, " -load --format=text -save --format=text"));
+    CHECK(parsed == gold);
+  }
+
 }
 
 } // namespace linpipe
