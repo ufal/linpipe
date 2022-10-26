@@ -17,7 +17,7 @@ Load::Load(const string_view description) {
   unordered_map<string, string> args;
 
   Arguments arguments;
-  arguments.parse(args, description);
+  arguments.parse_arguments(args, description);
 
   _format = Format::create(args["format"]);
 
