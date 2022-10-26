@@ -24,7 +24,7 @@ class Load : public Operation {
 
  private:
   unique_ptr<Format> _format;
-
+  string _source_path;
 };
 
 } // namespace linpipe::operations

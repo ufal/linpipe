@@ -14,15 +14,18 @@
 namespace linpipe::operations {
 
 Load::Load(const string_view description) {
+  // Create arguments map and fill default values
   unordered_map<string, string> args;
-  // TODO fill arguments with default values
+  args["format"] = "lif";
+  args["source_path"] = "";
 
+  // Parse arguments
   Arguments arguments;
   arguments.parse_arguments(args, description);
 
+  // Process parsed arguments
   _format = Format::create(args["format"]);
-
-  // TODO: process other arguments
+  _source_path = args["source_path"];
 }
 
 void Load::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
