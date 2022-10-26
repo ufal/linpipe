@@ -15,6 +15,7 @@ namespace linpipe::operations {
 
 Load::Load(const string_view description) {
   unordered_map<string, string> args;
+  // TODO fill arguments with default values
 
   Arguments arguments;
   arguments.parse_arguments(args, description);
