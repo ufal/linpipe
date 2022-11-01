@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
+#include "core/corpus.h"
 #include "core/pipeline.h"
 
 using namespace linpipe;
@@ -25,9 +26,12 @@ int main(int argc, char* argv[]) {
     description.append(" ").append(string(argv[i]));
   }
 
-  // Create pipeline
+  // Create and execute pipeline
   try {
     Pipeline pipeline = Pipeline(description);
+
+    Corpus corpus;
+    pipeline.execute(corpus);
   }
   catch (LinpipeError& error) {
     cerr << error.what() << endl;
