@@ -9,7 +9,6 @@
 
 #include <fstream>
 
-#include "common.h"
 #include "operations/load.h"
 #include "utils/arguments.h"
 

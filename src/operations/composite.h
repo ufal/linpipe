@@ -9,9 +9,6 @@
 
 #pragma once
 
-#include "common.h"
-#include "core/corpus.h"
-#include "core/pipeline_state.h"
 #include "operations/operation.h"
 
 namespace linpipe::operations {
