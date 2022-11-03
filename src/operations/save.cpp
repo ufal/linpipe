@@ -37,8 +37,14 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
         _format->save(corpus.documents[i], *state.default_output);
       }
       else {
-        // TODO: derive a similar target path by appending some other extension
-        // to document's source path and print there
+        // TODO: decide on the exact default output extension
+        string target_path = corpus.documents[i].source_path() + "out";
+        ofstream output_file;
+        output_file.open(target_path);
+        if (!output_file) {
+          throw LinpipeError{"Could not open target path '", target_path, "' for writing"};
+        }
+        _format->save(corpus.documents[i], output_file);
       }
     }
   }
