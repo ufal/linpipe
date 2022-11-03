@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <fstream>
+
 #include "operations/save.h"
 #include "utils/arguments.h"
 
@@ -28,8 +30,34 @@ Save::Save(const string_view description) {
   _target_paths = kwargs;
 }
 
-void Save::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
-  // TODO
+void Save::execute(Corpus& corpus, PipelineState& /*state*/) {
+  if (_target_paths.empty()) { // no required outputs
+  }
+  else { // custom target paths
+    if (_target_paths.size() == 1) {  // append everything to one file
+      ofstream output_file;
+      output_file.open(_target_paths[0]);
+      if (!output_file) {
+        throw LinpipeError{"Could not open target path '", _target_paths[0], "' for writing"};
+      }
+      for (unsigned int i = 0; i < corpus.documents.size(); i++) {
+        _format->save(corpus.documents[i], output_file);
+      }
+    }
+    else { // 1 target path = 1 document
+      if (_target_paths.size() != corpus.documents.size()) {
+        throw LinpipeError{"Number of target paths in -save operation is not equal to the number of documents in the corpus'"};
+      }
+      for (unsigned int i = 0; i < _target_paths.size(); i++) {
+        ofstream output_file;
+        output_file.open(_target_paths[i]);
+        if (!output_file) {
+          throw LinpipeError{"Could not open target path '", _target_paths[i], "' for writing"};
+        }
+        _format->save(corpus.documents[i], output_file);
+      }
+    }
+  }
 }
 
 } // namespace linpipe::operations
