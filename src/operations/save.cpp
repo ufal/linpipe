@@ -16,7 +16,9 @@ Save::Save(const string_view description) {
   // Parse arguments
   unordered_map<string, string> args;
   vector<string> kwargs;
-  args["format"] = "lif";
+  // TODO: make "lif" default once implemented
+  // args["format"] = "lif";
+  args["format"] = "text";
 
   Arguments arguments;
   arguments.parse_arguments(args, kwargs, description);

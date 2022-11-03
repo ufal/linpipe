@@ -7,7 +7,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-LINPIPE_OBJECTS = core/document core/pipeline
+LINPIPE_OBJECTS = core/document core/pipeline core/pipeline_state
 LINPIPE_OBJECTS += formats/format formats/text
 LINPIPE_OBJECTS += layers/layer layers/text
 LINPIPE_OBJECTS += models/model_manager

@@ -13,9 +13,11 @@
 namespace linpipe {
 
 unique_ptr<Format> Format::create(const string_view description) {
-  if (description == "text") return make_unique<formats::Text>();
+  if (description == "text") {
+      return make_unique<formats::Text>();
+  }
 
-  return nullptr;
+  throw LinpipeError{"Invalid value '", description, "' for the --format argument of the -load operation'"};
 }
 
 const string& Format::name() {

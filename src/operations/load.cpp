@@ -18,7 +18,9 @@ Load::Load(const string_view description) {
   // Parse arguments
   unordered_map<string, string> args;
   vector<string> kwargs;
-  args["format"] = "lif";
+  // TODO: make "lif" default once implemented
+  // args["format"] = "lif";
+  args["format"] = "text";
 
   Arguments arguments;
   arguments.parse_arguments(args, kwargs, description);
@@ -28,22 +30,28 @@ Load::Load(const string_view description) {
   _source_paths = kwargs;
 }
 
-void Load::execute(Corpus& corpus, PipelineState& /*state*/) {
-  // TODO handle empty _source_paths (stdin?)
-
-  for (string source_path : _source_paths) {
-    ifstream input;
-    input.open(source_path);
-    if (!input) {
-      throw LinpipeError{"Could not open source path '", source_path, "'"};
+void Load::execute(Corpus& corpus, PipelineState& state) {
+  if (_source_paths.empty()) {  // default input
+    _read_from_handle(corpus, *state.default_input, "");
+  }
+  else {  // file inputs
+    for (string source_path : _source_paths) {
+      ifstream input_file;
+      input_file.open(source_path);
+      if (!input_file) {
+        throw LinpipeError{"Could not open source path '", source_path, "' for reading"};
+      }
+      _read_from_handle(corpus, input_file, source_path);
     }
+  }
+}
 
-    bool documents_to_read = true;
-    while (documents_to_read) {
-      Document doc;
-      documents_to_read = _format->load(doc, input, source_path);
-      corpus.documents.push_back(move(doc));
-    }
+void Load::_read_from_handle(Corpus& corpus, istream& input, const string_view source_path) {
+  bool documents_to_read = true;
+  while (documents_to_read) {
+    Document doc;
+    documents_to_read = _format->load(doc, input, source_path);
+    corpus.documents.push_back(move(doc));
   }
 }
 

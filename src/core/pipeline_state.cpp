@@ -7,24 +7,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
-#include "common.h"
-#include "models/model_manager.h"
+#include "core/pipeline_state.h"
 
 namespace linpipe {
 
-enum class Server { local, web };
+PipelineState::PipelineState(Server a_server):
+  model_manager(&ModelManager::singleton),
+  server(a_server) {
 
-class PipelineState {
- public:
-  PipelineState(Server a_server = Server::local);
-
-  ModelManager* model_manager;
-
-  Server server;
-
-  istream* default_input;
-};
+    switch (server) {
+      case Server::local : default_input = &cin; break;
+      case Server::web : break; // TODO
+    }
+  }
 
 } // namespace linpipe

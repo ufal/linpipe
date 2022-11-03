@@ -20,6 +20,8 @@ class Load : public Operation {
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 
  private:
+  void _read_from_handle(Corpus& corpus, istream& input_file, const string_view source_path);
+
   unique_ptr<Format> _format;
   vector<string> _source_paths;
 };
