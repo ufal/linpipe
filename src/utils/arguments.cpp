@@ -31,8 +31,34 @@ void Arguments::parse_operations(vector<string_view>& descriptions, const string
   }
 }
 
-void Arguments::parse_arguments(unordered_map<string, string>& /*args*/, vector<string>& /*kwargs*/, const string_view /*description*/) {
-  // TODO
+void Arguments::parse_arguments(unordered_map<string_view, string_view>& args, vector<string_view>& kwargs, const string_view description) {
+  // Everything must be separated by space.
+  // TODO: Add values separated by "=" (--format="text") and quotes.
+
+  size_t start = 1; // skip leading space
+  size_t pos = 0;
+  string argument = "";
+  while (pos != string_view::npos) {
+    pos = description.find(' ', start);
+    string_view token = description.substr(start, pos);
+
+    if (start > 1) { // skip operation name
+      if (token.find("--") == 0) { // argument found
+        argument = token;
+      }
+      else {
+        if (argument.empty()) {
+          kwargs.push_back(token);
+        }
+        else {
+          args[argument] = token;
+          argument = "";
+        }
+      }
+    }
+
+    start = pos+1;
+  }
 }
 
 size_t Arguments::_find_next_operation(const string_view description, size_t offset) {

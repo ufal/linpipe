@@ -23,7 +23,7 @@ class Load : public Operation {
   void _read_from_handle(Corpus& corpus, istream& input_file, const string_view source_path);
 
   unique_ptr<Format> _format;
-  vector<string> _source_paths;
+  vector<string_view> _source_paths;
 };
 
 } // namespace linpipe::operations

@@ -16,8 +16,8 @@ namespace linpipe::operations {
 
 Load::Load(const string_view description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  unordered_map<string_view, string_view> args;
+  vector<string_view> kwargs;
   // TODO: make "lif" default once implemented
   // args["format"] = "lif";
   args["format"] = "text";
@@ -35,9 +35,9 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
     _read_from_handle(corpus, *state.default_input, "");
   }
   else {  // file inputs
-    for (string source_path : _source_paths) {
+    for (string_view source_path : _source_paths) {
       ifstream input_file;
-      input_file.open(source_path);
+      input_file.open({source_path.begin(), source_path.end()});
       if (!input_file) {
         throw LinpipeError{"Could not open source path '", source_path, "' for reading"};
       }

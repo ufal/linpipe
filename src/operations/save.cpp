@@ -16,8 +16,8 @@ namespace linpipe::operations {
 
 Save::Save(const string_view description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  unordered_map<string_view, string_view> args;
+  vector<string_view> kwargs;
   // TODO: make "lif" default once implemented
   // args["format"] = "lif";
   args["format"] = "text";
@@ -51,7 +51,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   else { // custom target paths
     if (_target_paths.size() == 1) {  // append everything to one file
       ofstream output_file;
-      output_file.open(_target_paths[0]);
+      output_file.open({_target_paths[0].begin(), _target_paths[0].end()});
       if (!output_file) {
         throw LinpipeError{"Could not open target path '", _target_paths[0], "' for writing"};
       }
@@ -65,7 +65,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       }
       for (unsigned int i = 0; i < _target_paths.size(); i++) {
         ofstream output_file;
-        output_file.open(_target_paths[i]);
+        output_file.open({_target_paths[i].begin(), _target_paths[i].end()});
         if (!output_file) {
           throw LinpipeError{"Could not open target path '", _target_paths[i], "' for writing"};
         }

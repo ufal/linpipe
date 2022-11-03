@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <unordered_map>
+
 #include "lib/doctest.h"
 #include "utils/arguments.h"
 
@@ -42,7 +44,21 @@ TEST_CASE("Arguments::parse_operations") {
     CHECK_NOTHROW(args.parse_operations(parsed, " -load --format=text -save --format=text"));
     CHECK(parsed == gold);
   }
+}
 
+TEST_CASE("Arguments::parse_arguments") {
+  Arguments parser;
+  unordered_map<string_view, string_view> args;
+  vector<string_view> kwargs;
+  unordered_map<string_view, string_view> gold_args;
+  vector<string_view> gold_kwargs;
+
+  SUBCASE("parses 1 kwarg in 1 operation") {
+    gold_kwargs.push_back("test.in");
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " -load test.in"));
+    CHECK(gold_args == args);
+    CHECK(gold_kwargs == kwargs);
+  }
 }
 
 } // namespace linpipe
