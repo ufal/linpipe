@@ -25,6 +25,7 @@ class PipelineState {
   Server server;
 
   istream* default_input;
+  ostream* default_output;
 };
 
 } // namespace linpipe
