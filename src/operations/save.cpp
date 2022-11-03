@@ -38,7 +38,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       }
       else {
         // TODO: decide on the exact default output extension
-        string target_path = corpus.documents[i].source_path() + "out";
+        string target_path = corpus.documents[i].source_path() + ".out";
         ofstream output_file;
         output_file.open(target_path);
         if (!output_file) {
