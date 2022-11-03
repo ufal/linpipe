@@ -30,8 +30,17 @@ Save::Save(const string_view description) {
   _target_paths = kwargs;
 }
 
-void Save::execute(Corpus& corpus, PipelineState& /*state*/) {
+void Save::execute(Corpus& corpus, PipelineState& state) {
   if (_target_paths.empty()) { // no required outputs
+    for (unsigned int i = 0; i < corpus.documents.size(); i++) {
+      if (corpus.documents[i].source_path().empty()) {  // was read from cin => print to cout
+        _format->save(corpus.documents[i], *state.default_output);
+      }
+      else {
+        // TODO: derive a similar target path by appending some other extension
+        // to document's source path and print there
+      }
+    }
   }
   else { // custom target paths
     if (_target_paths.size() == 1) {  // append everything to one file
