@@ -23,8 +23,10 @@ Composite::Composite(const string_view description) {
   }
 }
 
-void Composite::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
-  // TODO
+void Composite::execute(Corpus& corpus, PipelineState& state) {
+  for (unsigned int i = 0; i < _operations.size(); i++) {
+    _operations[i]->execute(corpus, state);
+  }
 };
 
 } // namespace linpipe::operations
