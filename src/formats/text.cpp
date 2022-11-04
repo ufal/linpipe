@@ -34,7 +34,7 @@ void Text::save(Document& document, ostream& output) {
   Json json = Json::object();
   layer.to_json(json);
 
-  output << json["text"];
+  output << string(json["text"]);
 }
 
 } // namespace linpipe::formats
