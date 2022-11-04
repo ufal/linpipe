@@ -51,7 +51,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   else { // custom target paths
     if (_target_paths.size() == 1) {  // append everything to one file
       ofstream output_file;
-      output_file.open({_target_paths[0].begin(), _target_paths[0].end()});
+      output_file.open(string(_target_paths[0]));
       if (!output_file) {
         throw LinpipeError{"Could not open target path '", _target_paths[0], "' for writing"};
       }
@@ -65,7 +65,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       }
       for (unsigned int i = 0; i < _target_paths.size(); i++) {
         ofstream output_file;
-        output_file.open({_target_paths[i].begin(), _target_paths[i].end()});
+        output_file.open(string(_target_paths[i]));
         if (!output_file) {
           throw LinpipeError{"Could not open target path '", _target_paths[i], "' for writing"};
         }

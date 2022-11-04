@@ -37,7 +37,7 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
   else {  // file inputs
     for (string_view source_path : _source_paths) {
       ifstream input_file;
-      input_file.open({source_path.begin(), source_path.end()});
+      input_file.open(string(source_path));
       if (!input_file) {
         throw LinpipeError{"Could not open source path '", source_path, "' for reading"};
       }
