@@ -9,6 +9,7 @@
 
 #include "layers/layer.h"
 #include "layers/text.h"
+#include "layers/tokenized_text.h"
 #include "lib/json.h"
 
 namespace linpipe {
@@ -17,8 +18,11 @@ unique_ptr<Layer> Layer::create(const string description) {
   if (description == "text") {
     return make_unique<layers::Text>(description);
   }
+  if (description == "tokenized_text") {
+    return make_unique<layers::TokenizedText>(description);
+  }
 
-  throw LinpipeError{"Layer::create: Cannot construct invalid type of layer '", description, "'"};
+  throw LinpipeError{"Layer::create: Cannot construct unknown type of layer '", description, "'"};
 }
 
 const string& Layer::name() {
