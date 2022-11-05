@@ -24,7 +24,6 @@ bool Lif::load(Document& document, istream& input, const string source_path) {
     string description = layer_json["name"];
     unique_ptr<Layer> layer = Layer::create(description);
     layer->from_json(layer_json);
-
     document.add_layer(move(layer));
   }
 
