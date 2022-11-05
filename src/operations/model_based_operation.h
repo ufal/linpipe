@@ -7,14 +7,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "operations/operation_with_model.h"
+#pragma once
+
+#include "operations/operation.h"
 
 namespace linpipe {
 
-void OperationWithModel::reserve_models(PipelineState& state) {
-  for (const string model_name : _model_names) {
-    state.model_manager->reserve(model_name);
-  }
-}
+class ModelBasedOperation : public Operation {
+ public:
+  virtual ~ModelBasedOperation() {}
+
+  virtual void reserve_models(PipelineState& state) override;
+ protected:
+  ModelBasedOperation(const vector<string> model_names) : _model_names(model_names) {};
+  const vector<string> _model_names;
+};
 
 } // namespace linpipe
