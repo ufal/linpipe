@@ -16,14 +16,14 @@ namespace linpipe::operations {
 
 class Load : public Operation {
  public:
-  Load(const string_view description);
+  Load(const string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 
  private:
-  void _read_from_handle(Corpus& corpus, istream& input_file, const string_view source_path);
+  void _read_from_handle(Corpus& corpus, istream& input_file, const string source_path);
 
   unique_ptr<Format> _format;
-  vector<string_view> _source_paths;
+  vector<string> _source_paths;
 };
 
 } // namespace linpipe::operations

@@ -18,16 +18,16 @@ class Format {
  public:
   virtual ~Format() {}
 
-  static unique_ptr<Format> create(const string_view description);
+  static unique_ptr<Format> create(const string description);
 
-  virtual bool load(Document& document, istream& input, const string_view source_path) = 0;
+  virtual bool load(Document& document, istream& input, const string source_path) = 0;
   virtual void save(Document& document, ostream& output) = 0;
 
   const string& name();
-  void set_name(const string_view name);
+  void set_name(const string name);
 
  protected:
-  Format(const string_view name) : _name(name) {};
+  Format(const string name) : _name(name) {};
   string _name;
 };
 

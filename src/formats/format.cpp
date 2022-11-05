@@ -8,13 +8,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "format.h"
+#include "lif.h"
 #include "text.h"
 
 namespace linpipe {
 
-unique_ptr<Format> Format::create(const string_view description) {
+unique_ptr<Format> Format::create(const string description) {
   if (description == "text") {
-      return make_unique<formats::Text>();
+    return make_unique<formats::Text>();
+  }
+  if (description == "lif") {
+    return make_unique<formats::Lif>();
   }
 
   throw LinpipeError{"Invalid value '", description, "' for the --format argument of the -load operation'"};
@@ -24,7 +28,7 @@ const string& Format::name() {
   return _name;
 }
 
-void Format::set_name(const string_view name) {
+void Format::set_name(const string name) {
   _name = name;
 }
 

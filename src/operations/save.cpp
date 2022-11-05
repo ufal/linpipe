@@ -14,10 +14,10 @@
 
 namespace linpipe::operations {
 
-Save::Save(const string_view description) {
+Save::Save(const string description) {
   // Parse arguments
-  unordered_map<string_view, string_view> args;
-  vector<string_view> kwargs;
+  unordered_map<string, string> args;
+  vector<string> kwargs;
   // TODO: make "lif" default once implemented
   // args["format"] = "lif";
   args["format"] = "text";
@@ -32,11 +32,11 @@ Save::Save(const string_view description) {
 
 void Save::execute(Corpus& corpus, PipelineState& state) {
   if (_target_paths.empty()) { // no required outputs
-    for (unsigned int i = 0; i < corpus.documents.size(); i++) {
-      if (corpus.documents[i].source_path().empty()) {  // was read from cin => print to cout
+    for (unsigned int i = 0; i < corpus.documents.size(); i++) { // cin => cout
+      if (corpus.documents[i].source_path().empty()) {
         _format->save(corpus.documents[i], *state.default_output);
       }
-      else {
+      else { // input files => output files
         // TODO: decide on the exact default output extension
         string target_path = corpus.documents[i].source_path() + ".out";
         ofstream output_file;
@@ -51,7 +51,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   else { // custom target paths
     if (_target_paths.size() == 1) {  // append everything to one file
       ofstream output_file;
-      output_file.open(string(_target_paths[0]));
+      output_file.open(_target_paths[0]);
       if (!output_file) {
         throw LinpipeError{"Could not open target path '", _target_paths[0], "' for writing"};
       }
@@ -65,7 +65,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       }
       for (unsigned int i = 0; i < _target_paths.size(); i++) {
         ofstream output_file;
-        output_file.open(string(_target_paths[i]));
+        output_file.open(_target_paths[i]);
         if (!output_file) {
           throw LinpipeError{"Could not open target path '", _target_paths[i], "' for writing"};
         }

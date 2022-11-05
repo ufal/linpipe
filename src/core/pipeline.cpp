@@ -11,7 +11,7 @@
 
 namespace linpipe {
 
-Pipeline::Pipeline(const string_view description) {
+Pipeline::Pipeline(const string description) {
   if (description.empty()) {
     throw LinpipeError{"Pipeline::create: Invalid description '", description, "'"};
   }

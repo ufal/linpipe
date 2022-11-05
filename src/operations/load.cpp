@@ -14,10 +14,10 @@
 
 namespace linpipe::operations {
 
-Load::Load(const string_view description) {
+Load::Load(const string description) {
   // Parse arguments
-  unordered_map<string_view, string_view> args;
-  vector<string_view> kwargs;
+  unordered_map<string, string> args;
+  vector<string> kwargs;
   // TODO: make "lif" default once implemented
   // args["format"] = "lif";
   args["format"] = "text";
@@ -35,7 +35,7 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
     _read_from_handle(corpus, *state.default_input, "");
   }
   else {  // file inputs
-    for (string_view source_path : _source_paths) {
+    for (string source_path : _source_paths) {
       ifstream input_file;
       input_file.open(string(source_path));
       if (!input_file) {
@@ -46,7 +46,7 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
   }
 }
 
-void Load::_read_from_handle(Corpus& corpus, istream& input, const string_view source_path) {
+void Load::_read_from_handle(Corpus& corpus, istream& input, const string source_path) {
   bool documents_to_read = true;
   while (documents_to_read) {
     Document doc;

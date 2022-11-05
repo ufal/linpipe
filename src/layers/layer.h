@@ -33,7 +33,9 @@ class Layer {
   friend class Document;
 
   // TODO: move this to layers/utils
+  // TODO: merge into one method with selection of JSON types
   void _json_has_string(const string_view called_from, const Json& json, const string_view key);
+  void _json_has_array(const string_view called_from, const Json& json, const string_view key);
 };
 
 } // namespace linpipe

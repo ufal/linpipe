@@ -12,7 +12,7 @@
 
 namespace linpipe {
 
-void Arguments::parse_operations(vector<string_view>& descriptions, const string_view description) {
+void Arguments::parse_operations(vector<string>& descriptions, const string description) {
   size_t start = 0;
 
   while (start < description.length()) {
@@ -31,20 +31,20 @@ void Arguments::parse_operations(vector<string_view>& descriptions, const string
   }
 }
 
-void Arguments::parse_arguments(unordered_map<string_view, string_view>& args, vector<string_view>& kwargs, const string_view description) {
+void Arguments::parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description) {
   // Everything must be separated by space.
   // TODO: Add values separated by "=" (--format="text") and quotes.
 
   size_t start = 1; // skip leading space
   size_t pos = 0;
   string argument = "";
-  while (pos != string_view::npos) {
+  while (pos != string::npos) {
     pos = description.find(' ', start);
-    string_view token = description.substr(start, pos);
+    string token = description.substr(start, pos-start);
 
     if (start > 1) { // skip operation name
       if (token.find("--") == 0) { // argument found
-        argument = token;
+        argument = token.substr(2);
       }
       else {
         if (argument.empty()) {
@@ -61,21 +61,21 @@ void Arguments::parse_arguments(unordered_map<string_view, string_view>& args, v
   }
 }
 
-size_t Arguments::_find_next_operation(const string_view description, size_t offset) {
+size_t Arguments::_find_next_operation(const string description, size_t offset) {
 
   while (offset < description.length()) {
     size_t op = description.find(" -", offset);
 
-    if (op == string_view::npos) { // not found
-      return string_view::npos;
+    if (op == string::npos) { // not found
+      return string::npos;
     }
 
-    if (op + 2 == string_view::npos) { // description too short
-      return string_view::npos;
+    if (op + 2 == string::npos) { // description too short
+      return string::npos;
     }
 
     if (description[op+2] == ' ') { // invalid description
-      return string_view::npos;
+      return string::npos;
     }
 
     if (description[op+2] != '-') { // operation found
@@ -85,7 +85,7 @@ size_t Arguments::_find_next_operation(const string_view description, size_t off
     offset = op+2; // argument found, search further
   }
 
-  return string_view::npos;
+  return string::npos;
 }
 
 } // namespace linpipe

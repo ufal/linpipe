@@ -20,6 +20,7 @@ void Text::from_json(const Json& json) {
 void Text::to_json(Json& json) {
   json = Json::object();
   json["text"] = text;
+  json["name"] = _name;
 }
 
 void Text::to_html(string& /*html*/) {

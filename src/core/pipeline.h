@@ -16,7 +16,7 @@ namespace linpipe {
 
 class Pipeline {
  public:
-  Pipeline(const string_view description);
+  Pipeline(const string description);
 
   bool execute(Corpus& corpus);
 

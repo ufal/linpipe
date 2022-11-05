@@ -9,19 +9,16 @@
 
 #pragma once
 
+#include "common.h"
 #include "formats/format.h"
-#include "operations/operation.h"
 
-namespace linpipe::operations {
+namespace linpipe::formats {
 
-class Save : public Operation {
+class Lif : public Format {
  public:
-  Save(const string description);
-  virtual void execute(Corpus& corpus, PipelineState& state) override;
-
- private:
-  unique_ptr<Format> _format;
-  vector<string> _target_paths;
+  virtual bool load(Document& document, istream& input, const string source_path) override;
+  virtual void save(Document& document, ostream& output) override;
+  Lif() : Format("lif") {};
 };
 
-} // namespace linpipe::operations
+} // namespace linpipe::formats

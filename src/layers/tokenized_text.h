@@ -9,19 +9,18 @@
 
 #pragma once
 
-#include "formats/format.h"
-#include "operations/operation.h"
+#include "common.h"
+#include "layers/layer.h"
 
-namespace linpipe::operations {
+namespace linpipe::layers {
 
-class Save : public Operation {
+class TokenizedText : public Layer {
  public:
-  Save(const string description);
-  virtual void execute(Corpus& corpus, PipelineState& state) override;
+  virtual void from_json(const Json& json) override;
+  virtual void to_json(Json& json) override;
+  virtual void to_html(string& html) override;
 
- private:
-  unique_ptr<Format> _format;
-  vector<string> _target_paths;
+  vector<string> tokens;
 };
 
-} // namespace linpipe::operations
+} // namespace linpipe::layers

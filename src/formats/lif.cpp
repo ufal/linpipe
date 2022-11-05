@@ -7,34 +7,32 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "formats/text.h"
-#include "layers/text.h"
+#include "formats/lif.h"
 #include "lib/json.h"
 
 namespace linpipe::formats {
 
-bool Text::load(Document& document, istream& input, const string source_path) {
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->set_name(_name);
-
-  char block[4096];
-  while (input.read(block, sizeof(block)))
-    layer->text.append(block, sizeof(block));
-  layer->text.append(block, input.gcount());
-
-  document.add_layer(move(layer));
+bool Lif::load(Document& document, istream& input, const string source_path) {
+  //Json json(input);
+  // TODO process JSON and create layers
   document.set_source_path(source_path);
-
   return !input.eof();
 }
 
-void Text::save(Document& document, ostream& output) {
-  Layer& layer = document.get_layer(_name);
+void Lif::save(Document& document, ostream& output) {
+  Json layers_json = Json::array();
+
+  const vector<unique_ptr<Layer>>& layers = document.layers();
+  for (size_t i = 0; i < layers.size(); i++) {
+    Json layer_json = Json();
+    layers[i]->to_json(layer_json);
+    layers_json.push_back(layer_json);
+  }
 
   Json json = Json::object();
-  layer.to_json(json);
+  json["layers"] = layers_json;
 
-  output << string(json["text"]);
+  output << string(json.dump());
 }
 
 } // namespace linpipe::formats

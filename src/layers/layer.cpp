@@ -21,6 +21,15 @@ void Layer::_json_has_string(const string_view called_from, const Json& json, co
     throw LinpipeError{called_from, ": The key '", key, "' does not contain a string, but a ", json.at(key).type_name()};
 }
 
+void Layer::_json_has_array(const string_view called_from, const Json& json, const string_view key) {
+  if (!json.is_object())
+    throw LinpipeError{called_from, ": The input json is not an object, but a ", json.type_name()};
+  if (!json.contains(key))
+    throw LinpipeError{called_from, ": The input json does not contain key '", key, "'"};
+  if (!json.at(key).is_array())
+    throw LinpipeError{called_from, ": The key '", key, "' does not contain an array, but a ", json.at(key).type_name()};
+}
+
 const string& Layer::name() {
   return _name;
 }

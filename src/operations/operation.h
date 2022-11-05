@@ -19,7 +19,7 @@ class Operation {
  public:
   virtual ~Operation() {}
 
-  static unique_ptr<Operation> create(const string_view description);
+  static unique_ptr<Operation> create(const string description);
 
   virtual void execute(Corpus& corpus, PipelineState& state) = 0;
 

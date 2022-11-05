@@ -7,21 +7,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include "layers/text.h"
+#include "lib/json.h"
 
-#include "formats/format.h"
-#include "operations/operation.h"
+namespace linpipe::layers {
 
-namespace linpipe::operations {
+void TokenizedText::from_json(const Json& json) {
+  _json_has_array("PlainText::from_json", json, "tokenized_text");
+  text = json["tokenized_text"];
+}
 
-class Save : public Operation {
- public:
-  Save(const string description);
-  virtual void execute(Corpus& corpus, PipelineState& state) override;
+void Text::to_json(Json& json) {
+  json = Json::object();
+  json["tokenized_text"] = tokens;
+}
 
- private:
-  unique_ptr<Format> _format;
-  vector<string> _target_paths;
-};
+void Text::to_html(string& /*html*/) {
+}
 
-} // namespace linpipe::operations
+} // namespace linpipe::layers

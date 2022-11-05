@@ -16,10 +16,6 @@ using namespace linpipe;
 int main(int argc, char* argv[]) {
   iostream::sync_with_stdio(false);
 
-  cout << "Hello world!" << endl;
-  for (int i = 1; i < argc; i++)
-    cout << "Argument: " << argv[i] << endl;
-
   // Concatenate commandline arguments into a string description
   string description= "";
   for (int i = 1; i < argc; i++) {

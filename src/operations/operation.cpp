@@ -15,8 +15,8 @@
 
 namespace linpipe {
 
-unique_ptr<Operation> Operation::create(const string_view description) {
-  vector<string_view> descriptions;
+unique_ptr<Operation> Operation::create(const string description) {
+  vector<string> descriptions;
 
   Arguments args;
   args.parse_operations(descriptions, description);

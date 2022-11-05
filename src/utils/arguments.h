@@ -17,10 +17,10 @@ namespace linpipe {
 
 class Arguments {
  public:
-  void parse_operations(vector<string_view>& descriptions, const string_view description);
-  void parse_arguments(unordered_map<string_view, string_view>& args, vector<string_view>& kwargs, const string_view description);
+  void parse_operations(vector<string>& descriptions, const string description);
+  void parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description);
  private:
-  size_t _find_next_operation(const string_view description, size_t offset);
+  size_t _find_next_operation(const string description, size_t offset);
 };
 
 } // namespace linpipe
