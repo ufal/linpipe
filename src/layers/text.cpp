@@ -13,7 +13,7 @@
 namespace linpipe::layers {
 
 void Text::from_json(const Json& json) {
-  _json_has_string("Text::from_json", json, "text");
+  _json_checker.json_has_string("Text::from_json", json, "text");
   text = json["text"];
 }
 

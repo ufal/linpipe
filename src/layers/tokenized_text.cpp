@@ -13,7 +13,7 @@
 namespace linpipe::layers {
 
 void TokenizedText::from_json(const Json& json) {
-  _json_has_array("PlainText::from_json", json, "tokenized_text");
+  _json_checker.json_has_array("PlainText::from_json", json, "tokenized_text");
   text = json["tokenized_text"];
 }
 

@@ -12,7 +12,7 @@ LINPIPE_OBJECTS += formats/format formats/lif formats/text
 LINPIPE_OBJECTS += layers/layer layers/text
 LINPIPE_OBJECTS += models/model_manager
 LINPIPE_OBJECTS += operations/composite operations/load operations/operation operations/save
-LINPIPE_OBJECTS += utils/arguments
+LINPIPE_OBJECTS += utils/arguments utils/json_checker
 
 LINPIPE_TESTS = core/document_test core/pipeline_test
 LINPIPE_TESTS += formats/text_test

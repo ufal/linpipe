@@ -7,17 +7,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/layer.h"
-#include "lib/json.h"
+#pragma once
+
+#include "common.h"
 
 namespace linpipe {
 
-const string& Layer::name() {
-  return _name;
-}
-
-void Layer::set_name(const string_view name) {
-  _name = name;
-}
+class JsonChecker {
+ public:
+  // TODO: merge into one method with selection of JSON types
+  void json_has_string(const string_view called_from, const Json& json, const string_view key);
+  void json_has_array(const string_view called_from, const Json& json, const string_view key);
+};
 
 } // namespace linpipe
