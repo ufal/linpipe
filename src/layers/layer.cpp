@@ -8,16 +8,21 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "layers/layer.h"
+#include "layers/text.h"
 #include "lib/json.h"
 
 namespace linpipe {
 
-const string& Layer::name() {
-  return _name;
+unique_ptr<Layer> Layer::create(const string description) {
+  if (description == "text") {
+    return make_unique<layers::Text>(description);
+  }
+
+  throw LinpipeError{"Layer::create: Cannot construct invalid type of layer '", description, "'"};
 }
 
-void Layer::set_name(const string_view name) {
-  _name = name;
+const string& Layer::name() {
+  return _name;
 }
 
 } // namespace linpipe

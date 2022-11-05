@@ -11,6 +11,7 @@
 
 #include "common.h"
 #include "core/document.h"
+#include "layers/layer.h"
 
 namespace linpipe {
 

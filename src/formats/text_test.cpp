@@ -33,12 +33,6 @@ TEST_CASE("formats::Text::load") {
     CHECK(layer->text == "Hello world!\n");
   }
 
-  SUBCASE("loads text, adds text layer with given name") {
-    istringstream is("Hello world!");
-    text->set_name("custom_layer_name");
-    text->load(doc, is, "source");
-    CHECK(doc.layers()[0]->name() == "custom_layer_name");
-  }
 }
 
 } // namespace linpipe

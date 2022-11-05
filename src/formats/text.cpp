@@ -14,8 +14,7 @@
 namespace linpipe::formats {
 
 bool Text::load(Document& document, istream& input, const string source_path) {
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->set_name(_name);
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>("text");
 
   char block[4096];
   while (input.read(block, sizeof(block)))

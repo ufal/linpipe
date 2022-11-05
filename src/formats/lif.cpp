@@ -9,12 +9,25 @@
 
 #include "formats/lif.h"
 #include "lib/json.h"
+#include "utils/json_checker.h"
 
 namespace linpipe::formats {
 
 bool Lif::load(Document& document, istream& input, const string source_path) {
-  //Json json(input);
-  // TODO process JSON and create layers
+  Json json = Json::parse(input);
+
+  JsonChecker json_checker;
+  json_checker.json_has_array("Lif::load", json, "layers");
+
+  for (auto layer_json : json["layers"]) {
+    json_checker.json_has_string("Lif::load", layer_json, "name");
+    string description = layer_json["name"];
+    unique_ptr<Layer> layer = Layer::create(description);
+    layer->from_json(layer_json);
+
+    document.add_layer(move(layer));
+  }
+
   document.set_source_path(source_path);
   return !input.eof();
 }

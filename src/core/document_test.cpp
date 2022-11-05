@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "core/document.h"
+#include "layers/layer.h"
 #include "layers/text.h"
 #include "lib/doctest.h"
 
@@ -17,16 +18,15 @@ TEST_CASE("Document::get_layer") {
   Document doc;
 
   SUBCASE("throws exception when document has no layers") {
-    CHECK_THROWS_AS(doc.get_layer("test"), LinpipeError);
+    CHECK_THROWS_AS(doc.get_layer("text"), LinpipeError);
   }
 
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->set_name("test");
+  unique_ptr<Layer> layer = Layer::create("text");
   doc.add_layer(move(layer));
 
   SUBCASE("gets layer of given name") {
-    CHECK_NOTHROW(doc.get_layer("test"));
-    CHECK(doc.get_layer("test").name() == "test");
+    CHECK_NOTHROW(doc.get_layer("text"));
+    CHECK(doc.get_layer("text").name() == "text");
   }
 
   SUBCASE("throws exception when layer of given name not found") {
@@ -39,7 +39,7 @@ TEST_CASE("Document::add_layer") {
   Document doc;
 
   SUBCASE("adding layer increases layers vector size of the document") {
-    doc.add_layer(make_unique<layers::Text>());
+    doc.add_layer(move(Layer::create("text")));
     CHECK(doc.layers().size() == 1);
   }
 }
@@ -48,11 +48,10 @@ TEST_CASE("Document::del_layer") {
   Document doc;
 
   SUBCASE("throws exception when attempting to erase from empty layers") {
-    CHECK_THROWS_AS(doc.del_layer("test"), LinpipeError);
+    CHECK_THROWS_AS(doc.del_layer("text"), LinpipeError);
   }
 
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->set_name("test");
+  unique_ptr<Layer> layer = Layer::create("text");
   doc.add_layer(move(layer));
 
   SUBCASE("throws exception when attempting to erase non-existent layer") {
@@ -60,31 +59,8 @@ TEST_CASE("Document::del_layer") {
   }
 
   SUBCASE("deleting layer decreases size of layers") {
-    doc.del_layer("test");
+    doc.del_layer("text");
     CHECK(doc.layers().size() == 0);
-  }
-
-}
-
-TEST_CASE("Document::rename_layer") {
-  Document doc;
-
-  SUBCASE("throws exception upon renaming on empty layers") {
-    CHECK_THROWS_AS(doc.rename_layer("test", "new_test"), LinpipeError);
-  }
-
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
-  layer->set_name("test");
-  doc.add_layer(move(layer));
-
-  SUBCASE("renames layer") {
-    doc.rename_layer("test", "new_test");
-    CHECK(doc.get_layer("new_test").name() == "new_test");
-    CHECK_THROWS_AS(doc.get_layer("test"), LinpipeError);
-  }
-
-  SUBCASE("throws exception upon renaming non-existent layer") {
-    CHECK_THROWS_AS(doc.rename_layer("bad_name", "new_test"), LinpipeError);
   }
 
 }

@@ -20,16 +20,19 @@ class Layer {
  public:
   virtual ~Layer() {}
 
+  static unique_ptr<Layer> create(const string description);
+
   virtual void from_json(const Json& json) = 0;
   virtual void to_json(Json& json) = 0;
   virtual void to_html(string& html) = 0;
 
   const string& name();
-  void set_name(const string_view name);
 
   // TODO: add more structured metadata info
 
  protected:
+  Layer(const string name) : _name(name) {};
+
   string _name;
   friend class Document;
 

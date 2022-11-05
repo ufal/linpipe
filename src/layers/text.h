@@ -16,6 +16,8 @@ namespace linpipe::layers {
 
 class Text : public Layer {
  public:
+  Text(const string name) : Layer(name) {};
+
   virtual void from_json(const Json& json) override;
   virtual void to_json(Json& json) override;
   virtual void to_html(string& html) override;

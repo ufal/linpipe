@@ -55,9 +55,9 @@ TEST_CASE("Arguments::parse_arguments") {
 
   SUBCASE("parses 1 kwarg in 1 operation") {
     gold_kwargs.push_back("test.in");
-    //CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " -load test.in"));
-    //CHECK(args.empty());
-    //CHECK(gold_kwargs == kwargs);
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " -load test.in"));
+    CHECK(args.empty());
+    CHECK(gold_kwargs == kwargs);
   }
 
   SUBCASE("parses 1 arg in 1 operation") {
@@ -65,6 +65,14 @@ TEST_CASE("Arguments::parse_arguments") {
     CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " -load --format text"));
     CHECK(gold_args["format"] == args["format"]);
     CHECK(kwargs.empty());
+  }
+
+  SUBCASE("parses 1 arg and 1 kwargs in 1 operation") {
+    gold_args["format"] = "lif";
+    gold_kwargs.push_back("dummy");
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " -load --format lif dummy"));
+    CHECK(gold_args["format"] == args["format"]);
+    CHECK(gold_kwargs == kwargs);
   }
 }
 
