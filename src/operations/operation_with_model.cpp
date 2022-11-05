@@ -11,8 +11,10 @@
 
 namespace linpipe {
 
-void OperationWithModel::reserve_models(PipelineState& /*state*/) {
-  // TODO: reserve models (implement here)
+void OperationWithModel::reserve_models(PipelineState& state) {
+  for (const string model_name : _model_names) {
+    state.model_manager->reserve(model_name);
+  }
 }
 
 } // namespace linpipe

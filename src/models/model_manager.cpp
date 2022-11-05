@@ -13,4 +13,8 @@ namespace linpipe {
 
 ModelManager ModelManager::singleton;
 
+void ModelManager::reserve(const string_view /*name*/) {
+  // TODO: implement
+}
+
 } // namespace linpipe

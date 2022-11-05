@@ -19,7 +19,8 @@ class OperationWithModel : public Operation {
 
   virtual void reserve_models(PipelineState& state) override;
  protected:
-  OperationWithModel() {};
+  OperationWithModel(const vector<string> model_names) : _model_names(model_names) {};
+  const vector<string> _model_names;
 };
 
 } // namespace linpipe
