@@ -18,9 +18,7 @@ Load::Load(const string description) {
   // Parse arguments
   unordered_map<string, string> args;
   vector<string> kwargs;
-  // TODO: make "lif" default once implemented
-  // args["format"] = "lif";
-  args["format"] = "text";
+  args["format"] = "lif";
 
   Arguments arguments;
   arguments.parse_arguments(args, kwargs, description);
