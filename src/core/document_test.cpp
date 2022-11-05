@@ -39,7 +39,7 @@ TEST_CASE("Document::add_layer") {
   Document doc;
 
   SUBCASE("adding layer increases layers vector size of the document") {
-    doc.add_layer(move(Layer::create("text")));
+    doc.add_layer(Layer::create("text"));
     CHECK(doc.layers().size() == 1);
   }
 }
