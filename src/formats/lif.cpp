@@ -15,24 +15,27 @@ namespace linpipe::formats {
 
 bool Lif::load(Document& document, istream& input, const string source_path) {
   string line;
-  if (getline(input, line)) {
-    Json json = Json::parse(line);
 
-    JsonChecker json_checker;
-    json_checker.json_has_array("Lif::load", json, "layers");
-
-    for (auto layer_json : json["layers"]) {
-      json_checker.json_has_string("Lif::load", layer_json, "name");
-      string description = layer_json["name"];
-      unique_ptr<Layer> layer = Layer::create(description);
-      layer->from_json(layer_json);
-      document.add_layer(move(layer));
-    }
-
-    document.set_source_path(source_path);
+  if (!getline(input, line)) {
+    return false;
   }
 
-  return !input.eof();
+  Json json = Json::parse(line);
+
+  JsonChecker json_checker;
+  json_checker.json_has_array("Lif::load", json, "layers");
+
+  for (auto layer_json : json["layers"]) {
+    json_checker.json_has_string("Lif::load", layer_json, "name");
+    string description = layer_json["name"];
+    unique_ptr<Layer> layer = Layer::create(description);
+    layer->from_json(layer_json);
+    document.add_layer(move(layer));
+  }
+
+  document.set_source_path(source_path);
+
+  return true;
 }
 
 void Lif::save(Document& document, ostream& output) {
