@@ -54,6 +54,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
 
   // Write the documents to their respective target paths.
   ostream* os = state.default_output;
+  ofstream os_file;
   for (size_t i = 0; i < corpus.documents.size(); i++) {
     if (i == 0 or target_paths[i] != target_paths[i-1]) {
 
@@ -69,7 +70,8 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
 
       // open new handle if not cin
       if (!target_paths[i].empty()) {
-        dynamic_cast<ofstream*>(os)->open(target_paths[i]);
+        os_file.open(target_paths[i]);
+        os = &os_file;
         if (!os) {
           throw LinpipeError{"Could not open target path '", target_paths[i], "'"};
         }

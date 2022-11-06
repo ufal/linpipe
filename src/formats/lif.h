@@ -18,8 +18,6 @@ class Lif : public Format {
  public:
   virtual bool load(Document& document, istream& input, const string source_path) override;
   virtual void save(Document& document, ostream& output) override;
-  virtual void save_corpus_start(ostream& output) override;
-  virtual void save_corpus_end(ostream& output) override;
 
   Lif() : Format("lif") {};
 };

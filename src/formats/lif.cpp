@@ -14,20 +14,24 @@
 namespace linpipe::formats {
 
 bool Lif::load(Document& document, istream& input, const string source_path) {
-  Json json = Json::parse(input);
+  string line;
+  if (getline(input, line)) {
+    Json json = Json::parse(line);
 
-  JsonChecker json_checker;
-  json_checker.json_has_array("Lif::load", json, "layers");
+    JsonChecker json_checker;
+    json_checker.json_has_array("Lif::load", json, "layers");
 
-  for (auto layer_json : json["layers"]) {
-    json_checker.json_has_string("Lif::load", layer_json, "name");
-    string description = layer_json["name"];
-    unique_ptr<Layer> layer = Layer::create(description);
-    layer->from_json(layer_json);
-    document.add_layer(move(layer));
+    for (auto layer_json : json["layers"]) {
+      json_checker.json_has_string("Lif::load", layer_json, "name");
+      string description = layer_json["name"];
+      unique_ptr<Layer> layer = Layer::create(description);
+      layer->from_json(layer_json);
+      document.add_layer(move(layer));
+    }
+
+    document.set_source_path(source_path);
   }
 
-  document.set_source_path(source_path);
   return !input.eof();
 }
 
@@ -44,15 +48,7 @@ void Lif::save(Document& document, ostream& output) {
   Json json = Json::object();
   json["layers"] = layers_json;
 
-  output << string(json.dump());
-}
-
-void Lif::save_corpus_start(ostream& output) {
-  output << "{\"documents:\"[";
-}
-
-void Lif::save_corpus_end(ostream& output) {
-  output << "]}";
+  output << string(json.dump()) << endl;
 }
 
 } // namespace linpipe::formats
