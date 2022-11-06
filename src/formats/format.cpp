@@ -7,9 +7,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "format.h"
-#include "lif.h"
-#include "text.h"
+#include "formats/conll.h"
+#include "formats/format.h"
+#include "formats/lif.h"
+#include "formats/text.h"
 
 namespace linpipe {
 
@@ -19,6 +20,12 @@ unique_ptr<Format> Format::create(const string description) {
   }
   if (description == "lif") {
     return make_unique<formats::Lif>();
+  }
+  if (description == "conll") {
+    return make_unique<formats::Conll>("conll:tokenized_text");
+  }
+  if (description.find("conll:") == 0) {
+    return make_unique<formats::Conll>(description);
   }
 
   throw LinpipeError{"Invalid value '", description, "' for the --format argument of the -load operation'"};
