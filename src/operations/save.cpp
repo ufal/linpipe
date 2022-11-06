@@ -56,7 +56,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   ostream* os = state.default_output;
   ofstream os_file;
   for (size_t i = 0; i < corpus.documents.size(); i++) {
-    if (i == 0 or target_paths[i] != target_paths[i-1]) {
+    if (i == 0 || target_paths[i] != target_paths[i-1]) {
 
       // finish writing into previous handle
       if (i > 0) {
