@@ -16,10 +16,10 @@ namespace linpipe::formats {
 
 class Lif : public Format {
  public:
+  Lif() : Format("lif") {};
+
   virtual bool load(Document& document, istream& input, const string source_path) override;
   virtual void save(Document& document, ostream& output) override;
-
-  Lif() : Format("lif") {};
 };
 
 } // namespace linpipe::formats
