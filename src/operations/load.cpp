@@ -45,10 +45,11 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
 }
 
 void Load::_read_from_handle(Corpus& corpus, istream& input, const string source_path) {
-  bool documents_to_read = true;
-  while (documents_to_read) {
+  while (true) {
     Document doc;
-    documents_to_read = _format->load(doc, input, source_path);
+    if (!_format->load(doc, input, source_path)) {
+      break;
+    }
     corpus.documents.push_back(move(doc));
   }
 }
