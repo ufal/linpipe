@@ -47,4 +47,12 @@ void Lif::save(Document& document, ostream& output) {
   output << string(json.dump());
 }
 
+void Lif::save_corpus_start(ostream& output) {
+  output << "{\"documents:\"[";
+}
+
+void Lif::save_corpus_end(ostream& output) {
+  output << "]}";
+}
+
 } // namespace linpipe::formats

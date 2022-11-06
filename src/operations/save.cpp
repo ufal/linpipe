@@ -29,46 +29,64 @@ Save::Save(const string description) {
 }
 
 void Save::execute(Corpus& corpus, PipelineState& state) {
-  if (_target_paths.empty()) { // no required outputs
-    for (unsigned int i = 0; i < corpus.documents.size(); i++) { // cin => cout
+  vector<string> target_paths = _target_paths;
+
+  // If user requested custom target paths for documents in format kwargs,
+  // check that the number of target paths matches the number of documents.
+  if (target_paths.size() && target_paths.size() != corpus.documents.size()) {
+    throw LinpipeError{"The number of target paths (", to_string(target_paths.size()), ") != number of documents in the corpus (", to_string(corpus.documents.size()), ")"};
+  }
+
+  // If no custom outputs were required in format kwargs, try to figure out the
+  // output from the documents' input source_paths.
+  if (target_paths.empty()) {
+    for (size_t i = 0; i < corpus.documents.size(); i++) {
       if (corpus.documents[i].source_path().empty()) {
-        _format->save(corpus.documents[i], *state.default_output);
+        target_paths.push_back(corpus.documents[i].source_path());
       }
-      else { // input files => output files
+      else {
         // TODO: decide on the exact default output extension
         // TODO: the addition ".out" should go BEFORE the actual extension
-        string target_path = corpus.documents[i].source_path() + ".out";
-        ofstream output_file;
-        output_file.open(target_path);
-        if (!output_file) {
-          throw LinpipeError{"Could not open target path '", target_path, "' for writing"};
-        }
-        _format->save(corpus.documents[i], output_file);
+        target_paths.push_back(corpus.documents[i].source_path() + ".out");
       }
     }
   }
-  else { // custom target paths
-    if (_target_paths.size() == 1) {  // append everything to one file
-      ofstream output_file;
-      output_file.open(_target_paths[0]);
-      if (!output_file) {
-        throw LinpipeError{"Could not open target path '", _target_paths[0], "' for writing"};
-      }
-      for (unsigned int i = 0; i < corpus.documents.size(); i++) {
-        _format->save(corpus.documents[i], output_file);
-      }
-    }
-    else { // 1 target path = 1 document
-      if (_target_paths.size() != corpus.documents.size()) {
-        throw LinpipeError{"Number of target paths in -save operation is not equal to the number of documents in the corpus'"};
-      }
-      for (unsigned int i = 0; i < _target_paths.size(); i++) {
-        ofstream output_file;
-        output_file.open(_target_paths[i]);
-        if (!output_file) {
-          throw LinpipeError{"Could not open target path '", _target_paths[i], "' for writing"};
+
+  // Write the documents to their respective target paths.
+  ostream* os = state.default_output;
+  for (size_t i = 0; i < corpus.documents.size(); i++) {
+    if (i == 0 or target_paths[i] != target_paths[i-1]) {
+
+      // finish writing into previous handle
+      if (i > 0) {
+        if (target_paths[i] != target_paths[i-1]) {
+          _format->save_corpus_end(*os);
         }
-        _format->save(corpus.documents[i], output_file);
+        if (!target_paths[i-1].empty()) { // close previous if not cout
+          dynamic_cast<ofstream*>(os)->close();
+        }
+      }
+
+      // open new handle if not cin
+      if (!target_paths[i].empty()) {
+        dynamic_cast<ofstream*>(os)->open(target_paths[i]);
+        if (!os) {
+          throw LinpipeError{"Could not open target path '", target_paths[i], "'"};
+        }
+      }
+
+      // start writing to new handle
+      _format->save_corpus_start(*os);
+    }
+
+    // write the document contents
+    _format->save(corpus.documents[i], *os);
+
+    // finish writing to the last handle
+    if (i == corpus.documents.size() - 1) {
+      _format->save_corpus_end(*os);
+      if (!target_paths[i].empty()) { // close if not cout
+        dynamic_cast<ofstream*>(os)->close();
       }
     }
   }

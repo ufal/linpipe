@@ -32,4 +32,10 @@ void Format::set_name(const string name) {
   _name = name;
 }
 
+void Format::save_corpus_start(ostream& /*output*/) {
+}
+
+void Format::save_corpus_end(ostream& /*output*/) {
+}
+
 } // namespace linpipe

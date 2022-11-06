@@ -23,6 +23,8 @@ class Format {
 
   virtual bool load(Document& document, istream& input, const string source_path) = 0;
   virtual void save(Document& document, ostream& output) = 0;
+  virtual void save_corpus_start(ostream& output);
+  virtual void save_corpus_end(ostream& output);
 
   const string& name();
   void set_name(const string name);
