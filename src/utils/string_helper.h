@@ -10,20 +10,12 @@
 #pragma once
 
 #include "common.h"
-#include "formats/format.h"
-#include "utils/string_helper.h"
 
-namespace linpipe::formats {
+namespace linpipe {
 
-class Conll : public Format {
+class StringHelper {
  public:
-  Conll(const string description);
-
-  virtual bool load(Document& document, istream& input, const string source_path) override;
-  virtual void save(Document& document, ostream& output) override;
- private:
-  vector<string> _descriptions;
-  StringHelper _string_helper;
+  void split(vector<string>& tokens, const string& str, const string& delimiter);
 };
 
-} // namespace linpipe::formats
+} // namespace linpipe

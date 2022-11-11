@@ -8,31 +8,58 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "formats/conll.h"
+#include "layers/layer.h"
+#include "layers/tokenized_text.h"
+#include "lib/json.h"
 
 namespace linpipe::formats {
 
 Conll::Conll(const string description) : Format("conll") {
-  size_t start = 0;
-  size_t pos = 0;
-  while (pos != string::npos) {
-    pos = description.find(":", start);
-    _descriptions.push_back(description.substr(start, pos));
-    start = pos+1;
-  }
+  _string_helper.split(_descriptions, description, ":");
+  _descriptions.erase(_descriptions.begin()); // remove leading "conll"
 }
 
 bool Conll::load(Document& document, istream& input, const string source_path) {
-  string line;
-
-  if (!getline(input, line)) {
-    return false;
+  // Create layers.
+  vector<unique_ptr<Layer>> layers;
+  for (string description : _descriptions) {
+    layers.push_back(Layer::create(description));
   }
 
-  // TODO
+  // Read content.
+  string line;
+  vector<vector<string>> content(_descriptions.size());
+  while (getline(input, line)) {
+    if (line.empty()) { // end of sentence
+      // TODO
+    }
+    else { // line with cols
+      vector<string> cols;
+      _string_helper.split(cols, line, "\t");
+      if (cols.size() != _descriptions.size()) {
+        throw LinpipeError{"Number of columns does not match number of columns in format description on line '", line, "'"};
+      }
+      for (size_t i = 0; i < _descriptions.size(); i++) {
+        if (_descriptions[i] == "tokenized_text") {
+          content[i].push_back(cols[i]);
+        }
+      }
+    }
+  }
+
+  // Fill layers with JSON created from content and add to document.
+  for (size_t i = 0; i < _descriptions.size(); i++) {
+    Json json;
+    if (_descriptions[i] == "tokenized_text") {
+      json["tokens"] = content[i];
+    }
+    layers[i]->from_json(json);
+    document.add_layer(move(layers[i]));
+  }
 
   document.set_source_path(source_path);
 
-  return true;
+  return false;
 }
 
 void Conll::save(Document& /*document*/, ostream& /*output*/) {
