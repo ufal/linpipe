@@ -9,7 +9,7 @@
 
 #include "formats/conll.h"
 #include "layers/layer.h"
-#include "layers/tokenized_text.h"
+#include "layers/tokens.h"
 #include "lib/json.h"
 
 namespace linpipe::formats {
@@ -42,8 +42,8 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
         throw LinpipeError{"Number of columns does not match number of columns in format description on line '", line, "'"};
       }
       for (size_t i = 0; i < _descriptions.size(); i++) {
-        if (_descriptions[i] == "tokenized_text") {
-          dynamic_cast<layers::TokenizedText*>(layers[i].get())->tokens.push_back(cols[i]);
+        if (_descriptions[i] == "tokens") {
+          dynamic_cast<layers::Tokens*>(layers[i].get())->tokens.push_back(cols[i]);
         }
       }
     }

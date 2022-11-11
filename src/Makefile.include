@@ -9,7 +9,7 @@
 
 LINPIPE_OBJECTS = core/document core/pipeline core/pipeline_state
 LINPIPE_OBJECTS += formats/conll formats/format formats/lif formats/text
-LINPIPE_OBJECTS += layers/layer layers/text layers/tokenized_text
+LINPIPE_OBJECTS += layers/layer layers/text layers/tokens
 LINPIPE_OBJECTS += models/model_manager
 LINPIPE_OBJECTS += operations/composite operations/load operations/operation operations/save
 LINPIPE_OBJECTS += utils/arguments utils/json_checker utils/string_helper

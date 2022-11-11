@@ -7,22 +7,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/tokenized_text.h"
+#include "layers/tokens.h"
 #include "lib/json.h"
 
 namespace linpipe::layers {
 
-void TokenizedText::from_json(const Json& json) {
-  _json_checker.json_has_array("TokenizedText::from_json", json, "tokens");
+void Tokens::from_json(const Json& json) {
+  _json_checker.json_has_array("Tokens::from_json", json, "tokens");
 
   tokens = json["tokens"].get<vector<string>>();
 }
 
-void TokenizedText::to_json(Json& json) {
-  json["tokenized_text"] = tokens;
+void Tokens::to_json(Json& json) {
+  json["tokens"] = tokens;
 }
 
-void TokenizedText::to_html(string& /*html*/) {
+void Tokens::to_html(string& /*html*/) {
 }
 
 } // namespace linpipe::layers

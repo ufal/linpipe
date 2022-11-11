@@ -22,7 +22,7 @@ unique_ptr<Format> Format::create(const string description) {
     return make_unique<formats::Lif>();
   }
   if (description == "conll") {
-    return make_unique<formats::Conll>("conll:tokenized_text");
+    return make_unique<formats::Conll>("conll:tokens");
   }
   if (description.find("conll:") == 0) {
     return make_unique<formats::Conll>(description);
