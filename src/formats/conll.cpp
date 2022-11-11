@@ -31,7 +31,6 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
 
   // Read content.
   string line;
-  vector<vector<string>> content(_descriptions.size());
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
       // TODO
@@ -44,19 +43,13 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
       }
       for (size_t i = 0; i < _descriptions.size(); i++) {
         if (_descriptions[i] == "tokenized_text") {
-          content[i].push_back(cols[i]);
+          dynamic_cast<layers::TokenizedText*>(layers[i].get())->tokens.push_back(cols[i]);
         }
       }
     }
   }
 
-  // Fill layers with JSON created from content and add to document.
   for (size_t i = 0; i < _descriptions.size(); i++) {
-    Json json;
-    if (_descriptions[i] == "tokenized_text") {
-      json["tokens"] = content[i];
-    }
-    layers[i]->from_json(json);
     document.add_layer(move(layers[i]));
   }
 
