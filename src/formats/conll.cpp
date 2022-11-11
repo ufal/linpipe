@@ -20,6 +20,9 @@ Conll::Conll(const string description) : Format("conll") {
 }
 
 bool Conll::load(Document& document, istream& input, const string source_path) {
+  if (input.eof())
+    return false;
+
   // Create layers.
   vector<unique_ptr<Layer>> layers;
   for (string description : _descriptions) {
@@ -59,7 +62,7 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
 
   document.set_source_path(source_path);
 
-  return false;
+  return true;
 }
 
 void Conll::save(Document& /*document*/, ostream& /*output*/) {
