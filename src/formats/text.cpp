@@ -14,6 +14,9 @@
 namespace linpipe::formats {
 
 bool Text::load(Document& document, istream& input, const string source_path) {
+  if (input.eof())
+    return false;
+
   unique_ptr<layers::Text> layer = make_unique<layers::Text>("text");
 
   char block[4096];
@@ -24,7 +27,7 @@ bool Text::load(Document& document, istream& input, const string source_path) {
   document.add_layer(move(layer));
   document.set_source_path(source_path);
 
-  return !input.eof();
+  return true;
 }
 
 void Text::save(Document& document, ostream& output) {
