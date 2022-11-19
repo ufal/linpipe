@@ -10,6 +10,7 @@
 #include "core/document.h"
 #include "layers/layer.h"
 #include "layers/text.h"
+#include "layers/tokens.h"
 #include "lib/doctest.h"
 
 namespace linpipe {
@@ -26,11 +27,16 @@ TEST_CASE("Document::get_layer") {
 
   SUBCASE("gets layer of given name") {
     CHECK_NOTHROW(doc.get_layer("text"));
+    CHECK_NOTHROW(doc.get_layer<layers::Text>("text"));
     CHECK(doc.get_layer("text").name() == "text");
   }
 
   SUBCASE("throws exception when layer of given name not found") {
     CHECK_THROWS_AS(doc.get_layer("bad_name"), LinpipeError);
+  }
+
+  SUBCASE("throws exception when layer of given name has unexpected type") {
+    CHECK_THROWS_AS(doc.get_layer<layers::Tokens>("text"), LinpipeError);
   }
 
 }

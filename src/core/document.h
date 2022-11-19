@@ -18,7 +18,7 @@ class Document {
  public:
   // The responsibility of the Document is to guarantee that layers
   // have unique name.
-  Layer& get_layer(const string_view name);
+  template<typename T=Layer> T& get_layer(const string_view name);
   Layer& add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate=true);
   void del_layer(const string_view name);
 
@@ -32,5 +32,28 @@ class Document {
 
   string _source_path;
 };
+
+// Definitions
+
+template<> inline Layer& Document::get_layer(const string_view name) {
+  for (auto& it : _layers)
+    if (it->name() == name)
+      return *it;
+
+  throw LinpipeError{"Document::get_layer: Layer '", name, "' was not found in document."};
+}
+
+template<typename T> T& Document::get_layer(const string_view name) {
+  for (auto& it : _layers)
+    if (it->name() == name) {
+      T* layer = dynamic_cast<T*>(it.get());
+      if (!layer)
+        throw LinpipeError{"Document::get_layer: Layer '", name, "' was not of expected type '", T().type(), "'"};
+      return *layer;
+    }
+
+  throw LinpipeError{"Document::get_layer: Layer '", name, "' was not found in document."};
+}
+
 
 } // namespace linpipe

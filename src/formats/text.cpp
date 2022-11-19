@@ -31,12 +31,9 @@ bool Text::load(Document& document, istream& input, const string source_path) {
 }
 
 void Text::save(Document& document, ostream& output) {
-  Layer& layer = document.get_layer(_name);
+  auto& layer = document.get_layer<layers::Text>(_name);
 
-  Json json = Json::object();
-  layer.to_json(json);
-
-  output << string(json["text"]);
+  output << string(layer.text);
 }
 
 } // namespace linpipe::formats

@@ -25,8 +25,4 @@ unique_ptr<Layer> Layer::create(const string description) {
   throw LinpipeError{"Layer::create: Cannot construct unknown type of layer '", description, "'"};
 }
 
-const string& Layer::name() {
-  return _name;
-}
-
 } // namespace linpipe

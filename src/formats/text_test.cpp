@@ -29,8 +29,8 @@ TEST_CASE("formats::Text::load") {
     CHECK(doc.source_path() == "source");
     CHECK(doc.layers()[0]->name() == "text");
 
-    layers::Text* layer = dynamic_cast<layers::Text*>(&doc.get_layer("text"));
-    CHECK(layer->text == "Hello world!\n");
+    auto& layer = doc.get_layer<layers::Text>("text");
+    CHECK(layer.text == "Hello world!\n");
   }
 
 }

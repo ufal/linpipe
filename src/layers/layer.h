@@ -21,18 +21,22 @@ class Layer {
   virtual ~Layer() {}
 
   static unique_ptr<Layer> create(const string description);
+  template<typename T>
+  static string layer_type();
 
   virtual void from_json(const Json& json) = 0;
   virtual void to_json(Json& json) = 0;
   virtual void to_html(string& html) = 0;
 
-  const string& name();
+  const string& name() { return _name; }
+  const string& type() { return _type; }
 
   // TODO: add more structured metadata info
 
  protected:
-  Layer(const string name) : _name(name) {};
+  Layer(const string type, const string name) : _type(type), _name(name) {};
 
+  string _type;
   string _name;
   friend class Document;
 
