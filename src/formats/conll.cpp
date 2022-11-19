@@ -15,8 +15,18 @@
 namespace linpipe::formats {
 
 Conll::Conll(const string description) : Format("conll") {
-  // TODO Change delimiter:
-  // We aim for conll(name1:type1,name2:type2,...,namen:typen)
+  // TODO Change conll --format description to key-value format:
+  // (this also applies to other structured formats descriptions)
+  //
+  // For example --format conll-2003 translates as:
+  // --format conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
+  //
+  // Alternatively, more talkative, but keys have the same structure:
+  // --format conll(1_layer=name:type,2_layer=:lemmas,2_default=_,3_layer=:chunks,3_default=_,4_layer=:named_entities,4_encoding=bio)
+  //
+  // Alternatively, columns are given as positional arguments and key-value
+  // pairs are delimited by -- just as the regular script arguments are:
+  // --format conll(name:type="" :lemmas :chunks :named_entities --1_layer=name --2_layer=...)
   _string_helper.split(_descriptions, description, ":");
   _descriptions.erase(_descriptions.begin()); // remove leading "conll"
 }
