@@ -15,6 +15,8 @@
 namespace linpipe::formats {
 
 Conll::Conll(const string description) : Format("conll") {
+  // TODO Change delimiter:
+  // We aim for conll(name1:type1,name2:type2,...,namen:typen)
   _string_helper.split(_descriptions, description, ":");
   _descriptions.erase(_descriptions.begin()); // remove leading "conll"
 }
@@ -58,8 +60,28 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
   return true;
 }
 
-void Conll::save(Document& /*document*/, ostream& /*output*/) {
-  // TODO
+void Conll::save(Document& document, ostream& output) {
+  // Peek in first layer to find out the number of tokens.
+  size_t n = 0; // number of token lines
+  const vector<unique_ptr<Layer>>& layers = document.layers();
+  if (layers.size()) {
+    if (layers[0]->name() == "tokens") {
+      n = dynamic_cast<layers::Tokens*>(layers[0].get())->tokens.size();
+    }
+  }
+
+  // Print the lines
+  for (size_t i = 0; i < n; i++) {  // token lines
+    for (string description : _descriptions) {  // columns
+      if (description == "tokens") {
+        auto& layer = document.get_layer<layers::Tokens>(description);
+        output << layer.tokens[i];
+        if (i != n-1)
+          output << "\t";
+      }
+    }
+    output << endl;
+  }
 }
 
 } // namespace linpipe::formats
