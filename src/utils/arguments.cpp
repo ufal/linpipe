@@ -7,8 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "arguments.h"
 #include "common.h"
+#include "utils/arguments.h"
 
 namespace linpipe {
 
@@ -58,6 +58,32 @@ void Arguments::parse_arguments(unordered_map<string, string>& args, vector<stri
     }
 
     start = pos+1;
+  }
+}
+
+void Arguments::parse_format(unordered_map<string, string>& args, const string description) {
+  /* Parses format key-value arguments.
+
+  Receives:
+    description: structured format string description with key-value pairs,
+      separated by a ',', key separated from value by '='.
+      For example --format conll-2003 translates as conll with the following
+      setting:
+      1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio
+
+  Returns:
+    args: unordered map of string key to string value pairs.
+  */
+
+  vector<string> tokens;
+  _string_helper.split(tokens, description, ",");
+  for (string token : tokens) {
+    vector<string> pair;
+    _string_helper.split(pair, token, "=");
+    if (pair.size() != 2) {
+      throw LinpipeError{"Expected key-value pair separated by '=' in '", token, "' in format description '", description, "'"};
+    }
+    args[pair[0]] = pair[1];
   }
 }
 

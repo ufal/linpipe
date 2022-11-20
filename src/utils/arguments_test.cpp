@@ -76,4 +76,34 @@ TEST_CASE("Arguments::parse_arguments") {
   }
 }
 
+TEST_CASE("Arguments::parse_format") {
+  Arguments args;
+  unordered_map<string, string> parsed;
+  unordered_map<string, string> gold;
+
+  SUBCASE("parses empty description") {
+    CHECK_NOTHROW(args.parse_format(parsed, ""));
+    CHECK(parsed == gold);
+  }
+
+  SUBCASE("parses one key-value pair") {
+    CHECK_NOTHROW(args.parse_format(parsed, "key=value"));
+    gold["key"] = "value";
+    CHECK(parsed == gold);
+  }
+
+  SUBCASE("parses CoNLL-2003") {
+      CHECK_NOTHROW(args.parse_format(parsed, "1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio"));
+      gold["1"] = "name:type";
+      gold["2"] = ":lemmas";
+      gold["2_default"] = "_";
+      gold["3"] = ":chunks";
+      gold["3_default"] = "_";
+      gold["4"] = ":named_entities";
+      gold["4_encoding"] = "bio";
+      CHECK(parsed == gold);
+
+  }
+}
+
 } // namespace linpipe

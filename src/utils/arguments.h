@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #include "common.h"
+#include "utils/string_helper.h"
 
 namespace linpipe {
 
@@ -19,8 +20,10 @@ class Arguments {
  public:
   void parse_operations(vector<string>& descriptions, const string description);
   void parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description);
+  void parse_format(unordered_map<string, string>& args, const string description);
  private:
   size_t _find_next_operation(const string description, size_t offset);
+  StringHelper _string_helper;
 };
 
 } // namespace linpipe

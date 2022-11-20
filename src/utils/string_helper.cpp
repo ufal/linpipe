@@ -14,9 +14,9 @@ namespace linpipe {
 void StringHelper::split(vector<string>& tokens, const string& str, const string& delim) {
   size_t start = 0;
   size_t pos = 0;
-  while (pos != string::npos) {
+  while (pos != string::npos && start < str.length()) {
     pos = str.find(delim, start);
-    tokens.push_back(str.substr(start, pos));
+    tokens.push_back(str.substr(start, pos-start));
     start = pos+1;
   }
 }
