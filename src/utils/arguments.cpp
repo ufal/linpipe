@@ -66,13 +66,13 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
 
   Receives:
     description: structured format string description with key-value pairs,
-      separated by a ',', key separated from value by '='.
+      separated by a ',', key separated from value by a '='.
       For example --format conll-2003 translates as conll with the following
       setting:
       conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
 
   Returns:
-    args: unordered map of string key to string value pairs.
+    args: unordered map of key (string) to value (string) pairs.
   */
 
   // Remove leading format name and brackets (if present)
