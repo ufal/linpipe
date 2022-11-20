@@ -34,8 +34,8 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
 
   // Create layers.
   vector<unique_ptr<Layer>> layers;
-  for (string description : _types) {
-    layers.push_back(Layer::create(description));
+  for (string type : _types) {
+    layers.push_back(Layer::create(type));
   }
 
   // Read content.
@@ -79,12 +79,11 @@ void Conll::save(Document& document, ostream& output) {
 
   // Print the lines
   for (size_t i = 0; i < n; i++) {  // token lines
-    for (string type : _types) {  // columns
-      if (type == "tokens") {
-        auto& layer = document.get_layer<layers::Tokens>(type);
+    for (size_t j = 0; j < _types.size(); j++) {  // columns
+      if (_types[j] == "tokens") {
+        auto& layer = document.get_layer<layers::Tokens>(_types[j]);
         output << layer.tokens[i];
-        if (i != n-1)
-          output << "\t";
+        if (j != n-1) output << "\t";
       }
     }
     output << endl;
