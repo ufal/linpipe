@@ -79,9 +79,9 @@ void Conll::save(Document& document, ostream& output) {
 
   // Print the lines
   for (size_t i = 0; i < n; i++) {  // token lines
-    for (string description : _types) {  // columns
-      if (description == "tokens") {
-        auto& layer = document.get_layer<layers::Tokens>(description);
+    for (string type : _types) {  // columns
+      if (type == "tokens") {
+        auto& layer = document.get_layer<layers::Tokens>(type);
         output << layer.tokens[i];
         if (i != n-1)
           output << "\t";
