@@ -19,24 +19,13 @@ Conll::Conll(const string description) : Format("conll") {
   Arguments args;
   args.parse_format(_args, description);
 
-  // For convenience, parse those arguments that denote column types (layers),
-  // into layer descriptions (_types).
-  // These are numerical arguments starting with 1.
-  for (auto it : _args) {
-    if (_string_helper.is_number(it.first)) {
-      stringstream sstream(it.first);
-      size_t col;
-      sstream >> col;
-      if (_types.size() < col) {
-        _types.resize(col);
-      }
-      // Users index CoNLL columns from 1. We index from 0. Hence -1.
-      _types[col-1] = it.second;
-    }
+  int i = 1;
+  while(true) { // see how many columns requested
+    unordered_map<string, string>::const_iterator it = _args.find(to_string(i));
+    if (it == _args.end()) break; // no more columns
+    _types.push_back(it->second);
+    i++;
   }
-
-  // TODO: Sanity check for completeness should be here in case the user format
-  // description with sparse column numbers.
 }
 
 bool Conll::load(Document& document, istream& input, const string source_path) {
