@@ -21,4 +21,11 @@ void StringHelper::split(vector<string>& tokens, const string& str, const string
   }
 }
 
+bool StringHelper::is_number(const string& str) {
+  string::const_iterator it = str.begin();
+  while (it != str.end() && isdigit(*it))
+    it++;
+  return !str.empty() && it == str.end();
+}
+
 } // namespace linpipe

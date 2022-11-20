@@ -48,4 +48,9 @@ TEST_CASE("StringHelper::split") {
   }
 }
 
+TEST_CASE("StringHelper::is_number") {
+  StringHelper sh;
+  CHECK(sh.is_number("1") == true);
+}
+
 } // namespace linpipe

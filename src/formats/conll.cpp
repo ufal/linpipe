@@ -11,24 +11,32 @@
 #include "layers/layer.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
+#include "utils/arguments.h"
 
 namespace linpipe::formats {
 
 Conll::Conll(const string description) : Format("conll") {
-  // TODO Change conll --format description to key-value format:
-  // (this also applies to other structured formats descriptions)
-  //
-  // For example --format conll-2003 translates as:
-  // --format conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
-  //
-  // Alternatively, more talkative, but keys have the same structure:
-  // --format conll(1_layer=name:type,2_layer=:lemmas,2_default=_,3_layer=:chunks,3_default=_,4_layer=:named_entities,4_encoding=bio)
-  //
-  // Alternatively, columns are given as positional arguments and key-value
-  // pairs are delimited by -- just as the regular script arguments are:
-  // --format conll(name:type="" :lemmas :chunks :named_entities --1_layer=name --2_layer=...)
-  _string_helper.split(_descriptions, description, ":");
-  _descriptions.erase(_descriptions.begin()); // remove leading "conll"
+  Arguments args;
+  args.parse_format(_args, description);
+
+  // For convenience, parse those arguments that denote column types (layers),
+  // into layer descriptions (_types).
+  // These are numerical arguments starting with 1.
+  for (auto it : _args) {
+    if (_string_helper.is_number(it.first)) {
+      stringstream sstream(it.first);
+      size_t col;
+      sstream >> col;
+      if (_types.size() < col) {
+        _types.resize(col);
+      }
+      // Users index CoNLL columns from 1. We index from 0. Hence -1.
+      _types[col-1] = it.second;
+    }
+  }
+
+  // TODO: Sanity check for completeness should be here in case the user format
+  // description with sparse column numbers.
 }
 
 bool Conll::load(Document& document, istream& input, const string source_path) {
@@ -37,7 +45,7 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
 
   // Create layers.
   vector<unique_ptr<Layer>> layers;
-  for (string description : _descriptions) {
+  for (string description : _types) {
     layers.push_back(Layer::create(description));
   }
 
@@ -50,18 +58,18 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
     else { // line with cols
       vector<string> cols;
       _string_helper.split(cols, line, "\t");
-      if (cols.size() != _descriptions.size()) {
+      if (cols.size() != _types.size()) {
         throw LinpipeError{"Number of columns does not match number of columns in format description on line '", line, "'"};
       }
-      for (size_t i = 0; i < _descriptions.size(); i++) {
-        if (_descriptions[i] == "tokens") {
+      for (size_t i = 0; i < _types.size(); i++) {
+        if (_types[i] == "tokens") {
           dynamic_cast<layers::Tokens*>(layers[i].get())->tokens.push_back(cols[i]);
         }
       }
     }
   }
 
-  for (size_t i = 0; i < _descriptions.size(); i++) {
+  for (size_t i = 0; i < _types.size(); i++) {
     document.add_layer(move(layers[i]));
   }
 
@@ -82,7 +90,7 @@ void Conll::save(Document& document, ostream& output) {
 
   // Print the lines
   for (size_t i = 0; i < n; i++) {  // token lines
-    for (string description : _descriptions) {  // columns
+    for (string description : _types) {  // columns
       if (description == "tokens") {
         auto& layer = document.get_layer<layers::Tokens>(description);
         output << layer.tokens[i];

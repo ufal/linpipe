@@ -93,7 +93,7 @@ TEST_CASE("Arguments::parse_format") {
   }
 
   SUBCASE("parses CoNLL-2003") {
-      CHECK_NOTHROW(args.parse_format(parsed, "1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio"));
+      CHECK_NOTHROW(args.parse_format(parsed, "conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)"));
       gold["1"] = "name:type";
       gold["2"] = ":lemmas";
       gold["2_default"] = "_";
@@ -102,7 +102,6 @@ TEST_CASE("Arguments::parse_format") {
       gold["4"] = ":named_entities";
       gold["4_encoding"] = "bio";
       CHECK(parsed == gold);
-
   }
 }
 

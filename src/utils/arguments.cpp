@@ -69,14 +69,25 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
       separated by a ',', key separated from value by '='.
       For example --format conll-2003 translates as conll with the following
       setting:
-      1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio
+      conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
 
   Returns:
     args: unordered map of string key to string value pairs.
   */
 
+  // Remove leading format name and brackets (if present)
+  string format_description = description;
+  size_t pos = description.find("(");
+  if (pos != string::npos) {
+    format_description = description.substr(pos+1); // remove format name & opening bracket
+    if (format_description.empty()) {
+      throw LinpipeError{"Closing bracket missing in format description '", description, "'"};
+    }
+    format_description.pop_back();  // remove closing bracket
+  }
+
   vector<string> tokens;
-  _string_helper.split(tokens, description, ",");
+  _string_helper.split(tokens, format_description, ",");
   for (string token : tokens) {
     vector<string> pair;
     _string_helper.split(pair, token, "=");

@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "common.h"
 #include "formats/format.h"
 #include "utils/string_helper.h"
@@ -22,7 +24,8 @@ class Conll : public Format {
   virtual bool load(Document& document, istream& input, const string source_path) override;
   virtual void save(Document& document, ostream& output) override;
  private:
-  vector<string> _descriptions;
+  unordered_map<string, string> _args;
+  vector<string> _types;  // layer types corresponding to columns
   StringHelper _string_helper;
 };
 

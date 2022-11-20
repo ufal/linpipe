@@ -16,6 +16,7 @@ namespace linpipe {
 class StringHelper {
  public:
   void split(vector<string>& tokens, const string& str, const string& delimiter);
+  bool is_number(const string& str);
 };
 
 } // namespace linpipe

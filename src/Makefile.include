@@ -18,5 +18,5 @@ LINPIPE_TESTS = core/document_test core/pipeline_test
 LINPIPE_TESTS += formats/text_test
 LINPIPE_TESTS += layers/text_test
 LINPIPE_TESTS += lib/json_test
-LINPIPE_TESTS += utils/arguments_test
+LINPIPE_TESTS += utils/arguments_test utils/string_helper_test
 
