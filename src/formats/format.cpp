@@ -28,7 +28,7 @@ unique_ptr<Format> Format::create(const string description) {
     return make_unique<formats::Conll>(description);
   }
 
-  throw LinpipeError{"Invalid value '", description, "' for the --format argument of the -load operation'"};
+  throw LinpipeError{"Invalid value '", description, "' for the --format argument"};
 }
 
 const string& Format::name() {
