@@ -18,7 +18,7 @@ class Document {
  public:
   // The responsibility of the Document is to guarantee that layers
   // have unique name.
-  template<typename T=Layer> T& get_layer(const string_view name);
+  template<typename T=Layer> T& get_layer(const string_view name={});
   Layer& add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate=true);
   void del_layer(const string_view name);
 
@@ -36,6 +36,27 @@ class Document {
 // Definitions
 
 template<> inline Layer& Document::get_layer(const string_view name) {
+  /* Gets layer by name or the last layer if no name given.
+
+  Receives:
+    name: string_view with name of the layer, empty by default.
+
+  Returns:
+    reference to a layer of the given name. If name is empty, returns the last
+    layer.
+
+  Throws:
+    LinpipeError if document has no layers.
+    LinpipeError if layer of given name is not found in the document.
+  */
+
+  if (name.empty()) {
+    if (_layers.empty()) {
+      throw LinpipeError{"Document::get_layer: Last layer of document requested but document has no layers."};
+    }
+    return *_layers[_layers.size()-1].get();
+  }
+
   for (auto& it : _layers)
     if (it->name() == name)
       return *it;
@@ -44,6 +65,32 @@ template<> inline Layer& Document::get_layer(const string_view name) {
 }
 
 template<typename T> T& Document::get_layer(const string_view name) {
+  /* Gets layer by name and type or the last layer of the type if no name given.
+
+  Receives:
+    name: string_view with name of the layer, empty by default.
+
+  Returns:
+    reference to a layer of the given name. If name is empty, returns the last
+    layer of the type.
+
+  Throws:
+    LinpipeError if document has no layers.
+    LinpipeError if layer of given name is not found in the document.
+    LinpipeError if layer of given name is not of requested type.
+    LinpipeError if name is empty but no layer of requested type is found.
+  */
+
+  if (name.empty()) {
+    for (auto it = _layers.rbegin(); it != _layers.rend(); ++it) {
+      T* layer = dynamic_cast<T*>(it->get());
+      if (layer) {  // layer of type T found
+        return *layer;
+      }
+    }
+    throw LinpipeError{"Document::get_layer: Layer of requrested type '", T().type(), "' was not found in document."};
+  }
+
   for (auto& it : _layers)
     if (it->name() == name) {
       T* layer = dynamic_cast<T*>(it.get());
