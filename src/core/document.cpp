@@ -13,9 +13,34 @@
 
 namespace linpipe {
 
-Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool /*unique_name_if_duplicate*/) {
-  // TODO: Document is responsible for maintaining unique layer names.
+Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
+  /* Adds layer to collection of layers, maintaining unique layer names by default.
 
+  Receives:
+    layer: unique ptr to layer
+    unique_name_if_duplicate: bool, if true and name already exists in
+      collection, create a new name. If false, keep duplicate name. Default:
+      true.
+      TODO: Do we want to allow duplicate names at all? Shouldn't the unique
+      naming be required? Then this argument would go away.
+
+  Returns:
+    reference to the recently added layer in collection
+  */
+
+  if (layer->_name.empty()) {
+    layer->_name = "layer";
+  }
+
+  // If name already exists, add numbers until unique.
+  if (unique_name_if_duplicate && _names.find(layer->_name) != _names.end()) {
+    int i = 2;
+    while (_names.find(layer->_name + "_" + to_string(i)) != _names.end()) i++;
+    cerr << "Document::add_layer: Layer name '" << layer->_name << "' already exists in the document. Changed layer name to '" << layer->_name + "_" + to_string(i) << "'" << endl;
+    layer->_name += "_" + to_string(i);
+  }
+
+  _names.insert(layer->_name);
   _layers.push_back(move(layer));
 
   return *_layers.back().get();

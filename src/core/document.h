@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "common.h"
 #include "layers/layer.h"
 
@@ -29,6 +31,7 @@ class Document {
 
  private:
   vector<unique_ptr<Layer>> _layers;
+  set<string> _names;
 
   string _source_path;
 };
