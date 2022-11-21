@@ -91,7 +91,7 @@ template<typename T> T& Document::get_layer(const string_view name) {
         return *layer;
       }
     }
-    throw LinpipeError{"Document::get_layer: Layer of requrested type '", T().type(), "' was not found in document."};
+    throw LinpipeError{"Document::get_layer: Layer of requested type '", T().type(), "' was not found in document."};
   }
 
   for (auto& it : _layers)
