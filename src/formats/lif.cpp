@@ -26,9 +26,9 @@ bool Lif::load(Document& document, istream& input, const string source_path) {
   json_checker.json_has_array("Lif::load", json, "layers");
 
   for (auto layer_json : json["layers"]) {
-    json_checker.json_has_string("Lif::load", layer_json, "name");
-    string description = layer_json["name"];
-    unique_ptr<Layer> layer = Layer::create(description);
+    json_checker.json_has_string("Lif::load", layer_json, "type");
+    string type = layer_json["type"];
+    unique_ptr<Layer> layer = Layer::create(type);
     layer->from_json(layer_json);
     document.add_layer(move(layer));
   }

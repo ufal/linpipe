@@ -18,7 +18,7 @@ TEST_CASE("Text::from_json") {
   CHECK_THROWS_AS(text.from_json(Json(42)), LinpipeError);
   CHECK_THROWS_AS(text.from_json(Json::object()), LinpipeError);
   CHECK_THROWS_AS(text.from_json(Json{{"text", 42}}), LinpipeError);
-  CHECK_NOTHROW(text.from_json(Json{{"text", "raw text"}}));
+  CHECK_NOTHROW(text.from_json(Json{{"text", "hello world"}, {"type", "text"}, {"name", "text"}}));
 }
 
 } // namespace linpipe

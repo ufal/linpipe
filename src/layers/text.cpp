@@ -15,12 +15,21 @@ namespace linpipe::layers {
 void Text::from_json(const Json& json) {
   _json_checker.json_has_string("Text::from_json", json, "text");
   text = json["text"];
+
+  _json_checker.json_has_string("Text::from_json", json, "type");
+  _type = json["type"];
+
+  if (json.contains("name") && json.at("name").is_string()) {
+    _name = json["name"];
+  }
+
 }
 
 void Text::to_json(Json& json) {
   json = Json::object();
   json["text"] = text;
   json["name"] = _name;
+  json["type"] = _type;
 }
 
 void Text::to_html(string& /*html*/) {
