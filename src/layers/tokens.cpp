@@ -9,31 +9,30 @@
 
 #include "layers/tokens.h"
 #include "lib/json.h"
+#include "utils/json_utils.h"
 
 namespace linpipe::layers {
 
 void Tokens::from_json(const Json& json) {
-  _json_checker.json_has_array("Tokens::from_json", json, "tokens");
-  tokens = json["tokens"].get<vector<string>>();
+  json_assert_object("Text::from_json", json);
 
-  if (json.contains("sentences") && json.at("sentences").is_array()) {
-    sentences = json["sentences"].get<vector<unsigned int>>();
-  }
+  json_get_string("Text::from_json", json, "type", _type);
+  json_get_string("Text::from_json", json, "name", _name);
 
-  _json_checker.json_has_string("Tokens::from_json", json, "type");
-  _type = json["type"];
+  json_get_string_vector("Text::from_json", json, "tokens", tokens);
 
-  if (json.contains("name") && json.at("name").is_string()) {
-    _name = json["name"];
-  }
+  if (json.contains("sentences"))
+    json_get_unsigned_vector("Text::from_json", json, "sentences", sentences);
+  else
+    sentences.clear();
 }
 
 Json Tokens::to_json() {
   return {
+    {"type", _type},
+    {"name", _name},
     {"tokens", tokens},
     {"sentences", sentences},
-    {"name", _name},
-    {"type", _type},
   };
 }
 

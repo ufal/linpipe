@@ -9,20 +9,17 @@
 
 #include "layers/text.h"
 #include "lib/json.h"
+#include "utils/json_utils.h"
 
 namespace linpipe::layers {
 
 void Text::from_json(const Json& json) {
-  _json_checker.json_has_string("Text::from_json", json, "text");
-  text = json["text"];
+  json_assert_object("Text::from_json", json);
 
-  _json_checker.json_has_string("Text::from_json", json, "type");
-  _type = json["type"];
+  json_get_string("Text::from_json", json, "type", _type);
+  json_get_string("Text::from_json", json, "name", _name);
 
-  if (json.contains("name") && json.at("name").is_string()) {
-    _name = json["name"];
-  }
-
+  json_get_string("Text::from_json", json, "text", text);
 }
 
 Json Text::to_json() {

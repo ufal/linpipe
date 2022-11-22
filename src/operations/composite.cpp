@@ -24,9 +24,8 @@ Composite::Composite(const string description) {
 }
 
 void Composite::execute(Corpus& corpus, PipelineState& state) {
-  for (unsigned int i = 0; i < _operations.size(); i++) {
-    _operations[i]->execute(corpus, state);
-  }
+  for (auto& operation : _operations)
+    operation->execute(corpus, state);
 };
 
 } // namespace linpipe::operations

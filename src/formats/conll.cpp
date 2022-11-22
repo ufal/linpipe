@@ -98,7 +98,7 @@ void Conll::save(Document& document, ostream& output) {
   }
 
   // Print the lines.
-  unsigned int sentence_index = 0;
+  size_t sentence_index = 0;
   for (size_t i = 0; i < n; i++) {  // token lines
     bool sentence_printed = false;
     for (size_t j = 0; j < _types.size(); j++) {  // columns

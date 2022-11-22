@@ -29,7 +29,7 @@ class Spans : public Layer {
   void encode(vector<string>& encoded_tags, const SpanEncoding encoding = SpanEncoding::bio);
 
   string token_layer;
-  vector<pair<unsigned int, unsigned int>> spans;
+  vector<pair<unsigned, unsigned>> spans;
   vector<string> tags;
 };
 

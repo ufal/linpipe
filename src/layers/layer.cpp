@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "layers/layer.h"
+#include "layers/spans.h"
 #include "layers/text.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
@@ -17,6 +18,8 @@ namespace linpipe {
 
 unique_ptr<Layer> Layer::create(const string type, const string name) {
   // Construct layer of corresponding type.
+  if (type == "spans")
+    return make_unique<layers::Spans>(name);
   if (type == "text")
     return make_unique<layers::Text>(name);
   if (type == "tokens")

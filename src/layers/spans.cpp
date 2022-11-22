@@ -10,23 +10,29 @@
 #include "common.h"
 #include "layers/spans.h"
 #include "lib/json.h"
+#include "utils/json_utils.h"
 
 namespace linpipe::layers {
 
 void Spans::from_json(const Json& json) {
-  _json_checker.json_has_string("Spans::from_json", json, "token_layer");
-  token_layer = json["token_layer"];
+  json_assert_object("Spans::from_json", json);
 
-  _json_checker.json_has_array("Spans::from_json", json, "spans");
-  spans = json["spans"].get<vector<pair<unsigned int, unsigned int>>>();
+  json_get_string("Spans::from_json", json, "type", _type);
+  json_get_string("Spans::from_json", json, "name", _name);
 
-  if (json.contains("tags") && json.at("tags").is_array()) {
-    tags = json["tags"].get<vector<string>>();
-  }
+  json_get_string("Spans::from_json", json, "token_layer", token_layer);
+  json_get_unsigned_pair_vector("Spans::from_json", json, "spans", spans);
+
+  if (json.contains("tags"))
+    json_get_string_vector("Spans::from_json", json, "tags", tags);
+  else
+    tags.clear();
 }
 
 Json Spans::to_json() {
   return {
+    {"type", _type},
+    {"name", _name},
     {"token_layer", token_layer},
     {"spans", spans},
     {"tags", tags},

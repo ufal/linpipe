@@ -10,7 +10,6 @@
 #pragma once
 
 #include "common.h"
-#include "utils/json_checker.h"
 
 namespace linpipe {
 
@@ -37,8 +36,6 @@ class Layer {
   string _type;
   string _name;
   friend class Document;
-
-  JsonChecker _json_checker;
 };
 
 } // namespace linpipe

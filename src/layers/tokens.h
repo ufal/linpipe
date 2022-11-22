@@ -23,7 +23,7 @@ class Tokens : public Layer {
   virtual string to_html() override;
 
   vector<string> tokens;
-  vector<unsigned int> sentences;
+  vector<unsigned> sentences;
 };
 
 } // namespace linpipe::layers
