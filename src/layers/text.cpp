@@ -25,14 +25,16 @@ void Text::from_json(const Json& json) {
 
 }
 
-void Text::to_json(Json& json) {
-  json = Json::object();
-  json["text"] = text;
-  json["name"] = _name;
-  json["type"] = _type;
+Json Text::to_json() {
+  return {
+    {"text", text},
+    {"name", _name},
+    {"type", _type},
+  };
 }
 
-void Text::to_html(string& /*html*/) {
+string Text::to_html() {
+  return string();
 }
 
 } // namespace linpipe::layers

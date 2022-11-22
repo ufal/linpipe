@@ -23,8 +23,8 @@ class Layer {
   static unique_ptr<Layer> create(const string description);
 
   virtual void from_json(const Json& json) = 0;
-  virtual void to_json(Json& json) = 0;
-  virtual void to_html(string& html) = 0;
+  virtual Json to_json() = 0;
+  virtual string to_html() = 0;
 
   const string& name() { return _name; }
   const string& type() { return _type; }

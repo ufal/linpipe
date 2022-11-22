@@ -19,8 +19,8 @@ class Text : public Layer {
   Text(const string name={}) : Layer("text", name.empty() ? "text" : name) {};
 
   virtual void from_json(const Json& json) override;
-  virtual void to_json(Json& json) override;
-  virtual void to_html(string& html) override;
+  virtual Json to_json() override;
+  virtual string to_html() override;
 
   string text;
 };

@@ -28,14 +28,17 @@ void Tokens::from_json(const Json& json) {
   }
 }
 
-void Tokens::to_json(Json& json) {
-  json["tokens"] = tokens;
-  json["sentences"] = sentences;
-  json["name"] = _name;
-  json["type"] = _type;
+Json Tokens::to_json() {
+  return {
+    {"tokens", tokens},
+    {"sentences", sentences},
+    {"name", _name},
+    {"type", _type},
+  };
 }
 
-void Tokens::to_html(string& /*html*/) {
+string Tokens::to_html() {
+  return string();
 }
 
 } // namespace linpipe::layers

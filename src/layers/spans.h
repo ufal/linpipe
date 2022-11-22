@@ -22,8 +22,8 @@ class Spans : public Layer {
   Spans(const string name={}) : Layer("spans", name.empty() ? "spans" : name) {};
 
   virtual void from_json(const Json& json) override;
-  virtual void to_json(Json& json) override;
-  virtual void to_html(string& html) override;
+  virtual Json to_json() override;
+  virtual string to_html() override;
 
   void decode(const vector<string>& encoded_tags, const SpanEncoding encoding = SpanEncoding::bio);
   void encode(vector<string>& encoded_tags, const SpanEncoding encoding = SpanEncoding::bio);

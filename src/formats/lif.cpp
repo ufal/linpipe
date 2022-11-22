@@ -47,16 +47,14 @@ unique_ptr<Document> Lif::load(istream& input, const string source_path) {
 void Lif::save(Document& document, ostream& output) {
   Json layers_json = Json::array();
 
-  for (auto& layer : document.layers()) {
-    Json layer_json = Json();
-    layer->to_json(layer_json);
-    layers_json.push_back(layer_json);
-  }
+  for (auto& layer : document.layers())
+    layers_json.push_back(layer->to_json());
 
-  Json json = Json::object();
-  json["layers"] = layers_json;
+  Json json = {
+    {"layers", layers_json},
+  };
 
-  output << string(json.dump()) << endl;
+  output << json.dump() << endl;
 }
 
 } // namespace linpipe::formats

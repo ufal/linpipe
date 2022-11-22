@@ -25,13 +25,16 @@ void Spans::from_json(const Json& json) {
   }
 }
 
-void Spans::to_json(Json& json) {
-  json["token_layer"] = token_layer;
-  json["spans"] = spans;
-  json["tags"] = tags;
+Json Spans::to_json() {
+  return {
+    {"token_layer", token_layer},
+    {"spans", spans},
+    {"tags", tags},
+  };
 }
 
-void Spans::to_html(string& /*html*/) {
+string Spans::to_html() {
+  return string();
 }
 
 void Spans::decode(const vector<string>& /*encoded_tags*/, const SpanEncoding /*encoding*/) {
