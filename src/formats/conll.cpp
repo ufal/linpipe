@@ -23,7 +23,22 @@ Conll::Conll(const string description) {
   while(true) { // see how many columns requested
     unordered_map<string, string>::const_iterator it = _args.find(to_string(i));
     if (it == _args.end()) break; // no more columns
-    _types.push_back(it->second);
+
+    // split column description into name and type
+    if (it->second.find(":") != string::npos) {
+      vector<string> tokens;
+      _string_helper.split(tokens, it->second, ":");
+      if (tokens.size() != 2) {
+        throw LinpipeError{"Expected name:format in description of ", to_string(i), "-th column of --format description '", description, "'"};
+      }
+      _names.push_back(tokens[0]);
+      _types.push_back(tokens[1]);
+    }
+    else { // if without ':', assume the description is a type
+      _names.push_back({});
+      _types.push_back(it->second);
+    }
+
     i++;
   }
 }
@@ -34,8 +49,8 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
 
   // Create layers.
   vector<unique_ptr<Layer>> layers;
-  for (string type : _types) {
-    layers.push_back(Layer::create(type));
+  for (size_t i = 0; i < _types.size(); i++) {
+    layers.push_back(Layer::create(_names[i] + ":" + _types[i]));
   }
 
   // Read content.
@@ -72,16 +87,16 @@ void Conll::save(Document& document, ostream& output) {
   size_t n = 0; // number of token lines
   const vector<unique_ptr<Layer>>& layers = document.layers();
   if (layers.size()) {
-    if (layers[0]->name() == "tokens") {
+    if (layers[0]->type() == "tokens") {
       n = dynamic_cast<layers::Tokens*>(layers[0].get())->tokens.size();
     }
   }
 
-  // Print the lines
+  // Print the lines.
   for (size_t i = 0; i < n; i++) {  // token lines
     for (size_t j = 0; j < _types.size(); j++) {  // columns
       if (_types[j] == "tokens") {
-        auto& layer = document.get_layer<layers::Tokens>(_types[j]);
+        auto& layer = document.get_layer<layers::Tokens>(_names[j]);
         output << layer.tokens[i];
         if (j != n-1) output << "\t";
       }

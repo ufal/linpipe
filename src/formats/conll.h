@@ -26,6 +26,7 @@ class Conll : public Format {
  private:
   unordered_map<string, string> _args;
   vector<string> _types;  // layer types corresponding to columns
+  vector<string> _names;  // layer names corresponding to columns
   StringHelper _string_helper;
 };
 
