@@ -16,8 +16,6 @@ namespace linpipe::formats {
 
 class Lif : public Format {
  public:
-  Lif() {};
-
   virtual bool load(Document& document, istream& input, const string source_path) override;
   virtual void save(Document& document, ostream& output) override;
 };
