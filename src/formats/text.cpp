@@ -17,7 +17,7 @@ bool Text::load(Document& document, istream& input, const string source_path) {
   if (input.eof())
     return false;
 
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>("text");
+  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
 
   char block[4096];
   while (input.read(block, sizeof(block)))
@@ -31,7 +31,7 @@ bool Text::load(Document& document, istream& input, const string source_path) {
 }
 
 void Text::save(Document& document, ostream& output) {
-  auto& layer = document.get_layer<layers::Text>(_name);
+  auto& layer = document.get_layer<layers::Text>();
 
   output << string(layer.text);
 }

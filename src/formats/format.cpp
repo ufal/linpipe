@@ -31,14 +31,6 @@ unique_ptr<Format> Format::create(const string description) {
   throw LinpipeError{"Invalid value '", description, "' for the --format argument"};
 }
 
-const string& Format::name() {
-  return _name;
-}
-
-void Format::set_name(const string name) {
-  _name = name;
-}
-
 void Format::save_corpus_start(ostream& /*output*/) {
 }
 

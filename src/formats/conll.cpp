@@ -15,7 +15,7 @@
 
 namespace linpipe::formats {
 
-Conll::Conll(const string description) : Format("conll") {
+Conll::Conll(const string description) {
   Arguments args;
   args.parse_format(_args, description);
 

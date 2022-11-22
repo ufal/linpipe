@@ -26,12 +26,8 @@ class Format {
   virtual void save_corpus_start(ostream& output);
   virtual void save_corpus_end(ostream& output);
 
-  const string& name();
-  void set_name(const string name);
-
  protected:
-  Format(const string name) : _name(name) {};
-  string _name;
+  Format() {};
 };
 
 } // namespace linpipe
