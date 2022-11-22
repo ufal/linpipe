@@ -12,6 +12,14 @@
 
 namespace linpipe {
 
+Json json_parse(const string_view caller, const string_view input) {
+  try {
+    return Json::parse(input);
+  } catch (Json::parse_error& error) {
+    throw LinpipeError{caller, ": Cannot parse JSON: ", error.what()};
+  }
+}
+
 void json_assert_object(const string_view caller, const Json& json) {
   if (!json.is_object())
     throw LinpipeError{caller, ": A JSON should be an object, but is a '", json.type_name(), "'"};
@@ -22,14 +30,6 @@ Json json_get_key(const string_view caller, const Json& json, const string_view 
   if (!json.contains(key))
     throw LinpipeError{caller, ": A JSON was expected to contain a key '", key, "'"};
   return json[key];
-}
-
-Json json_parse(const string_view caller, const string_view input) {
-  try {
-    return Json::parse(input);
-  } catch (Json::parse_error& error) {
-    throw LinpipeError{caller, ": Cannot parse JSON: ", error.what()};
-  }
 }
 
 Json json_get_array(const string_view caller, const Json& json, const string_view key) {
