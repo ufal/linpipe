@@ -56,8 +56,6 @@ jobs:
 
       - name: Compile
         run: make PLATFORM=${{ matrix.platform }} -k -C src all
-        env:
-          C_FLAGS: $(treat_warnings_as_errors)
 
       - name: Run tests
         run: src/linpipe_test

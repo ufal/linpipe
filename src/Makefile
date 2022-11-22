@@ -21,6 +21,7 @@ all: default test_compile # lib will be added once we have at least one source
 
 # Flags
 C_FLAGS += $(call include_dir,.)
+C_FLAGS += $(treat_warnings_as_errors)
 
 # Targets
 $(call exe,linpipe): $(call obj,$(LINPIPE_OBJECTS) linpipe utils/win_wmain_utf8)
