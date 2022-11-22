@@ -16,7 +16,7 @@ namespace linpipe {
 
 class Corpus {
  public:
-  vector<Document> documents;
+  vector<unique_ptr<Document>> documents;
 
  private:
 };

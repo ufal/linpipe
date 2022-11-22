@@ -41,13 +41,13 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   // output from the documents' input source_paths.
   if (target_paths.empty()) {
     for (size_t i = 0; i < corpus.documents.size(); i++) {
-      if (corpus.documents[i].source_path().empty()) {
-        target_paths.push_back(corpus.documents[i].source_path());
+      if (corpus.documents[i]->source_path().empty()) {
+        target_paths.push_back(corpus.documents[i]->source_path());
       }
       else {
         // TODO: decide on the exact default output extension
         // TODO: the addition ".out" should go BEFORE the actual extension
-        target_paths.push_back(corpus.documents[i].source_path() + ".out");
+        target_paths.push_back(corpus.documents[i]->source_path() + ".out");
       }
     }
   }
@@ -82,7 +82,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
     }
 
     // write the document contents
-    _format->save(corpus.documents[i], *os);
+    _format->save(*corpus.documents[i], *os);
 
     // finish writing to the last handle
     if (i == corpus.documents.size() - 1) {

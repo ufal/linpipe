@@ -45,13 +45,9 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
 }
 
 void Load::_read_from_handle(Corpus& corpus, istream& input, const string source_path) {
-  while (true) {
-    Document doc;
-    if (!_format->load(doc, input, source_path)) {
-      break;
-    }
+  unique_ptr<Document> doc;
+  while (doc = make_unique<Document>(), _format->load(*doc, input, source_path))
     corpus.documents.push_back(move(doc));
-  }
 }
 
 } // namespace linpipe::operations
