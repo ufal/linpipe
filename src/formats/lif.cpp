@@ -47,10 +47,9 @@ unique_ptr<Document> Lif::load(istream& input, const string source_path) {
 void Lif::save(Document& document, ostream& output) {
   Json layers_json = Json::array();
 
-  const vector<unique_ptr<Layer>>& layers = document.layers();
-  for (size_t i = 0; i < layers.size(); i++) {
+  for (auto& layer : document.layers()) {
     Json layer_json = Json();
-    layers[i]->to_json(layer_json);
+    layer->to_json(layer_json);
     layers_json.push_back(layer_json);
   }
 
