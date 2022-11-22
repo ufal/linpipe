@@ -43,15 +43,17 @@ Conll::Conll(const string description) {
   }
 }
 
-bool Conll::load(Document& document, istream& input, const string source_path) {
+unique_ptr<Document> Conll::load(istream& input, const string source_path) {
   if (input.eof())
-    return false;
+    return nullptr;
+
+  auto document = make_unique<Document>();
 
   // Create layers.
   for (size_t i = 0; i < _types.size(); i++) {
-    document.add_layer(Layer::create(_names[i] + ":" + _types[i]));
+    document->add_layer(Layer::create(_names[i] + ":" + _types[i]));
     // Document may have changed the name of the added layer to unique name.
-    _names[i] = document.get_layer().name();
+    _names[i] = document->get_layer().name();
   }
 
   // Read content.
@@ -61,7 +63,7 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
     if (line.empty()) { // end of sentence
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "tokens") {
-          document.get_layer<layers::Tokens>(_names[i]).sentences.push_back(ntokens);
+          document->get_layer<layers::Tokens>(_names[i]).sentences.push_back(ntokens);
         }
       }
     }
@@ -73,16 +75,16 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
       }
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "tokens") {
-          document.get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
+          document->get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
         }
       }
       ntokens += 1;
     }
   }
 
-  document.set_source_path(source_path);
+  document->set_source_path(source_path);
 
-  return true;
+  return document;
 }
 
 void Conll::save(Document& document, ostream& output) {

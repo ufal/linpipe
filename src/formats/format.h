@@ -21,7 +21,7 @@ class Format {
 
   static unique_ptr<Format> create(const string description);
 
-  virtual bool load(Document& document, istream& input, const string source_path) = 0;
+  virtual unique_ptr<Document> load(istream& input, const string source_path) = 0;
   virtual void save(Document& document, ostream& output) = 0;
   virtual void save_corpus_start(ostream& output);
   virtual void save_corpus_end(ostream& output);
