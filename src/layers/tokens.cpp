@@ -16,6 +16,10 @@ void Tokens::from_json(const Json& json) {
   _json_checker.json_has_array("Tokens::from_json", json, "tokens");
   tokens = json["tokens"].get<vector<string>>();
 
+  if (json.contains("sentences") && json.at("sentences").is_array()) {
+    sentences = json["sentences"].get<vector<unsigned int>>();
+  }
+
   _json_checker.json_has_string("Tokens::from_json", json, "type");
   _type = json["type"];
 
@@ -26,6 +30,7 @@ void Tokens::from_json(const Json& json) {
 
 void Tokens::to_json(Json& json) {
   json["tokens"] = tokens;
+  json["sentences"] = sentences;
   json["name"] = _name;
   json["type"] = _type;
 }

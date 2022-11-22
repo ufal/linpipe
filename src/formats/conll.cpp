@@ -48,16 +48,22 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
     return false;
 
   // Create layers.
-  vector<unique_ptr<Layer>> layers;
   for (size_t i = 0; i < _types.size(); i++) {
-    layers.push_back(Layer::create(_names[i] + ":" + _types[i]));
+    document.add_layer(Layer::create(_names[i] + ":" + _types[i]));
+    // Document may have changed the name of the added layer to unique name.
+    _names[i] = document.get_layer().name();
   }
 
   // Read content.
   string line;
+  size_t ntokens = 0;
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
-      // TODO
+      for (size_t i = 0; i < _types.size(); i++) {
+        if (_types[i] == "tokens") {
+          document.get_layer<layers::Tokens>(_names[i]).sentences.push_back(ntokens);
+        }
+      }
     }
     else { // line with cols
       vector<string> cols;
@@ -67,14 +73,11 @@ bool Conll::load(Document& document, istream& input, const string source_path) {
       }
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "tokens") {
-          dynamic_cast<layers::Tokens*>(layers[i].get())->tokens.push_back(cols[i]);
+          document.get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
         }
       }
+      ntokens += 1;
     }
-  }
-
-  for (size_t i = 0; i < _types.size(); i++) {
-    document.add_layer(move(layers[i]));
   }
 
   document.set_source_path(source_path);
@@ -93,11 +96,24 @@ void Conll::save(Document& document, ostream& output) {
   }
 
   // Print the lines.
+  unsigned int sentence_index = 0;
   for (size_t i = 0; i < n; i++) {  // token lines
+    bool sentence_printed = false;
     for (size_t j = 0; j < _types.size(); j++) {  // columns
       if (_types[j] == "tokens") {
         auto& layer = document.get_layer<layers::Tokens>(_names[j]);
+
+        // Print end of sentence.
+        if (layer.sentences[sentence_index] == i && !sentence_printed) {
+          output << endl;
+          sentence_index += 1;
+          sentence_printed = true;
+        }
+
+        // Print token.
         output << layer.tokens[i];
+
+        // Print delimiter.
         if (j != n-1) output << "\t";
       }
     }
