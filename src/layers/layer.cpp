@@ -15,33 +15,14 @@
 
 namespace linpipe {
 
-unique_ptr<Layer> Layer::create(const string description) {
-  // Get layer type.
-  string type;
-  string name;
-  StringHelper string_helper;
-  if (description.find(":") != string::npos) {
-    vector<string> tokens;
-    string_helper.split(tokens, description, ":");
-    if (tokens.size() != 2) {
-        throw LinpipeError{"Expected name:format in layer description '", description, "'"};
-      }
-    name = tokens[0];
-    type = tokens[1];
-  }
-  else {
-    type = description;
-  }
-
+unique_ptr<Layer> Layer::create(const string type, const string name) {
   // Construct layer of corresponding type.
-  if (type == "text") {
+  if (type == "text")
     return make_unique<layers::Text>(name);
-  }
-  if (type == "tokens") {
+  if (type == "tokens")
     return make_unique<layers::Tokens>(name);
-  }
 
-  throw LinpipeError{"Layer::create: Cannot construct unknown type of layer '", description, "'"};
+  throw LinpipeError{"Layer::create: Cannot construct layer of unknown type '", type, "'"};
 }
 
 } // namespace linpipe

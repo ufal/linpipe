@@ -51,7 +51,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
 
   // Create layers.
   for (size_t i = 0; i < _types.size(); i++) {
-    document->add_layer(Layer::create(_names[i] + ":" + _types[i]));
+    document->add_layer(Layer::create(_types[i], _names[i]));
     // Document may have changed the name of the added layer to unique name.
     _names[i] = document->get_layer().name();
   }
