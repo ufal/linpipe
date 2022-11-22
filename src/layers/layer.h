@@ -21,8 +21,6 @@ class Layer {
   virtual ~Layer() {}
 
   static unique_ptr<Layer> create(const string description);
-  template<typename T>
-  static string layer_type();
 
   virtual void from_json(const Json& json) = 0;
   virtual void to_json(Json& json) = 0;
