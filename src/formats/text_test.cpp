@@ -19,17 +19,16 @@ namespace linpipe {
 
 TEST_CASE("formats::Text::load") {
   unique_ptr<Format> text = Format::create("text");
-  Document doc;
 
   SUBCASE("loads text, adds text layer with default name") {
     istringstream is("Hello world!\n");
-    text->load(doc, is, "source");
+    auto doc = text->load(is, "source");
 
-    CHECK(doc.layers().size() == 1);
-    CHECK(doc.source_path() == "source");
-    CHECK(doc.layers()[0]->name() == "text");
+    CHECK(doc->layers().size() == 1);
+    CHECK(doc->source_path() == "source");
+    CHECK(doc->layers()[0]->name() == "text");
 
-    auto& layer = doc.get_layer<layers::Text>("text");
+    auto& layer = doc->get_layer<layers::Text>("text");
     CHECK(layer.text == "Hello world!\n");
   }
 

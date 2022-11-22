@@ -15,7 +15,7 @@ namespace linpipe {
 TEST_CASE("Layer::create") {
 
   SUBCASE("creates layer of name and type") {
-    unique_ptr<Layer> layer = Layer::create("name:text");
+    unique_ptr<Layer> layer = Layer::create("text", "name");
     CHECK(layer->name() == "name");
     CHECK(layer->type() == "text");
   }
@@ -24,20 +24,12 @@ TEST_CASE("Layer::create") {
     unique_ptr<Layer> layer = Layer::create("text");
     CHECK(layer->name() == "text");
     CHECK(layer->type() == "text");
-
-    unique_ptr<Layer> layer2 = Layer::create(":text");
-    CHECK(layer2->name() == "text");
-    CHECK(layer2->type() == "text");
   }
 
   SUBCASE("creates layer of type tokens and default name") {
     unique_ptr<Layer> layer = Layer::create("tokens");
     CHECK(layer->name() == "tokens");
     CHECK(layer->type() == "tokens");
-
-    unique_ptr<Layer> layer2 = Layer::create(":tokens");
-    CHECK(layer2->name() == "tokens");
-    CHECK(layer2->type() == "tokens");
   }
 
 }
