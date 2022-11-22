@@ -46,7 +46,7 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
 
 void Load::_read_from_handle(Corpus& corpus, istream& input, const string source_path) {
   unique_ptr<Document> doc;
-  while (doc = _format->load(input, source_path))
+  while ((doc = _format->load(input, source_path)))
     corpus.documents.push_back(move(doc));
 }
 
