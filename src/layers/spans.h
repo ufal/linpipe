@@ -15,7 +15,16 @@
 
 namespace linpipe::layers {
 
-enum class SpanEncoding { bio, iob };
+class SpanEncoding {
+ public:
+  enum { BIO = 0, IOB = 1 };
+  int type;
+
+  SpanEncoding(int type) : type(type) {}
+  static SpanEncoding create(const string& type);
+
+  static inline vector<string> types = {"BIO", "IOB"};
+};
 
 class Spans : public Layer {
  public:
@@ -25,8 +34,8 @@ class Spans : public Layer {
   virtual Json to_json() override;
   virtual string to_html() override;
 
-  void decode(const vector<string>& encoded_tags, const SpanEncoding encoding = SpanEncoding::bio);
-  void encode(vector<string>& encoded_tags, const SpanEncoding encoding = SpanEncoding::bio);
+  void decode(const vector<string>& encoded_tags, const SpanEncoding encoding);
+  void encode(vector<string>& encoded_tags, const SpanEncoding encoding);
 
   string token_layer;
   vector<pair<unsigned, unsigned>> spans;
