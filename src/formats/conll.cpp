@@ -9,6 +9,7 @@
 
 #include "formats/conll.h"
 #include "layers/layer.h"
+#include "layers/spans.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
 #include "utils/arguments.h"
@@ -41,6 +42,15 @@ Conll::Conll(const string description) {
 
     i++;
   }
+
+  _encodings.resize(_names.size());
+  for (size_t i = 0; i < _encodings.size(); i++) {
+    unordered_map<string, string>::const_iterator it = _args.find(to_string(i+1) + "_encoding");
+    if (it != _args.end()) {
+      _encodings[i] = it->second;
+    }
+  }
+
 }
 
 unique_ptr<Document> Conll::load(istream& input, const string source_path) {
@@ -76,6 +86,11 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "tokens") {
           document->get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
+        }
+        if (_types[i] == "spans") {
+          document->get_layer<layers::Spans>(_names[i]).decode(cols[i],
+                                                               ntokens,
+                                                               linpipe::layers::SpanEncoding::create(_encodings[i]));
         }
       }
       ntokens += 1;

@@ -14,7 +14,7 @@
 
 namespace linpipe::layers {
 
-SpanEncoding create(const string& type) {
+SpanEncoding SpanEncoding::create(const string& type) {
   if (type == "BIO") return SpanEncoding::BIO;
   if (type == "IOB") return SpanEncoding::IOB;
   throw LinpipeError{"SpanEncoding::create: Unexpected SpanEncoding type '", type, "'"};
@@ -49,10 +49,18 @@ string Spans::to_html() {
   return string();
 }
 
-void Spans::decode(const vector<string>& /*encoded_tags*/, const SpanEncoding encoding) {
+void Spans::decode(const string& encoded_tag, unsigned index, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
-    // TODO
+    if (encoded_tag != "O") {
+      if (encoded_tag.find("B-") == 0) {  // start new span
+        spans.push_back(pair<unsigned, unsigned>(index, index));
+        tags.push_back(encoded_tag.substr(2));
+      }
+      if (encoded_tag.find("I-") == 0) {  // prolong last span
+        spans[spans.size() - 1].second = index;
+      }
+    }
     return;
   }
 
