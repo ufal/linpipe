@@ -112,6 +112,17 @@ void Conll::save(Document& document, ostream& output) {
     }
   }
 
+  // Preprocess the columns that need preprocessing,
+  // e.g. encoding named entities.
+  vector<vector<string>> encoded_columns(layers.size());
+  for (size_t i = 0; i < encoded_columns.size(); i++) {
+    if (_types[i] == "spans") { // encode spans
+      encoded_columns[i].resize(n);
+      document.get_layer<layers::Spans>(_names[i]).encode(encoded_columns[i],
+                                                          linpipe::layers::SpanEncoding::create(_encodings[i]));
+    }
+  }
+
   // Print the lines.
   size_t sentence_index = 0;
   for (size_t i = 0; i < n; i++) {  // token lines
@@ -130,9 +141,15 @@ void Conll::save(Document& document, ostream& output) {
         // Print token.
         output << layer.tokens[i];
 
-        // Print delimiter.
-        if (j != n-1) output << "\t";
       }
+
+      if (_types[j] == "spans") {
+        output << encoded_columns[j][i];
+      }
+
+      // Print delimiter.
+      if (j != n-1) output << "\t";
+
     }
     output << endl;
   }

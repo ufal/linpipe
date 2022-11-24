@@ -72,7 +72,27 @@ void Spans::decode(const string& encoded_tag, unsigned index, const SpanEncoding
   throw LinpipeError{"Spans::decode: Unexpected SpanEncoding with value ", to_string(encoding.type)};
 }
 
-void Spans::encode(vector<string>& /*encoded_tags*/, const SpanEncoding /*encoding*/) {
+void Spans::encode(vector<string>& encoded_tags, const SpanEncoding encoding) {
+
+  if (encoding.type == SpanEncoding::BIO) {
+    for (size_t i = 0; i < encoded_tags.size(); i++) {
+      encoded_tags[i] = "O";
+    }
+    for (size_t i = 0; i < spans.size(); i++) {
+      encoded_tags[spans[i].first] = "B-" + tags[i];
+      for (size_t j = spans[i].first + 1; j <= spans[i].second; j++) {
+        encoded_tags[j] = "I-" + tags[i];
+      }
+    }
+    return;
+  }
+
+  if (encoding.type == SpanEncoding::IOB) {
+    // TODO
+    return;
+  }
+
+  throw LinpipeError{"Spans::encode: Unexpected SpanEncoding with value ", to_string(encoding.type)};
 }
 
 } // namespace linpipe::layers
