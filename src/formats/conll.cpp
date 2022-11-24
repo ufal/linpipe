@@ -9,6 +9,7 @@
 
 #include "formats/conll.h"
 #include "layers/layer.h"
+#include "layers/lemmas.h"
 #include "layers/spans.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
@@ -84,13 +85,16 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
         throw LinpipeError{"Number of columns does not match number of columns in format description on line '", line, "'"};
       }
       for (size_t i = 0; i < _types.size(); i++) {
-        if (_types[i] == "tokens") {
-          document->get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
+        if (_types[i] == "lemmas") {
+          document->get_layer<layers::Lemmas>(_names[i]).lemmas.push_back(cols[i]);
         }
         if (_types[i] == "spans") {
           document->get_layer<layers::Spans>(_names[i]).decode(cols[i],
                                                                ntokens,
                                                                linpipe::layers::SpanEncoding::create(_encodings[i]));
+        }
+        if (_types[i] == "tokens") {
+          document->get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
         }
       }
       ntokens += 1;
@@ -128,6 +132,11 @@ void Conll::save(Document& document, ostream& output) {
   for (size_t i = 0; i < n; i++) {  // token lines
     bool sentence_printed = false;
     for (size_t j = 0; j < _types.size(); j++) {  // columns
+      if (_types[j] == "lemmas") {
+        auto& layer = document.get_layer<layers::Lemmas>(_names[j]);
+        output << layer.lemmas[i];
+      }
+
       if (_types[j] == "tokens") {
         auto& layer = document.get_layer<layers::Tokens>(_names[j]);
 
