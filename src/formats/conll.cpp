@@ -140,7 +140,6 @@ void Conll::save(Document& document, ostream& output) {
 
         // Print token.
         output << layer.tokens[i];
-
       }
 
       if (_types[j] == "spans") {
@@ -149,7 +148,6 @@ void Conll::save(Document& document, ostream& output) {
 
       // Print delimiter.
       if (j != n-1) output << "\t";
-
     }
     output << endl;
   }
