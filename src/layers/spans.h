@@ -11,7 +11,6 @@
 
 #include "common.h"
 #include "layers/layer.h"
-#include "layers/tokens.h"
 
 namespace linpipe::layers {
 
