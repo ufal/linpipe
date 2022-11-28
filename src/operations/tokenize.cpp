@@ -10,6 +10,8 @@
 #include "operations/tokenize.h"
 #include "operations/tokenizer/rule_based_tokenizer.h"
 #include "utils/arguments.h"
+#include "layers/text.h"
+#include "layers/tokens.h"
 
 namespace linpipe::operations {
 
@@ -32,7 +34,15 @@ Tokenize::Tokenize(const string description) {
   _target = args["target"];
 }
 
-void Tokenize::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {
+void Tokenize::execute(Corpus& corpus, PipelineState& /*state*/) {
+  for (auto& doc : corpus.documents) {
+    auto& source = doc->get_layer<layers::Text>(_source);
+    auto target = make_unique<layers::Tokens>(_target);
+
+    _tokenizer->tokenize(source.text, target->tokens);
+
+    doc->add_layer(move(target));
+  }
 }
 
 } // namespace linpipe::operations
