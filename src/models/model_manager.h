@@ -18,9 +18,9 @@ namespace linpipe {
 
 class ModelManager {
  public:
-  void reserve(const string_view name);
-  Model* load(const string_view name);
-  void release(const string_view name);
+  void reserve(const string name);
+  Model* load(const string name);
+  void release(const string name);
 
   // It is possible to configure when the models are unloaded after release,
   // with default being never to unload.
@@ -38,6 +38,8 @@ class ModelManager {
   // Maximum capacity of models held in memory. 0 means infinity.
   unsigned _capacity = 0;
 
+  // Load on reserve? If true, load immediately.
+  bool load_on_reserve = true;
 };
 
 } // namespace linpipe
