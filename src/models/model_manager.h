@@ -30,7 +30,7 @@ class ModelManager {
  private:
   // Model reservations
   vector<string> _reserved_models;  // model names FIFO
-  ordered_map<string, unsigned> _reservations;  // model reservations counts
+  unordered_map<string, unsigned> _reservations;  // model reservations counts
 
   // Models currently held in memory
   unordered_map<string, unique_ptr<Model>> _models;
