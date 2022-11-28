@@ -14,9 +14,14 @@
 namespace linpipe::operations {
 
 class RuleBasedTokenizer : public Tokenizer {
+ /* Rule-based tokenizer class. Splits on tokens.
+
+  TODO: Split using regexp.
+ */
+
  public:
   RuleBasedTokenizer() : Tokenizer("rule_based") {};
-  void tokenize(const string& /*text*/, vector<string>& /*tokens*/) {};
+  void tokenize(const string& text, vector<string>& tokens) override;
 };
 
 } // namespace linpipe::operations
