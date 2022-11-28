@@ -7,16 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
 #include "operations/tokenizer/tokenizer.h"
 
 namespace linpipe::operations {
 
-class RuleBasedTokenizer : public Tokenizer {
- public:
-  RuleBasedTokenizer() : Tokenizer("rule_based") {};
-  void tokenize(const string& /*text*/, vector<string>& /*tokens*/) {};
-};
+vector<string> Tokenizer::model_names() {
+  return _model_names;
+}
+
+string Tokenizer::type() {
+  return _type;
+}
 
 } // namespace linpipe::operations

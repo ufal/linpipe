@@ -24,6 +24,8 @@ Tokenize::Tokenize(const string description) {
 
   // Process parsed arguments
   if (args["model"] == "rule_based") _tokenizer = make_unique<RuleBasedTokenizer>();
+
+  _model_names = _tokenizer->model_names();
 }
 
 void Tokenize::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {

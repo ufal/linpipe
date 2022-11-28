@@ -9,12 +9,21 @@
 
 #pragma once
 
+#include "common.h"
+
 namespace linpipe::operations {
 
 class Tokenizer {
  public:
   virtual ~Tokenizer() {};
   virtual void tokenize(const string& text, vector<string>& tokens) = 0;
+  vector<string> model_names();
+  string type();
+
+ protected:
+  Tokenizer(const string type) : _type(type) {};
+  const string _type;
+  const vector<string> _model_names;
 };
 
 } // namespace linpipe::operations

@@ -28,7 +28,7 @@ class Operation {
  protected:
   Operation() {};
 
-  const vector<string> _model_names;
+  vector<string> _model_names;
 };
 
 } // namespace linpipe
