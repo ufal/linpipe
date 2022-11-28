@@ -11,6 +11,7 @@
 #include "operations/load.h"
 #include "operations/operation.h"
 #include "operations/save.h"
+#include "operations/tokenize.h"
 #include "utils/arguments.h"
 
 namespace linpipe {
@@ -36,6 +37,9 @@ unique_ptr<Operation> Operation::create(const string description) {
     }
     if (description.find(" -save", 0) == 0) { // Save
       return make_unique<operations::Save>(description);
+    }
+    if (description.find(" -tokenize", 0) == 0) { // Tokenize
+      return make_unique<operations::Tokenize>(description);
     }
   }
 
