@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+
 #include "models/model_manager.h"
 
 namespace linpipe {
@@ -59,11 +61,11 @@ void ModelManager::release(const string name) {
     _reservations.erase(it);
   }
 
-  //auto it = _reserved_models.find(name);
-  //if (it != _reserved_models.end()) _reserved_models.erase(it);
+  auto it2 = find(_reserved_models.begin(), _reserved_models.end(), name);
+  if (it2 != _reserved_models.end()) _reserved_models.erase(it2);
 
-  //auto it = _models.find(name);
-  //if (it != _models.end()) _models.erase(it);
+  auto it3 = _models.find(name);
+  if (it3 != _models.end()) _models.erase(it3);
 }
 
 } // namespace linpipe
