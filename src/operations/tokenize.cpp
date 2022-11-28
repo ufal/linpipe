@@ -18,6 +18,8 @@ Tokenize::Tokenize(const string description) {
   unordered_map<string, string> args;
   vector<string> kwargs;
   args["model"] = "rule_based";
+  args["source"] = "";
+  args["target"] = "";
 
   Arguments arguments;
   arguments.parse_arguments(args, kwargs, description);
@@ -26,6 +28,8 @@ Tokenize::Tokenize(const string description) {
   if (args["model"] == "rule_based") _tokenizer = make_unique<RuleBasedTokenizer>();
 
   _model_names = _tokenizer->model_names();
+  _source = args["source"];
+  _target = args["target"];
 }
 
 void Tokenize::execute(Corpus& /*corpus*/, PipelineState& /*state*/) {

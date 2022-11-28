@@ -29,6 +29,12 @@ class Operation {
   Operation() {};
 
   vector<string> _model_names;
+
+  // Name of source layer. If empty (default), the last layer of the
+  // appropriate type of the respective operation will be taken from the
+  // document.
+  string _source = {}; // name of source layer to start from
+  string _target = {}; // name of the newly constructed target layer
 };
 
 } // namespace linpipe
