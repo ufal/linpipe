@@ -28,7 +28,16 @@ class ModelManager {
   static ModelManager singleton;
 
  private:
+  // Model reservations
+  vector<string> _reserved_models;  // model names FIFO
+  ordered_map<string, unsigned> _reservations;  // model reservations counts
+
+  // Models currently held in memory
   unordered_map<string, unique_ptr<Model>> _models;
+
+  // Maximum capacity of models held in memory. 0 means infinity.
+  unsigned _capacity = 0;
+
 };
 
 } // namespace linpipe
