@@ -7,22 +7,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
 #include "common.h"
+#include "ner_toy.h"
 
-namespace linpipe {
+namespace linpipe::models {
 
-class Model {
- public:
-  virtual ~Model() {}
-  const string& name();
+NERToy::NERToy(string& name, istream& /*input*/) : Model(name) {
 
-  static unique_ptr<Model> create(string& name, istream& input);
+}
 
- protected:
-  Model(string name) : _name(name) {};
-  string _name;
-};
-
-} // namespace linpipe
+} // namespace linpipe::models

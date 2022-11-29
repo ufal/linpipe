@@ -10,19 +10,15 @@
 #pragma once
 
 #include "common.h"
+#include "model.h"
 
-namespace linpipe {
+namespace linpipe::models {
 
-class Model {
+class NERToy : public Model {
+ /* Toy NER model as a proof of concept. */
+
  public:
-  virtual ~Model() {}
-  const string& name();
-
-  static unique_ptr<Model> create(string& name, istream& input);
-
- protected:
-  Model(string name) : _name(name) {};
-  string _name;
+  NERToy(string& name, istream& input);
 };
 
-} // namespace linpipe
+} // namespace linpipe::models

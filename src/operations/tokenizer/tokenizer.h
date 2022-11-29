@@ -10,20 +10,18 @@
 #pragma once
 
 #include "common.h"
+#include "models/model_manager.h"
+#include "operations/implementation.h"
 
 namespace linpipe::operations {
 
-class Tokenizer {
+class Tokenizer : public Implementation {
  public:
   virtual ~Tokenizer() {};
-  virtual void tokenize(const string& text, vector<string>& tokens) = 0;
-  vector<string> model_names();
-  string type();
+  virtual void tokenize(ModelManager* model_manager, const string& text, vector<string>& tokens) = 0;
 
  protected:
-  Tokenizer(const string type) : _type(type) {};
-  const string _type;
-  const vector<string> _model_names;
+  Tokenizer(const string type, vector<string> model_names) : Implementation(type, model_names) {};
 };
 
 } // namespace linpipe::operations

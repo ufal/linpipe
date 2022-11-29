@@ -7,16 +7,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "operations/tokenizer/tokenizer.h"
+#include "operations/ne_recognizer/ne_recognizer_toy.h"
 
 namespace linpipe::operations {
 
-vector<string> Tokenizer::model_names() {
-  return _model_names;
-}
+void NERecognizerToy::recognize(ModelManager* /*model_manager*/, const vector<string>& /*text*/, vector<pair<unsigned, unsigned>>& /*spans*/) {
+  /* Toy NE Recognizer class with model. */
 
-string Tokenizer::type() {
-  return _type;
-}
+  //Model* model = model_manager->load(_model_names[0]);
+  // TODO: Use model to recognize named entities.
+};
 
 } // namespace linpipe::operations

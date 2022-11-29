@@ -9,21 +9,16 @@
 
 #pragma once
 
-#include "operations/tokenizer/tokenizer.h"
+#include "operations/ne_recognizer/ne_recognizer.h"
 
 namespace linpipe::operations {
 
-class RuleBasedTokenizer : public Tokenizer {
- /* Rule-based tokenizer class. Splits on tokens.
-
-  TODO: Split using regexp.
- */
+class NERecognizerToy : public NERecognizer {
+ /* Toy NE Recognizer class with model. */
 
  public:
-  // RuleBasedTokenizer drops model names (will not use any).
-  RuleBasedTokenizer(vector<string> /*model_names*/) : Tokenizer("rule_based", {}) {};
-
-  void tokenize(ModelManager* model_manager, const string& text, vector<string>& tokens) override;
+  NERecognizerToy(vector<string> model_names) : NERecognizer("ner_toy", model_names) {};
+  void recognize(ModelManager* model_manager, const vector<string>& tokens, vector<pair<unsigned, unsigned>>& spans) override;
 };
 
 } // namespace linpipe::operations

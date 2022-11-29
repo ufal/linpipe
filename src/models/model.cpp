@@ -7,22 +7,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
-
 #include "common.h"
+#include "models/model.h"
+#include "models/ner_toy.h"
 
 namespace linpipe {
 
-class Model {
- public:
-  virtual ~Model() {}
-  const string& name();
+const string& Model::name() {
+  return _name;
+}
 
-  static unique_ptr<Model> create(string& name, istream& input);
+unique_ptr<Model> Model::create(string& name, istream& input) {
+  if (name == "ner_toy") return make_unique<models::NERToy>(name, input);
 
- protected:
-  Model(string name) : _name(name) {};
-  string _name;
-};
+  throw LinpipeError{"Cannot load model of uknown name '", name, "'"};
+}
 
 } // namespace linpipe

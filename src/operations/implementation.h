@@ -9,21 +9,25 @@
 
 #pragma once
 
-#include "operations/tokenizer/tokenizer.h"
+#include "common.h"
 
 namespace linpipe::operations {
 
-class RuleBasedTokenizer : public Tokenizer {
- /* Rule-based tokenizer class. Splits on tokens.
-
-  TODO: Split using regexp.
+class Implementation {
+ /* Abstract implementation ancestor.
+  TODO: Maybe implementations should have their own directory.
  */
 
  public:
-  // RuleBasedTokenizer drops model names (will not use any).
-  RuleBasedTokenizer(vector<string> /*model_names*/) : Tokenizer("rule_based", {}) {};
+  virtual ~Implementation() {};
+  vector<string>& model_names();
+  string& type();
 
-  void tokenize(ModelManager* model_manager, const string& text, vector<string>& tokens) override;
+ protected:
+  Implementation(const string type, vector<string> model_names) : _type(type), _model_names(model_names) {};
+
+  string _type;
+  vector<string> _model_names;
 };
 
 } // namespace linpipe::operations

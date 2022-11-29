@@ -7,19 +7,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "operations/tokenize.h"
-#include "operations/tokenizer/rule_based_tokenizer.h"
-#include "utils/arguments.h"
-#include "layers/text.h"
 #include "layers/tokens.h"
+#include "layers/spans.h"
+#include "operations/ner.h"
+#include "operations/ne_recognizer/ne_recognizer_toy.h"
+#include "utils/arguments.h"
 
 namespace linpipe::operations {
 
-Tokenize::Tokenize(const string description) {
+NER::NER(const string description) {
   // Parse arguments
   unordered_map<string, string> args;
   vector<string> kwargs;
-  args["model"] = "rule_based";
+  args["model"] = "ner_toy";
   args["source"] = "";
   args["target"] = "";
 
@@ -27,19 +27,19 @@ Tokenize::Tokenize(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "rule_based") _tokenizer = make_unique<RuleBasedTokenizer>(vector<string>{args["model"]});
+  if (args["model"] == "ner_toy") _ne_recognizer = make_unique<NERecognizerToy>(vector<string>{args["model"]});
 
-  _model_names = _tokenizer->model_names();
+  _model_names = _ne_recognizer->model_names();
   _source = args["source"];
   _target = args["target"];
 }
 
-void Tokenize::execute(Corpus& corpus, PipelineState& state) {
+void NER::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
-    auto& source = doc->get_layer<layers::Text>(_source);
-    auto target = make_unique<layers::Tokens>(_target);
+    auto& source = doc->get_layer<layers::Tokens>(_source);
+    auto target = make_unique<layers::Spans>(_target);
 
-    _tokenizer->tokenize(state.model_manager, source.text, target->tokens);
+    _ne_recognizer->recognize(state.model_manager, source.tokens, target->spans);
 
     doc->add_layer(move(target));
   }

@@ -13,12 +13,14 @@
 
 namespace linpipe::operations {
 
-void RuleBasedTokenizer::tokenize(const string& text, vector<string>& tokens) {
+void RuleBasedTokenizer::tokenize(ModelManager* /*model_manager*/, const string& text, vector<string>& tokens) {
   /* Generic rule-based tokenization. Splits on spaces.
 
     TODO: Split using regexp.
 
     Receives:
+      model_manager: pointer to ModelManager - not used as RuleBasedTokenizer
+        does not use any models.
       text: plain text string to tokenize.
       tokens: reference to vector of strings, assumed empty, to fill in with
         tokens.
