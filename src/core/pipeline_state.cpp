@@ -13,11 +13,11 @@ namespace linpipe {
 
 PipelineState::PipelineState(Server server): model_manager(&ModelManager::singleton), server(server) {
   switch (server) {
-    case Server::local:
+    case Server::LOCAL:
       default_input = &cin;
       default_output = &cout;
       break;
-    case Server::web:
+    case Server::WEB:
       // TODO
       break;
   }

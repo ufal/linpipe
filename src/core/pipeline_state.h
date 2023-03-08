@@ -14,11 +14,11 @@
 
 namespace linpipe {
 
-enum class Server { local, web };
+enum class Server { LOCAL = 0, WEB = 1 };
 
 class PipelineState {
  public:
-  PipelineState(Server a_server = Server::local);
+  PipelineState(Server server = Server::LOCAL);
 
   ModelManager* model_manager;
 
