@@ -10,7 +10,7 @@
 $(call exe,dev/kbelik/kbelik): $(call obj,dev/kbelik/kbelik $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 
-.PHONY: dev dev/kbelik
+.PHONY: dev/kbelik
 dev/kbelik: $(call exe,dev/kbelik/kbelik)
 dev: dev/kbelik
 

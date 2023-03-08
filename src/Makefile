@@ -32,6 +32,7 @@ $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
 
 # Dev binaries
+.PHONY: dev
 include dev/*/Makefile.include
 all: dev
 
