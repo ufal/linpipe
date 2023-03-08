@@ -17,7 +17,7 @@ lib: $(call lib,liblinpipe)
 test_compile: $(call exe,linpipe_test)
 test: test_compile
 	$(call platform_name,./$(call exe,linpipe_test))
-all: default test_compile # lib will be added once we have at least one source
+all: default lib test_compile
 
 # Flags
 C_FLAGS += $(call include_dir,.)
