@@ -24,9 +24,9 @@ C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
 
 # Targets
-$(call exe,linpipe): $(call obj,$(LINPIPE_OBJECTS) linpipe utils/win_wmain_utf8)
+$(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
-$(call exe,linpipe_test): $(call obj,$(LINPIPE_OBJECTS) $(LINPIPE_TESTS) linpipe_test utils/win_wmain_utf8)
+$(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_TESTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
