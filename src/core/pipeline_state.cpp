@@ -11,10 +11,7 @@
 
 namespace linpipe {
 
-PipelineState::PipelineState(Server a_server):
-  model_manager(&ModelManager::singleton),
-  server(a_server) {
-
+PipelineState::PipelineState(Server server): model_manager(&ModelManager::singleton), server(server) {
   switch (server) {
     case Server::local:
       default_input = &cin;
