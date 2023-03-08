@@ -31,7 +31,11 @@ $(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_T
 $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
 
-# cleaning
+# Dev binaries
+include dev/*/Makefile.include
+all: dev
+
+# Cleaning
 .PHONY: clean
 clean:
-	@$(call rm,.build $(call all_exe,linpipe linpipe_test) $(call all_lib,liblinpipe))
+	@$(call rm,.build $(call all_exe,linpipe linpipe_test $(EXECUTABLES)) $(call all_lib,liblinpipe))

@@ -1,0 +1,17 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022 Institute of Formal and Applied Linguistics, Faculty of
+# Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call exe,dev/kbelik/kbelik): $(call obj,dev/kbelik/kbelik $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
+	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
+
+.PHONY: dev dev/kbelik
+dev/kbelik: $(call exe,dev/kbelik/kbelik)
+dev: dev/kbelik
+
+EXECUTABLES += dev/kbelik/kbelik
