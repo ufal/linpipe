@@ -8,13 +8,23 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
+//#include "utils/search.cpp"
+#include "utils/benchmark_search.cpp"
 
 using namespace linpipe;
 
 int main(int /*argc*/, char* /*argv*/[]) {
-  iostream::sync_with_stdio(false);
+  //iostream::sync_with_stdio(false);
 
-  cout << "Hello world!" << endl;
+  benchmark_small();
+  benchmark_big();
+
+  benchmark_small_missing();
+  benchmark_big_missing();
+
+  load_qids();
+  benchmark_qids();
+  benchmark_qids_missing();
 
   return 0;
 }
