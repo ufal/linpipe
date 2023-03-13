@@ -1,10 +1,25 @@
 # Log of KBELik Progress
 
+### Mar 13, 2023
+- Discussing the results of binary/exponential/interpolated search in the index.
+
+- Discussing the histogram of Wikidata QIDs.
+
+- [ ] Learn how to use `mmap` on major platforms (Linux, Windows, macOS).
+
+- [ ] Start writing interfaces (header files) of the persistent index,
+  the language agnostic KBELik, the language specific KBELik, and their
+  encoders (serializers). These interfaces can be part of the detailed
+  specification.
+
+- [ ] Stretch goal: start writing the persistent index search if time allows.
+
 ### Mar 6, 2023
 - Discussing posible implementations of the QID and string persistent indices,
   and the distribution of QIDs.
 
-- [ ] Think about a dazzling project name.
+- [x] Think about a dazzling project name.
+  - KBELik accepted as the project name.
 
 - [ ] Decide a suitable workflow in the repository.
   - MS: I think the development should happen in a separate branch. However,
