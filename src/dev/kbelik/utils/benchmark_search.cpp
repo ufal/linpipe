@@ -1,6 +1,7 @@
+#include <functional>
+#include <fstream>
 #include "common.h"
 #include "search.cpp"
-#include <fstream>
 
 #define dump(x) cout << #x << " = " << x << endl;
 
