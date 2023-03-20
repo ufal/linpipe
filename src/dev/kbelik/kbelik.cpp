@@ -10,12 +10,14 @@
 #include "common.h"
 //#include "utils/search.cpp"
 #include "utils/benchmark_search.cpp"
+#include "utils/mmap.cpp"
 
 using namespace linpipe;
 
 int main(int /*argc*/, char* /*argv*/[]) {
   //iostream::sync_with_stdio(false);
 
+  /*
   benchmark_small();
   benchmark_big();
 
@@ -26,5 +28,10 @@ int main(int /*argc*/, char* /*argv*/[]) {
   benchmark_qids();
   benchmark_qids_missing();
 
+  */
+  MMAP index("qids.txt");
+  index.read(0, 100);
+  cout << "int read\n";
+  index.read_int_like(0, 100);
   return 0;
 }
