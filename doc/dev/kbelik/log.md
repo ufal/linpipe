@@ -2,7 +2,7 @@
 
 ### Mar 20, 2023
 - Rename _index_ to _map_; map is composed of index and values.
-  - [ ] Update assignment.md.
+  - [x] Update assignment.md.
 
 - Implement mmap for Windows using `CreateFile`, `CreateFileMapping`,
   and `MapViewOfFile`; closing is performed by `UnmapViewOfFile` and
