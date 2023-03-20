@@ -1,5 +1,20 @@
 # Log of KBELik Progress
 
+### Mar 20, 2023
+- Rename _index_ to _map_; map is composed of index and values.
+  - [ ] Update assignment.md.
+
+- Implement mmap for Windows using `CreateFile`, `CreateFileMapping`,
+  and `MapViewOfFile`; closing is performed by `UnmapViewOfFile` and
+  `CloseHandle`.
+
+- Persistent map will be an interface parametrized by the key and
+  value types; the first implementation is a sorted set of values with
+  and index pointing to chunks of fixed number of values, using exponential
+  widening search.
+
+- [ ] Install Wine and VisualC++ compiler on AIC.
+
 ### Mar 13, 2023
 - Discussing the results of binary/exponential/interpolated search in the index.
 
