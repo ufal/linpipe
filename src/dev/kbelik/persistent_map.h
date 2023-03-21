@@ -18,6 +18,6 @@ using namespace kbelik {
       void save(string fp) const;
       T find(T key) const;
       void build(string fp);
-  }
+  };
 }
 }
