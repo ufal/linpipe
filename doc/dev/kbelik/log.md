@@ -13,7 +13,7 @@
   and index pointing to chunks of fixed number of values, using exponential
   widening search.
 
-- [ ] Install Wine and VisualC++ compiler on AIC.
+- [x] Install Wine and VisualC++ compiler on AIC.
 
 ### Mar 13, 2023
 - Discussing the results of binary/exponential/interpolated search in the index.
