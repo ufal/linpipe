@@ -1,23 +1,31 @@
 #pragma once
 
+#include <filesystem>
 #include "common.h"
 
-using namespace linpipe {
-using namespace kbelik {
-  template<typename T>
-  class Index {
+namespace linpipe {
+namespace kbelik {
+//  template<typename T>
+  class PersistentMap{
     private:
-      int fd;   // TODO check for portability
-      int length; 
-      const void* mmap_addr;
-      void load(string fp);
-      vector<T> qids_from_wikidata(string fp);
+#ifdef _WIN_32
+      // TODO
+#else
+      int fd = 0;
+      int length = 0; 
+      void* mmap_addr = NULL;
+#endif
+      void load(filesystem::path fp);
+      vector<int> qids_from_wikidata(filesystem::path fp);
     public:
-      Index(string fp);
-      ~Index();
-      void save(string fp) const;
-      T find(T key) const;
-      void build(string fp);
+      byte* for_search;
+      int get_val_space(map<int, vector<byte>>* data);
+      PersistentMap(filesystem::path fp);
+      PersistentMap();
+      ~PersistentMap();
+      int find(int key) const;
+      void build(map<int, vector<byte>>* data);
+      void close(); // Should end mmap.
   };
 }
 }
