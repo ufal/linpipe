@@ -1,5 +1,12 @@
 # Log of KBELik Progress
 
+### Mar 27, 2023
+- Start compiling mmap on Windows.
+
+- AgnosticKbelik header file discussion.
+
+- [ ] Upload final DaMuEl to AIC.
+
 ### Mar 20, 2023
 - Rename _index_ to _map_; map is composed of index and values.
   - [x] Update assignment.md.
