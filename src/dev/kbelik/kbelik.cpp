@@ -9,8 +9,9 @@
 
 #include "common.h"
 //#include "utils/search.cpp"
-#include "utils/benchmark_search.cpp"
+//#include "utils/benchmark_search.cpp"
 #include "utils/mmap.cpp"
+//#include "dev/kbelik/persistent_map.cpp"
 
 using namespace linpipe;
 

@@ -14,7 +14,7 @@ using namespace kbelik {
     public:
       AgnosticKbelik(string map_path);
       T query();
-      void save();
+      static void build(istream json);
       ~AgnosticKbelik();
   };
 }
