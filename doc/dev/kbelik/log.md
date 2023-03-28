@@ -7,6 +7,13 @@
 
 - [ ] Upload final DaMuEl to AIC.
 
+- [ ] Use templates in persistent_map
+
+- [ ] Finish headers of both kbeliks
+
+- [ ] Implement an MVP of persistent_map that implements its own build and
+  answers queries.
+
 ### Mar 20, 2023
 - Rename _index_ to _map_; map is composed of index and values.
   - [x] Update assignment.md.
