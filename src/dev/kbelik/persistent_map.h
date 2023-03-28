@@ -5,7 +5,7 @@
 
 namespace linpipe {
 namespace kbelik {
-//  template<typename T>
+  template<typename Key, typename Value>
   class PersistentMap{
     private:
 #ifdef _WIN_32
@@ -16,15 +16,14 @@ namespace kbelik {
       void* mmap_addr = NULL;
 #endif
       void load(filesystem::path fp);
-      vector<int> qids_from_wikidata(filesystem::path fp);
+     // vector<int> qids_from_wikidata(filesystem::path fp);
     public:
-      byte* for_search;
-      int get_val_space(map<int, vector<byte>>* data);
+      static size_t get_val_space(map<Key, Value>* data);
       PersistentMap(filesystem::path fp);
       PersistentMap();
       ~PersistentMap();
-      int find(int key) const;
-      void build(map<int, vector<byte>>* data);
+      int find(Key key) const;
+      static void build(map<Key, Value>* data, filesystem::path path);
       void close(); // Should end mmap.
   };
 }
