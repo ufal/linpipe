@@ -5,7 +5,7 @@
 
 - AgnosticKbelik header file discussion.
 
-- [ ] Upload final DaMuEl to AIC.
+- [x] Upload final DaMuEl to AIC.
 
 ### Mar 20, 2023
 - Rename _index_ to _map_; map is composed of index and values.
