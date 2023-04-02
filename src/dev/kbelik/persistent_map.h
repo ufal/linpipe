@@ -16,6 +16,7 @@ namespace kbelik {
       void* mmap_addr = NULL;
 #endif
       void load(filesystem::path fp);
+      static void save_map(byte* for_search, size_t size, filesystem::path path);
      // vector<int> qids_from_wikidata(filesystem::path fp);
     public:
       static size_t get_val_space(map<Key, Value>* data);

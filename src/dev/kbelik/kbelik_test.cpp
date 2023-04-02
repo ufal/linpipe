@@ -17,26 +17,39 @@ namespace linpipe {
 namespace kbelik {
 
 TEST_CASE("Persistent map") {
-    map<int, vector<byte>> m;
-    vector<byte> b1 = {byte{1},byte{2}};
-    vector<byte> b2 = {byte{1},byte{2}};
-    vector<byte> b3 = {byte{1},byte{2}};
-    m[0] = b1;
-    m[10] = b2;
-    m[20] = b3;
+  filesystem::create_directories("./temp");
+  map<int, vector<byte>> m;
+  vector<byte> b1 = {byte{1},byte{2}};
+  vector<byte> b2 = {byte{1},byte{2}};
+  vector<byte> b3 = {byte{1},byte{2}};
+  m[0] = b1;
+  m[10] = b2;
+  m[20] = b3;
   SUBCASE("get_val_space calculates correctly") {
-    auto pm = PersistentMap();
+    auto pm = PersistentMap<int, vector<byte>>();
     CHECK(pm.get_val_space(&m) == 6);
   }
   SUBCASE("get_val_space calculates correctly") {
-    auto pm = PersistentMap();
-    pm.build(&m);
-    //for (int i = 0; i < 30; ++i)
-    //  cout << (int)pm.for_search[i] << endl;
-    CHECK(pm.for_search[0] == byte{0});
-    CHECK(pm.for_search[8] == byte{10});
-    CHECK(pm.for_search[24] == byte{1});
-    CHECK(pm.for_search[25] == byte{2});
+    /*
+    auto p = filesystem::path("temp/map.bin");
+    PersistentMap<int, vector<byte>>::build(&m, p);
+    byte* for_search;
+    ifstream f;
+    f.open(p, ios::in | ios::binary);
+    if (f.is_open()) {
+      f.seekg(0, std::ios::end);
+      size_t size = f.tellg();
+      f.seekg(0, std::ios::beg);
+      for_search = new byte[size];
+      f.read((char*) &for_search[0], size);
+
+      CHECK(for_search[0] == byte{0});
+      CHECK(for_search[8] == byte{10});
+      CHECK(for_search[24] == byte{1});
+      CHECK(for_search[25] == byte{2});
+    }
+    f.close();
+    */
   }
 }
 

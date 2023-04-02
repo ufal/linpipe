@@ -1,12 +1,15 @@
 #include <filesystem>
 #include "common.h"
 #include "dev/kbelik/persistent_map.h"
+#include <iostream>
+#include <fstream>
 #ifdef _WIN_32
       // TODO
 #else
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #endif
 
 
@@ -53,12 +56,22 @@ size_t PersistentMap<Key, Value>::get_val_space(map<Key, Value>* data) {
 }
 
 template<typename Key, typename Value>
+void PersistentMap<Key, Value>::save_map(byte* for_search, size_t size, filesystem::path path) {
+  ofstream f;
+  f.open(path, ios::out | ios::trunc | ios::binary);
+  if (f.is_open())
+    f.write((char*)for_search, size);
+  f.close();
+}
+
+template<typename Key, typename Value>
 void PersistentMap<Key, Value>::build(map<Key, Value>* data, filesystem::path path) {
   byte* for_search;
   size_t key_space = (*data).size() * 2 * sizeof(Key);
   size_t val_space = get_val_space(data);
   //for_search = vector<byte>(key_space + val_space, byte{0});
-  for_search = new byte[key_space + val_space];
+  size_t for_search_size = key_space + val_space;
+  for_search = new byte[for_search_size];
   byte* key_pos, *val_pos;
   key_pos = for_search;
   val_pos = (for_search + key_space);
@@ -80,6 +93,7 @@ void PersistentMap<Key, Value>::build(map<Key, Value>* data, filesystem::path pa
       }
     }
   }
+  save_map(for_search, for_search_size, path);
 }
 
 template<typename Key, typename Value>
