@@ -1,4 +1,5 @@
 // Based on https://www.man7.org/linux/man-pages/man2/mmap.2.html
+#include <filesystem>
 #include <iostream>
 #ifdef _WIN32
   #include <Windows.h>
@@ -20,25 +21,22 @@ using namespace linpipe;
 
 class MMAP{
   private:
-    const char* addr;
     void* mmap_addr;
+    size_t length;
 #ifdef _WIN32
     HANDLE fd;
-    LARGE_INTEGER length;
 #else
-    int length;
     int fd;
 #endif
-    void load(const char* path) {
+    void load(filesystem::path path) {
 #ifdef _WIN32
-      HANDLE temp = CreateFile(path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-      GetFileSizeEx(temp, &length);
+      HANDLE temp = CreateFile(path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+      length = GetFileSize(temp, NULL);
+      fd = CreateFileMapping(temp, NULL, PAGE_READONLY, 0, 0, NULL);
+      mmap_addr = MapViewOfFile(fd, FILE_MAP_ALL_ACCESS, 0, 0, 0);
       CloseHandle(temp);
-      fd = CreateFileMapping(HANDLE, NULL, PAGE_READ, 
-          length.HighPart, length.LowPart, NULL);
-      mmaP_addr = MapViewOfFile(fd, FILE_MAP_ALL_ACCESS, 0, 0, length);
 #else
-      fd = open(path, O_RDONLY);
+      fd = open(path.c_str(), O_RDONLY);
       struct stat sb;
       if (fd == -1)
         handle_error("open");
@@ -50,18 +48,17 @@ class MMAP{
       if (mmap_addr == MAP_FAILED)
         handle_error("map");
 #endif
-      addr = static_cast<const char*>(mmap_addr);
     }
   public:
-    MMAP(const char* path) {
+    MMAP(filesystem::path path) {
       load(path);
     }
-    /*
     void read(int start, int end) {
       for (int i = start; i < min(end, length); ++i) {
-        printf("%c\n", addr[i]);
+        printf("%c\n", ((char*)mmap_addr)[i]);
       }
     }
+    /*
     void read_int_like(int start, int end) {
       for (int i = start; (i + 4) <= min(end, length); i += 4) {
         int x = 0;
@@ -74,6 +71,8 @@ class MMAP{
     */
     ~MMAP() {
 #ifdef _WIN32
+      UnmapViewOfFile(mmap_addr);
+      CloseHandle(fd);
 #else
       munmap(mmap_addr, length);
       close(fd);

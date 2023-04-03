@@ -7,6 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <filesystem>
 #include "common.h"
 //#include "utils/search.cpp"
 //#include "utils/benchmark_search.cpp"
@@ -30,9 +31,11 @@ int main(int /*argc*/, char* /*argv*/[]) {
   benchmark_qids_missing();
 
   */
-  MMAP index("qids.txt");
-  index.read(0, 100);
-  cout << "int read\n";
-  index.read_int_like(0, 100);
+
+  auto path = filesystem::path("utils/qids.txt");
+  MMAP index(path);
+  //index.read(0, 100);
+  //cout << "int read\n";
+  //index.read_int_like(0, 100);
   return 0;
 }
