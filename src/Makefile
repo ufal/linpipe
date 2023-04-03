@@ -11,6 +11,7 @@ CPP_STANDARD = c++17
 include Makefile.builtem
 include Makefile.include
 
+# Targets
 .PHONY: default lib test_compile test all
 default: $(call exe,linpipe)
 lib: $(call lib,liblinpipe)
@@ -19,22 +20,22 @@ test: test_compile
 	$(call platform_name,./$(call exe,linpipe_test))
 all: default lib test_compile
 
-# Flags
+# Include dev Makefiles
+.PHONY: dev
+include dev/*/Makefile.include
+all: dev
+
+# Compilation flags
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
 
-# Targets
+# Main rules
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 $(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_TESTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
-
-# Dev binaries
-.PHONY: dev
-include dev/*/Makefile.include
-all: dev
 
 # Cleaning
 .PHONY: clean
