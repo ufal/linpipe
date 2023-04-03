@@ -57,8 +57,8 @@ size_t PersistentMap<Key, Value>::get_val_space(map<Key, Value>* data) {
 
 template<typename Key, typename Value>
 void PersistentMap<Key, Value>::save_map(byte* for_search, size_t size, filesystem::path path) {
-  ofstream f;
-  f.open(path, ios::out | ios::trunc | ios::binary);
+  cout << "path: " << path.c_str()<<endl;
+  ofstream f(path, ios::out | ios::trunc | ios::binary);
   if (f.is_open())
     f.write((char*)for_search, size);
   f.close();
@@ -79,7 +79,7 @@ void PersistentMap<Key, Value>::build(map<Key, Value>* data, filesystem::path pa
     int key = p.first;
     for (size_t i = 0; i < sizeof(Key); ++i) {
       *key_pos = static_cast<byte>(key >> (8 * i));
-      cout << (int)*key_pos << endl;
+      //cout << (int)*key_pos << endl;
       key_pos++;
     }
     for (size_t i = sizeof(Key); i < 2 * sizeof(Key); ++i) {

@@ -30,9 +30,9 @@ TEST_CASE("Persistent map") {
     CHECK(pm.get_val_space(&m) == 6);
   }
   SUBCASE("get_val_space calculates correctly") {
-    /*
     auto p = filesystem::path("temp/map.bin");
     PersistentMap<int, vector<byte>>::build(&m, p);
+    /*
     byte* for_search;
     ifstream f;
     f.open(p, ios::in | ios::binary);
