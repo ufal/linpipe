@@ -1,23 +1,24 @@
 #pragma once
 
+#include <filesystem>
 #include "common.h"
 #include "dev/kbelik/persistent_map.h"
-#include "dev/kbelik/speicific_serializer.h"
 
-using namespace linpipe {
-using namespace kbelik {
-  template<typename T>
+namespace linpipe {
+namespace kbelik {
+  template<typename Key, typename Value>
   class SpecificKbelik{
     private:
-      PersistentMap map_ids;
-      PersistentMap map_atts;
+      PersistentMap<Key, Value> ids_to_atts;
+      PersistentMap<Value, Key> atts_to_ids; // Maybe we need to use something different than PersistentMap
       void load(string map_path);
     public:
-      AgnosticKbelik(string map_path);
-      T query_ids();
-      T query_atts();
+      SpecificKbelik(filesystem::path map_path);
+      static void build(istream json);
+      Value query_by_id(Key id);
+      Key query_by_att(Value att);
       void save();
-      ~AgnosticKbelik();
+      ~SpecificKbelik();
   };
 }
 }

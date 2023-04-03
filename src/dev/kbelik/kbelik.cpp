@@ -34,8 +34,6 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
   auto path = filesystem::path("utils/qids.txt");
   MMAP index(path);
-  //index.read(0, 100);
-  //cout << "int read\n";
-  //index.read_int_like(0, 100);
+  index.read(0, 100);
   return 0;
 }
