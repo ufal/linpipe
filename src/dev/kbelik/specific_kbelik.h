@@ -15,8 +15,8 @@ namespace kbelik {
     public:
       SpecificKbelik(filesystem::path map_path);
       static void build(istream json);
-      Value query_by_id(Key id);
-      Key query_by_att(Value att);
+      Value find_att(Key id);
+      Key find_id(Value att);
       void save();
       ~SpecificKbelik();
   };

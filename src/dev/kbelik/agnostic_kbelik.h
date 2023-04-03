@@ -9,11 +9,13 @@ namespace kbelik {
   template<typename Key, typename Value>
   class AgnosticKbelik{
     private:
+      // Chápe PM formát dat?
       PersistentMap<Key, Value> map;
       void load (filesystem::path map_path);
     public:
+      // Rovnou map_path
       AgnosticKbelik(filesystem::path map_path);
-      Value query(Key id);
+      Value find(Key id);
       static void build(istream json);
       ~AgnosticKbelik();
   };

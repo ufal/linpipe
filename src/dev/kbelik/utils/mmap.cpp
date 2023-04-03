@@ -53,8 +53,8 @@ class MMAP{
     MMAP(filesystem::path path) {
       load(path);
     }
-    void read(int start, int end) {
-      for (int i = start; i < min(end, length); ++i) {
+    void read(size_t start, size_t end) {
+      for (size_t i = start; i < min(end, length); ++i) {
         printf("%c\n", ((char*)mmap_addr)[i]);
       }
     }
