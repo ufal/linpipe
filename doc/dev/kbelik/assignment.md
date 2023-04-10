@@ -23,18 +23,18 @@ offering a set of methods for working with it.
 
 - The size of the KBELik dump is expected to be in the order of gigabytes.
 
-The goal is to implement an efficient persistent mmapable index with the
+The goal is to implement an efficient persistent mmapable map with the
 following properties:
-- the index dumps should be reasonably small, reasonably efficient,
+- the map dumps should be reasonably small, reasonably efficient,
   and loadable via mmap to avoid reading the whole dump during loading;
 - the keys will be entity identifiers and arbitrary strings;
 - the values will be structured information with a JSON-like structure.
 
 The whole KBELik will consist of:
-- language-agnostic KBELik, a single file containing a persistent index
+- language-agnostic KBELik, a single file containing a persistent map
   from entity identifiers to entity structured information;
 - language-specific KBELik, a single file for every language containing:
-  - a persistent index from entity identifiers to language-specific information
+  - a persistent map from entity identifiers to language-specific information
     about the entity,
-  - a persistent index from textual entity mentions to a set of entity
+  - a persistent map from textual entity mentions to a set of entity
     identifiers with such a mention.

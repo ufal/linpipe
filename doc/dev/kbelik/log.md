@@ -1,5 +1,34 @@
 # Log of KBELik Progress
 
+### Mar 27, 2023
+- Start compiling mmap on Windows.
+
+- AgnosticKbelik header file discussion.
+
+- [ ] Upload final DaMuEl to AIC.
+
+- [ ] Use templates in persistent_map
+
+- [ ] Finish headers of both kbeliks
+
+- [ ] Implement an MVP of persistent_map that implements its own build and
+  answers queries.
+
+### Mar 20, 2023
+- Rename _index_ to _map_; map is composed of index and values.
+  - [x] Update assignment.md.
+
+- Implement mmap for Windows using `CreateFile`, `CreateFileMapping`,
+  and `MapViewOfFile`; closing is performed by `UnmapViewOfFile` and
+  `CloseHandle`.
+
+- Persistent map will be an interface parametrized by the key and
+  value types; the first implementation is a sorted set of values with
+  and index pointing to chunks of fixed number of values, using exponential
+  widening search.
+
+- [x] Install Wine and VisualC++ compiler on AIC.
+
 ### Mar 13, 2023
 - Discussing the results of binary/exponential/interpolated search in the index.
 
