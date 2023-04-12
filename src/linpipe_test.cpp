@@ -11,7 +11,6 @@
 
 #include "common.h"
 #include "lib/doctest.h"
-#include "dev/kbelik/kbelik_test.cpp"
 
 namespace linpipe {
 

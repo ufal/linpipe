@@ -7,11 +7,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-
 #include "common.h"
 #include "lib/doctest.h"
 #include "dev/kbelik/persistent_map.cpp"
+#include "dev/kbelik/byte_value.cpp"
 
 namespace linpipe {
 namespace kbelik {
@@ -50,6 +49,28 @@ TEST_CASE("Persistent map") {
     }
     f.close();
     */
+  }
+  /*
+  SUBCASE("find present") {
+    PersistentMap<int, vector<byte>>::build(&m, p);
+  }
+  SUBCASE("find missing") {
+  }
+  */
+}
+
+TEST_CASE("Byte value") {
+  SUBCASE("Serialization and deserialization works") {
+    auto d = make_unique<byte[]>(3);
+    d[0] = (byte)2;
+    d[1] = (byte)1;
+    d[2] = (byte)2;
+    auto b = ByteValue(move(d));
+    auto ve = b.serialize();
+    CHECK(3 == ve.size());
+    CHECK((byte)2 == ve[0]);
+    CHECK((byte)1 == ve[1]);
+    CHECK((byte)2 == ve[2]);
   }
 }
 
