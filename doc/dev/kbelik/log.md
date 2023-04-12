@@ -1,13 +1,20 @@
 # Log of KBELik Progress
 
+### Apr 3, 2023
+- Updating LinPipe build infrastructure to support tests in `dev/kbelik`.
+
+- Fixed the bug in serialization that caused `ofstream` construction to crash.
+
+- Setting environment on AIC to be able to run Windows binaries.
+
 ### Mar 27, 2023
 - Start compiling mmap on Windows.
 
 - AgnosticKbelik header file discussion.
 
-- [ ] Upload final DaMuEl to AIC.
+- [x] Upload final DaMuEl to AIC.
 
-- [ ] Use templates in persistent_map
+- [x] Use templates in persistent_map
 
 - [ ] Finish headers of both kbeliks
 
