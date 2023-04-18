@@ -1,5 +1,16 @@
 # Log of KBELik Progress
 
+### Apr 17, 2023
+- (Hopefully) mostly definitive version of public interfaces of `agnostic_kbelik,
+  persistent_map, dynamic_map, map_values::Int4`
+
+- Discussion of `map_values`
+
+- Discussion of code-style.
+
+### Apr 12, 2023
+- Discussion of blueprints for `map_values` (reworked week later).
+
 ### Apr 3, 2023
 - Updating LinPipe build infrastructure to support tests in `dev/kbelik`.
 
