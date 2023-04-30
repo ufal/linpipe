@@ -10,9 +10,10 @@
 #include "common.h"
 #include "lib/doctest.h"
 
+#include "dev/kbelik/dynamic_map.cpp"
+#include "dev/kbelik/map_values/bytes.cpp"
 #include "dev/kbelik/map_values/int4.cpp"
 //#include "dev/kbelik/persistent_map.cpp"
-#include "dev/kbelik/dynamic_map.cpp"
 
 namespace linpipe {
 namespace kbelik {
@@ -172,8 +173,11 @@ TEST_CASE("Int4") {
     for (int i = 1; i <= 3; ++i)
       expected |= (int)data[i] << (8 * i);
 
-  SUBCASE("Correct length") {
+  SUBCASE("Correct length, serialized") {
     CHECK(4 == Int4::length(data));
+  }
+  SUBCASE("Correct length, deserialized") {
+    CHECK(4 == Int4::length(42));
   }
   SUBCASE("Correct deserialization") {
     int res;
@@ -187,6 +191,51 @@ TEST_CASE("Int4") {
       CHECK(res[i] == data[i]);
   }
   delete[] data;
+}
+
+template<typename SizeType>
+void test_bytes(char* name) {
+  SUBCASE(name) {
+    SizeType sz = 3 + sizeof(SizeType);
+    byte* data = new byte[sz];
+    memcpy(data, &sz, sizeof(SizeType));
+    data[sizeof(SizeType)] = (byte)2;
+    data[sizeof(SizeType) + 1] = (byte)2;
+    data[sizeof(SizeType) + 2] = (byte)1;
+
+    vector<byte> expected(3);
+    for (size_t i = 0; i < 3; ++i)
+      expected[i] = data[i + sizeof(SizeType)];
+
+    SUBCASE("Correct length") {
+      SUBCASE("serialized") {
+        CHECK(sz == Bytes<SizeType>::length(data));
+      }
+      SUBCASE("deserialized") {
+        vector<byte> data2(12345, (byte)0);
+        CHECK(data2.size() + sizeof(SizeType) == Bytes<SizeType>::length(data2));
+      }
+    }
+    SUBCASE("Correct deserialization") {
+      vector<byte> res;
+      Bytes<SizeType>::deserialize(data, res);
+      for (int i = 0; i < 3; ++i)
+        CHECK(expected[i] == res[i]);
+    }
+    SUBCASE("Correct serialization") {
+      vector<byte> res;
+      Bytes<SizeType>::serialize(expected, res);
+      for (size_t i = 0; i < res.size(); ++i) 
+        CHECK(res[i] == data[i]);
+
+    }
+  }
+}
+
+TEST_CASE("Bytes") {
+  test_bytes<uint8_t>("1 byte");
+  test_bytes<uint16_t>("2 byte");
+  test_bytes<uint32_t>("4 byte");
 }
 
 } // namespace map_values
