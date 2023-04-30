@@ -10,14 +10,27 @@ namespace linpipe::kbelik {
 template<typename Key, typename Value>
 class DynamicMap{
  public:
-  bool find(Key key, Value::Type& value) const;
-  void add(Key key, const Value::Type& value);
+  DynamicMap<Key, Value>(int32_t id); 
+
+  bool find(Key key, typename Value::Type& value) const;
+  void add(Key key, const typename Value::Type& value);
+  size_t length() const;
+  void erase(Key key);
 
   void save_map(ostream& os);
 
  private:
-  map<Key, Value::Type> values;
+  map<Key, typename Value::Type> values;
 
-  static void build(map<Key, Value>* data, filesystem::path path);
+  int32_t id;
+
+  void write_id(ostream& os);
+  void write_keys_and_values(ostream& os);
+  void memcpy_two(byte* dest, const byte* first, const byte* second, 
+                  size_t first_count, size_t second_count);
+
+  vector<size_t> value_prefix_sums();
+
+  static void build(map<Key, Value>* data, filesystem::path path); // ??
 };
 } // namespace linpipe::kbelik

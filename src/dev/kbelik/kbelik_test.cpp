@@ -18,7 +18,7 @@ namespace linpipe {
 namespace kbelik {
 
 TEST_CASE("Dynamic map") {
-  DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>();
+  DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>(0);
   SUBCASE("Add, erase -- single") {
     REQUIRE(dp.length() == 0);
     int to_add = 20;
@@ -40,23 +40,35 @@ TEST_CASE("Dynamic map") {
     CHECK(dp.length() == 0);
   }
   SUBCASE("find present") {
+    REQUIRE(dp.length() == 0);
     int expected = 0;
     dp.add(10, expected);
     int res;
     bool flag = dp.find(10, res);
     CHECK(res == expected);
     CHECK(flag);
-    dp.eras(10);
+    dp.erase(10);
   }
   SUBCASE("find present") {
+    REQUIRE(dp.length() == 0);
     int expected = 0;
     dp.add(10, expected);
     int res;
     bool flag = dp.find(11, res);
     CHECK(!flag);
-    dp.eras(10);
+    dp.erase(10);
     flag = dp.find(10, res);
     CHECK(!flag);
+  }
+  SUBCASE("basic save map") {
+    REQUIRE(dp.length() == 0);
+    dp.add(10, 1);
+    dp.add(20, 2);
+    dp.add(30, 3);
+    stringstream ss;
+    REQUIRE(ss.str() == "");
+    dp.save_map(ss);
+    REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
   }
 }
 
