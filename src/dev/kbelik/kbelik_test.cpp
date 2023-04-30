@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <fstream>
+
 #include "common.h"
 #include "lib/doctest.h"
 
@@ -19,73 +21,115 @@ namespace linpipe {
 namespace kbelik {
 
 TEST_CASE("Dynamic map") {
-  DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>(0);
-  SUBCASE("Add, erase -- single") {
-    REQUIRE(dp.length() == 0);
-    int to_add = 20;
-    for (int i = 0; i < to_add; ++i) {
-      dp.add(i, 10 + i); 
+  SUBCASE("Int4") {
+    DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>(0);
+    SUBCASE("Add, erase -- big") {
+      REQUIRE(dp.length() == 0);
+      int to_add = 200;
+      for (int i = 0; i < to_add; ++i) {
+        dp.add(i, 10 + i); 
+      }
+      CHECK(dp.length() == to_add);
+      for (int i = 0; i < to_add; ++i) {
+        dp.erase(i);
+      }
+      CHECK(dp.length() == 0);
     }
-    CHECK(dp.length() == to_add);
-    for (int i = 0; i < to_add; ++i) {
-      dp.erase(i);
+    SUBCASE("Add, erase -- small") {
+      REQUIRE(dp.length() == 0);
+      dp.add(10, 0);
+      dp.add(10, 0);
+      CHECK(dp.length() == 1);
+      dp.erase(10);
+      CHECK(dp.length() == 0);
     }
-    CHECK(dp.length() == 0);
+    SUBCASE("find present") {
+      REQUIRE(dp.length() == 0);
+      int expected = 0;
+      dp.add(10, expected);
+      int res;
+      bool flag = dp.find(10, res);
+      CHECK(res == expected);
+      CHECK(flag);
+      dp.erase(10);
+    }
+    SUBCASE("find not present") {
+      REQUIRE(dp.length() == 0);
+      int expected = 0;
+      dp.add(10, expected);
+      int res;
+      bool flag = dp.find(11, res);
+      CHECK(!flag);
+      dp.erase(10);
+      flag = dp.find(10, res);
+      CHECK(!flag);
+    }
+    SUBCASE("basic save map") {
+      REQUIRE(dp.length() == 0);
+      dp.add(10, 1);
+      dp.add(20, 2);
+      dp.add(30, 3);
+      stringstream ss;
+      REQUIRE(ss.str() == "");
+      dp.save_map(ss);
+      REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
+    }
   }
-  SUBCASE("Add, erase -- multiple") {
-    REQUIRE(dp.length() == 0);
-    dp.add(10, 0);
-    dp.add(10, 0);
-    CHECK(dp.length() == 1);
-    dp.erase(10);
-    CHECK(dp.length() == 0);
-  }
-  SUBCASE("find present") {
-    REQUIRE(dp.length() == 0);
-    int expected = 0;
-    dp.add(10, expected);
-    int res;
-    bool flag = dp.find(10, res);
-    CHECK(res == expected);
-    CHECK(flag);
-    dp.erase(10);
-  }
-  SUBCASE("find present") {
-    REQUIRE(dp.length() == 0);
-    int expected = 0;
-    dp.add(10, expected);
-    int res;
-    bool flag = dp.find(11, res);
-    CHECK(!flag);
-    dp.erase(10);
-    flag = dp.find(10, res);
-    CHECK(!flag);
-  }
-  SUBCASE("basic save map") {
-    REQUIRE(dp.length() == 0);
-    dp.add(10, 1);
-    dp.add(20, 2);
-    dp.add(30, 3);
-    stringstream ss;
-    REQUIRE(ss.str() == "");
-    dp.save_map(ss);
-    REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
+  SUBCASE("Bytes") {
+    auto dp = DynamicMap<int, map_values::Bytes<int8_t>>(0);
+    SUBCASE("Add, erase -- small") {
+      REQUIRE(dp.length() == 0);
+      dp.add(10, {(byte)1, (byte)2});
+      dp.add(10, {(byte)1, (byte)2, (byte)3});
+      CHECK(dp.length() == 1);
+      dp.erase(10);
+      CHECK(dp.length() == 0);
+    }
+    SUBCASE("find") {
+      REQUIRE(dp.length() == 0);
+      vector<byte>expected = {(byte) 0, (byte) 200};
+      dp.add(1, expected);
+      vector<byte> res;
+      bool flag = dp.find(1, res);
+      for (size_t i = 0; i < res.size(); ++i)
+        CHECK(res[i] == expected[i]);
+      CHECK(flag);
+      flag = dp.find(11, res);
+      CHECK(!flag);
+      dp.erase(10);
+      flag = dp.find(10, res);
+      CHECK(!flag);
+    }
+    SUBCASE("Add, erase -- big") {
+      REQUIRE(dp.length() == 0);
+      int to_add = 200;
+      for (int i = 0; i < to_add; ++i) {
+        if (i&1)
+          dp.add(i, {(byte) (i + 15)}); 
+        else
+          dp.add(i, {(byte) i, (byte) (i +1)}); 
+      }
+      CHECK(dp.length() == to_add);
+      for (int i = 0; i < to_add; ++i) {
+        dp.erase(i);
+      }
+      CHECK(dp.length() == 0);
+    }
   }
 }
 
 /*
 TEST_CASE("Persistent map") {
-  DynamicMap<int, map_values::Int4> dp;
+  DynamicMap<int, map_values::Int4> dp(0);
   int vals_cnt = 10;
   for (int i = 0; i < vals_cnt; ++i) 
     dp.add(i, i);
   filesystem::create_directories("./temp");
-  ofstream ofs;
-  ofs.open("temp/test_map.bin", ofstream::out | ofstream::binary);
+  ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
   dp.save_map(ofs);
   ofs.close();
   filesystem::path fp("temp/test_map.bin");
-  auto pm = PersistentMap<int, map_values::Int4>(path);
+  auto pm = PersistentMap<int, map_values::Int4>(fp);
   SUBCASE("close") {
     int res;
     pm.close();
@@ -102,9 +146,10 @@ TEST_CASE("Persistent map") {
   }
   SUBCASE("find fail") {
     int res;
-    bool flag = find(-1, res);
+    bool flag = pm.find(-1, res);
     CHECK(!flag);
   }
+  /*
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
     ofs.write({(byte)1, (byte)2}, 2);
@@ -136,42 +181,29 @@ TEST_CASE("Persistent map") {
     CHECK(!flag);
   }
 }
-
-TEST_CASE("Agnostic kbelik") {
-}
-
-TEST_CASE("Specific kbelik") {
-}
 */
+
 /*
-TEST_CASE("Byte value") {
-  SUBCASE("Serialization and deserialization works") {
-    auto d = make_unique<byte[]>(3);
-    d[0] = (byte)2;
-    d[1] = (byte)1;
-    d[2] = (byte)2;
-    auto b = ByteValue(move(d));
-    auto ve = b.serialize();
-    CHECK(3 == ve.size());
-    CHECK((byte)2 == ve[0]);
-    CHECK((byte)1 == ve[1]);
-    CHECK((byte)2 == ve[2]);
-  }
-}
-*/
+
+   TEST_CASE("Agnostic kbelik") {
+   }
+
+   TEST_CASE("Specific kbelik") {
+   }
+   */
 
 namespace map_values {
 
 TEST_CASE("Int4") {
-    byte* data = new byte[4];
-    data[0] = (byte)2;
-    data[1] = (byte)1;
-    data[2] = (byte)2;
-    data[3] = (byte)2;
+  byte* data = new byte[4];
+  data[0] = (byte)2;
+  data[1] = (byte)1;
+  data[2] = (byte)2;
+  data[3] = (byte)2;
 
-    int expected = (int)data[0];
-    for (int i = 1; i <= 3; ++i)
-      expected |= (int)data[i] << (8 * i);
+  int expected = (int)data[0];
+  for (int i = 1; i <= 3; ++i)
+    expected |= (int)data[i] << (8 * i);
 
   SUBCASE("Correct length, serialized") {
     CHECK(4 == Int4::length(data));
