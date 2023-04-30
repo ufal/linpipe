@@ -15,7 +15,7 @@
 #include "dev/kbelik/dynamic_map.cpp"
 #include "dev/kbelik/map_values/bytes.cpp"
 #include "dev/kbelik/map_values/int4.cpp"
-//#include "dev/kbelik/persistent_map.cpp"
+#include "dev/kbelik/persistent_map.cpp"
 
 namespace linpipe {
 namespace kbelik {
@@ -118,7 +118,6 @@ TEST_CASE("Dynamic map") {
   }
 }
 
-/*
 TEST_CASE("Persistent map") {
   DynamicMap<int, map_values::Int4> dp(0);
   int vals_cnt = 10;
@@ -136,7 +135,7 @@ TEST_CASE("Persistent map") {
     CHECK_THROWS_AS(pm.find(1, res), const LinpipeError);
   }
   SUBCASE("find success") {
-    int res;
+    map_values::Int4::Type res;
     bool flag;
     for (int i = 0; i < vals_cnt; ++i) { 
       flag = pm.find(i, res);
@@ -180,8 +179,8 @@ TEST_CASE("Persistent map") {
     bool flag = find(-1, res);
     CHECK(!flag);
   }
+  */
 }
-*/
 
 /*
 

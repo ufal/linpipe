@@ -37,7 +37,9 @@ bool DynamicMap<Key, Value>::find(Key key, typename Value::Type& value) const {
 
 template<typename Key, typename Value>
 void DynamicMap<Key, Value>::write_id(ostream& os) {
-  os.write(static_cast<char*>(static_cast<void*>(&id)), sizeof(id));
+  cout << "idsize" << sizeof(id) << endl;
+  cout << "id" << id << endl;
+  os.write((char*)&id, sizeof(id));
 }
 
 template<typename Key, typename Value>
@@ -67,19 +69,24 @@ void DynamicMap<Key, Value>::memcpy_two(byte* dest, const byte* first,
 template<typename Key, typename Value>
 void DynamicMap<Key, Value>::write_keys_and_values(ostream& os) {
   auto size_sums = value_prefix_sums();
-  using address_type = int32_t;
+  using address_type = uint32_t;
   size_t address_size = sizeof(address_type);
   size_t key_address_size = sizeof(Key) + address_size;
   size_t index_size = values.size() *  key_address_size;
-  vector<byte> to_stream(size_sums.back() + index_size, (byte)0);
+  vector<byte> to_stream(size_sums.back() + index_size + sizeof(size_t), (byte)0);
   byte* to_stream_ptr = to_stream.data();
   int idx = 0;
   vector<byte> data;
 
+  memcpy(to_stream_ptr, (byte*)&index_size, sizeof(size_t));
+  cout << "sizeof " <<sizeof(size_t) << endl;
+  to_stream_ptr += sizeof(size_t);
+
   for (auto p: values) {
+    cout << p.first << ' ' << p.second << ' ' << to_stream.size() << '\n';
     // key + offset -> data
     data.resize(key_address_size);
-    address_type offset = size_sums[idx] + index_size - key_address_size;
+    address_type offset = size_sums[idx] + index_size - key_address_size * idx;
     memcpy_two(data.data(), (byte*)&p.first, 
                (byte*)&offset,
                sizeof(Key), address_size);
@@ -95,7 +102,7 @@ void DynamicMap<Key, Value>::write_keys_and_values(ostream& os) {
            data.data(), 
            data.size());
   }
-  os.write(static_cast<char*>(static_cast<void*>(to_stream_ptr)), sizeof(to_stream));
+  os.write(static_cast<char*>(static_cast<void*>(to_stream.data())), to_stream.size());
 }
 
 template<typename Key, typename Value>
