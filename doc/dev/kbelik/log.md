@@ -1,5 +1,17 @@
 # Log of KBELik Progress
 
+### Apr 12, 2023
+- No need to use virtual methods in MapValue because templated don't require it.
+
+- Discussion of usage of unique_ptrs.
+
+- factory methods vs. constructors
+
+- Static class TypeValue (de)serializing Type. Discussion of how to implement
+  it.
+
+- persistent_map might need separate serializer
+
 ### Apr 3, 2023
 - Updating LinPipe build infrastructure to support tests in `dev/kbelik`.
 
@@ -16,7 +28,7 @@
 
 - [x] Use templates in persistent_map
 
-- [ ] Finish headers of both kbeliks
+- [X] Finish headers of both kbeliks
 
 - [ ] Implement an MVP of persistent_map that implements its own build and
   answers queries.
