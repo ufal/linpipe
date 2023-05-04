@@ -36,7 +36,7 @@ Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplic
   if (unique_name_if_duplicate && _names.find(layer->_name) != _names.end()) {
     int i = 2;
     while (_names.find(layer->_name + "_" + to_string(i)) != _names.end()) i++;
-    cerr << "Document::add_layer: Layer name '" << layer->_name << "' already exists in the document. Changed layer name to '" << layer->_name + "_" + to_string(i) << "'" << endl;
+//    cerr << "Document::add_layer: Layer name '" << layer->_name << "' already exists in the document. Changed layer name to '" << layer->_name + "_" + to_string(i) << "'" << endl;
     layer->_name += "_" + to_string(i);
   }
 

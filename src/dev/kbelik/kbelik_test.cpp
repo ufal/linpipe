@@ -7,15 +7,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <cstring>
 #include <fstream>
 
 #include "common.h"
 #include "lib/doctest.h"
 
-#include "dev/kbelik/dynamic_map.cpp"
-#include "dev/kbelik/map_values/bytes.cpp"
-#include "dev/kbelik/map_values/int4.cpp"
-#include "dev/kbelik/persistent_map.cpp"
+#include "dev/kbelik/dynamic_map.h"
+#include "dev/kbelik/map_values/bytes.h"
+//#include "dev/kbelik/map_values/chars.h"
+#include "dev/kbelik/map_values/int4.h"
+#include "dev/kbelik/persistent_map.h"
 
 namespace linpipe {
 namespace kbelik {
@@ -225,7 +227,7 @@ TEST_CASE("Int4") {
 }
 
 template<typename SizeType>
-void test_bytes(char* name) {
+void test_bytes(const char* name) {
   SUBCASE(name) {
     SizeType sz = 3 + sizeof(SizeType);
     byte* data = new byte[sz];
@@ -260,6 +262,7 @@ void test_bytes(char* name) {
         CHECK(res[i] == data[i]);
 
     }
+    delete[] data;
   }
 }
 
@@ -268,6 +271,26 @@ TEST_CASE("Bytes") {
   test_bytes<uint16_t>("2 byte");
   test_bytes<uint32_t>("4 byte");
 }
+
+/*
+TEST_CASE("Chars") {
+  SUBCASE("Long") {
+  }
+  SUBCASE("Short") {
+    string textstr = "I'm not crazy, my mother had me tested.";
+    vector<char> text(textstr.begin(), textstr.end());
+    size_t sz = 300;
+    vector<byte> data(sz);
+    SUBCASE("Serialization and deserialization are invertible") {
+      string result;
+      Chars<uint8_t>::serialize(text, data.data());
+      Chars<uint8_t>::deserialize(data.data(), result);
+      cout << string(text.begin(), text.end());
+      CHECK(string(text.begin(), text.end()) == result);
+    }
+  }
+}
+*/
 
 } // namespace map_values
 
