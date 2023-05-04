@@ -1,5 +1,40 @@
 # Log of KBELik Progress
 
+### May 4, 2023
+- Reviewing of source files of both maps and all `map_values` and discussion of their further
+  improvements.
+
+- Fixed warnings.
+
+- Updated makefiles and moved code with templates to headers.
+
+- Discussed possible ways to compress jsons from wikidata.
+    - use external compressing algorithm, given enough context it could be
+      reasonably efficient
+    - use some external json compression algorithm, without any context it is
+      unlikely to be good.
+    - Devise custom compression for wikidata. It looks time consuming but could
+      be the most efficient. Some ideas:
+        - Create map mapping strings (keys of jsons) to numbers, there are a lot
+	  of repeating keys
+	- Use the fact that key gives us information about the structure of the
+	  underlying value
+
+- [ ] Implement header for variable length integers (only unsigned)
+
+- [ ] serialization type (id) doesn't need to be given to a constructor of `dynamic_map`. It is only
+  important for the saving of `persistent_map`. Also don't use integer to define
+  serialization type but prefer enum.
+
+- [ ] Write better algorithm for the index searching and try to mock the real
+  use case.
+
+- [ ] Calculate number of keys and their types in wikidata.
+
+- [ ] `persistant_map` doesn't need indicator to know if the map is already
+  mapped. This functionality can be provided by the file descriptor.
+
+
 ### Apr 17, 2023
 - (Hopefully) mostly definitive version of public interfaces of `agnostic_kbelik,
   persistent_map, dynamic_map, map_values::Int4`
@@ -27,9 +62,9 @@
 
 - [x] Use templates in persistent_map
 
-- [ ] Finish headers of both kbeliks
+- [x] Finish headers of both kbeliks
 
-- [ ] Implement an MVP of persistent_map that implements its own build and
+- [x] Implement an MVP of persistent_map that implements its own build and
   answers queries.
 
 ### Mar 20, 2023
