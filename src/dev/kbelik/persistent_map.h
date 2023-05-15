@@ -24,14 +24,15 @@ class PersistentMap{
 
   bool find(Key key, typename Value::Type& value) const;
   void close(); // Should end mmap.
+                
+  bool opened() const;
 
  private:
   size_t length = 0; 
-  bool opened = false;
 #ifdef _WIN_32
   // TODO
 #else
-  int fd = 0;
+  int fd = -1;
   void* mmap_addr = NULL;
 #endif
   byte* index_start;
@@ -43,10 +44,19 @@ class PersistentMap{
 };
 
 template<typename Key, typename Value>
+bool PersistentMap<Key, Value>::opened() const {
+#ifdef _WIN_32
+  // TODO
+#else
+  struct stat file_stat;
+  return fstat(fd, &file_stat) == 0;
+#endif
+}
+
+template<typename Key, typename Value>
 PersistentMap<Key, Value>::PersistentMap(filesystem::path fp, size_t offset, size_t length) {
   load(fp, offset, length);
   init_index_ptr();
-  opened = true;
 }
 
 template<typename Key, typename Value>
@@ -71,7 +81,7 @@ void PersistentMap<Key, Value>::init_index_ptr() {
 }
 
 template<typename Key, typename Value>
-bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const{
+bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const {
   size_t one_key = 8;
   for (size_t shift = 0; shift < index_size; shift+=one_key) {
     Key from_index;
@@ -87,7 +97,7 @@ bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const{
 
 template<typename Key, typename Value>
 bool PersistentMap<Key, Value>::find(Key key, typename Value::Type& value) const {
-  if (!opened)
+  if (!opened())
     throw LinpipeError("The mmap is closed.");
   uint32_t offset;
   bool success = get_val_offset(key, offset);
@@ -100,12 +110,11 @@ template<typename Key, typename Value>
 void PersistentMap<Key, Value>::close() {
   munmap(mmap_addr, length);
   ::close(fd);
-  opened = false;
 }
 
 template<typename Key, typename Value>
 PersistentMap<Key, Value>::~PersistentMap() {
-  if (opened)
+  if (opened())
     close();
 }
 
