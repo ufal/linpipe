@@ -41,6 +41,12 @@ class PersistentMap{
   bool get_val_offset(Key key, uint32_t& offset) const;
   void init_index_ptr();
   void load(filesystem::path fp, size_t offset, size_t length);
+
+  bool exponential_search(Key key, size_t one_key, size_t jump_size, size_t elements_cnt, uint32_t &result) const;
+  bool binary_search(Key key, size_t one_key, size_t l, size_t r, uint32_t &result) const;
+
+  void read_ith_key(int i, size_t one_key, Key &res) const;
+  void read_ith_offset(int i, size_t one_key, uint32_t &res) const;
 };
 
 template<typename Key, typename Value>
@@ -81,8 +87,67 @@ void PersistentMap<Key, Value>::init_index_ptr() {
 }
 
 template<typename Key, typename Value>
+void PersistentMap<Key, Value>::read_ith_key(int i, size_t one_key, Key &res) const {
+  size_t shift = i * one_key;
+  memcpy(&res, index_start + shift , sizeof(Key));
+}
+
+template<typename Key, typename Value>
+void PersistentMap<Key, Value>::read_ith_offset(int i, size_t one_key, uint32_t &res) const {
+  size_t shift = i * one_key;
+  memcpy(&res, index_start + shift + sizeof(Key), sizeof(uint32_t));
+  res += shift;
+}
+
+template<typename Key, typename Value>
+bool PersistentMap<Key, Value>::binary_search(Key key, size_t one_key, size_t l, size_t r, uint32_t &result) const {
+  while(l <= r) {
+    size_t m = (l + r) / 2;
+    Key from_index;
+    read_ith_key(m, one_key, from_index);
+    if (from_index < key) 
+      l = m + 1;
+    else if (from_index > key) {
+      if (m == 0) // Prevents underflow and crash.
+        return false;
+      r = m - 1;
+    }
+    else {
+      read_ith_offset(m, one_key, result);
+      return true;
+    }
+  }
+  return false;
+}
+
+template<typename Key, typename Value>
+bool PersistentMap<Key, Value>::exponential_search(Key key, size_t one_key, size_t jump_size, size_t elements_cnt, 
+                                                   uint32_t &result) const {
+  size_t r = 1;
+  while (r < elements_cnt) {
+    Key from_index;
+    read_ith_key(r, one_key, from_index);
+    if (from_index < key)
+      r *= jump_size;
+    else if (from_index > key) {
+      size_t l = r / jump_size;
+      return binary_search(key, one_key, l, min(elements_cnt - 1, r), result);
+    }
+    else {
+      read_ith_offset(r, one_key, result);
+      return true;
+    }
+  }
+  size_t l = r / jump_size;
+  return binary_search(key, one_key, l, min(elements_cnt - 1, r), result);
+}
+
+template<typename Key, typename Value>
 bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const {
   size_t one_key = 8;
+  return exponential_search(key, one_key, 8, index_size / one_key, offset);
+  //return binary_search(key, one_key, 0, index_size / one_key - 1, offset);
+  /*
   for (size_t shift = 0; shift < index_size; shift+=one_key) {
     Key from_index;
     memcpy(&from_index, index_start + shift, sizeof(Key));
@@ -93,6 +158,7 @@ bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const 
     }
   }
   return false;
+  */
 }
 
 template<typename Key, typename Value>

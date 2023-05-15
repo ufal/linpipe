@@ -24,110 +24,110 @@ namespace kbelik {
 
 TEST_CASE("Dynamic map") {
   SUBCASE("Int4") {
-    DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>();
+    DynamicMap<int, map_values::Int4> dm = DynamicMap<int, map_values::Int4>();
     SUBCASE("Add, erase -- big") {
-      REQUIRE(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
       int to_add = 200;
       for (int i = 0; i < to_add; ++i) {
-        dp.add(i, 10 + i); 
+        dm.add(i, 10 + i); 
       }
-      CHECK(dp.length() == to_add);
+      CHECK(dm.length() == to_add);
       for (int i = 0; i < to_add; ++i) {
-        dp.erase(i);
+        dm.erase(i);
       }
-      CHECK(dp.length() == 0);
+      CHECK(dm.length() == 0);
     }
     SUBCASE("Add, erase -- small") {
-      REQUIRE(dp.length() == 0);
-      dp.add(10, 0);
-      dp.add(10, 0);
-      CHECK(dp.length() == 1);
-      dp.erase(10);
-      CHECK(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
+      dm.add(10, 0);
+      dm.add(10, 0);
+      CHECK(dm.length() == 1);
+      dm.erase(10);
+      CHECK(dm.length() == 0);
     }
     SUBCASE("find present") {
-      REQUIRE(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
       int expected = 0;
-      dp.add(10, expected);
+      dm.add(10, expected);
       int res;
-      bool flag = dp.find(10, res);
+      bool flag = dm.find(10, res);
       CHECK(res == expected);
       CHECK(flag);
-      dp.erase(10);
+      dm.erase(10);
     }
     SUBCASE("find not present") {
-      REQUIRE(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
       int expected = 0;
-      dp.add(10, expected);
+      dm.add(10, expected);
       int res;
-      bool flag = dp.find(11, res);
+      bool flag = dm.find(11, res);
       CHECK(!flag);
-      dp.erase(10);
-      flag = dp.find(10, res);
+      dm.erase(10);
+      flag = dm.find(10, res);
       CHECK(!flag);
     }
     SUBCASE("basic save map") {
-      REQUIRE(dp.length() == 0);
-      dp.add(10, 1);
-      dp.add(20, 2);
-      dp.add(30, 3);
+      REQUIRE(dm.length() == 0);
+      dm.add(10, 1);
+      dm.add(20, 2);
+      dm.add(30, 3);
       stringstream ss;
       REQUIRE(ss.str() == "");
-      dp.save_map(ss, test);
+      dm.save_map(ss, test);
       REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
     }
   }
   SUBCASE("Bytes") {
-    auto dp = DynamicMap<int, map_values::Bytes<int8_t>>();
+    auto dm = DynamicMap<int, map_values::Bytes<int8_t>>();
     SUBCASE("Add, erase -- small") {
-      REQUIRE(dp.length() == 0);
-      dp.add(10, {(byte)1, (byte)2});
-      dp.add(10, {(byte)1, (byte)2, (byte)3});
-      CHECK(dp.length() == 1);
-      dp.erase(10);
-      CHECK(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
+      dm.add(10, {(byte)1, (byte)2});
+      dm.add(10, {(byte)1, (byte)2, (byte)3});
+      CHECK(dm.length() == 1);
+      dm.erase(10);
+      CHECK(dm.length() == 0);
     }
     SUBCASE("find") {
-      REQUIRE(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
       vector<byte>expected = {(byte) 0, (byte) 200};
-      dp.add(1, expected);
+      dm.add(1, expected);
       vector<byte> res;
-      bool flag = dp.find(1, res);
+      bool flag = dm.find(1, res);
       for (size_t i = 0; i < res.size(); ++i)
         CHECK(res[i] == expected[i]);
       CHECK(flag);
-      flag = dp.find(11, res);
+      flag = dm.find(11, res);
       CHECK(!flag);
-      dp.erase(10);
-      flag = dp.find(10, res);
+      dm.erase(10);
+      flag = dm.find(10, res);
       CHECK(!flag);
     }
     SUBCASE("Add, erase -- big") {
-      REQUIRE(dp.length() == 0);
+      REQUIRE(dm.length() == 0);
       int to_add = 200;
       for (int i = 0; i < to_add; ++i) {
         if (i&1)
-          dp.add(i, {(byte) (i + 15)}); 
+          dm.add(i, {(byte) (i + 15)}); 
         else
-          dp.add(i, {(byte) i, (byte) (i +1)}); 
+          dm.add(i, {(byte) i, (byte) (i +1)}); 
       }
-      CHECK(dp.length() == to_add);
+      CHECK(dm.length() == to_add);
       for (int i = 0; i < to_add; ++i) {
-        dp.erase(i);
+        dm.erase(i);
       }
-      CHECK(dp.length() == 0);
+      CHECK(dm.length() == 0);
     }
   }
 }
 
 TEST_CASE("Persistent map") {
-  DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>();
+  DynamicMap<int, map_values::Int4> dm = DynamicMap<int, map_values::Int4>();
   int vals_cnt = 10;
   for (int i = 0; i < vals_cnt; ++i) 
-    dp.add(i, i);
+    dm.add(i, i);
   filesystem::create_directories("./temp");
   ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
-  dp.save_map(ofs, test);
+  dm.save_map(ofs, test);
   ofs.close();
   filesystem::path fp("temp/test_map.bin");
   auto pm = PersistentMap<int, map_values::Int4>(fp);
@@ -154,7 +154,7 @@ TEST_CASE("Persistent map") {
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
     ofs.write({(byte)1, (byte)2}, 2);
-    dp.save_map(ofs);
+    dm.save_map(ofs);
     ofs.close();
     filesystem::path fp_offset("temp/test_map.bin");
     auto pm_offset = PersistentMap<int, Int4>(fp_offset, 2);
@@ -168,7 +168,7 @@ TEST_CASE("Persistent map") {
   }
   SUBCASE("Persistent map with length") {
     ofs.open("temp/test_map_length.bin", ofstream::out | ofstream::binary);
-    dp.save_map(ofs);
+    dm.save_map(ofs);
     size_t length = ofs.tellp();
     ofs.write({(byte)1, (byte)2}, 2);
     ofs.close();

@@ -1,0 +1,8 @@
+Starting benchmarking of persistent map find.
+Dynamic map is filled.
+Dynamic map saved.
+Dynamic map released from memory.
+n of finds performed: 10000
+approximate n of seeks performed: 10000
+total time spent: 146892622727ns
+average time spent per find: 14689262ns
