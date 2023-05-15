@@ -7,6 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <cmath>
 #include <cstring>
 #include <fstream>
 
@@ -17,6 +18,7 @@
 #include "dev/kbelik/map_values/bytes.h"
 //#include "dev/kbelik/map_values/chars.h"
 #include "dev/kbelik/map_values/int4.h"
+#include "dev/kbelik/map_values/vli.h"
 #include "dev/kbelik/persistent_map.h"
 
 namespace linpipe {
@@ -274,6 +276,36 @@ TEST_CASE("Bytes") {
   test_bytes<uint8_t>("1 byte");
   test_bytes<uint16_t>("2 byte");
   test_bytes<uint32_t>("4 byte");
+}
+
+int msb(uint64_t x) {
+  int res = 0;
+  while (x) {
+    res++;
+    x >>= 1;
+  }
+  return res;
+}
+
+TEST_CASE("VLI") {
+  for (uint64_t i = 0; i < 288230376151711744; i = 2 * i + 1) {
+    vector<byte> data;
+    VLI::serialize(i, data);
+    SUBCASE("Correct length from serialized") {
+      size_t expected = max((size_t)1, (size_t)ceil(msb(i) / 7.0));
+      //cout << i << ' ' << expected << '\n'; 
+      CHECK(expected == VLI::length(data.data()));
+    }
+    SUBCASE("Correct length from deserialized") {
+      size_t expected = max((size_t)1, (size_t)ceil(msb(i) / 7.0));
+      CHECK(expected == VLI::length(i));
+    }
+    SUBCASE("Serialization/deserialization works.") {
+      uint64_t des;
+      VLI::deserialize(data.data(), des);
+      CHECK(des == i);
+    }
+  }
 }
 
 /*
