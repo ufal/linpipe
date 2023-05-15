@@ -24,7 +24,7 @@ namespace kbelik {
 
 TEST_CASE("Dynamic map") {
   SUBCASE("Int4") {
-    DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>(0);
+    DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>();
     SUBCASE("Add, erase -- big") {
       REQUIRE(dp.length() == 0);
       int to_add = 200;
@@ -73,12 +73,12 @@ TEST_CASE("Dynamic map") {
       dp.add(30, 3);
       stringstream ss;
       REQUIRE(ss.str() == "");
-      dp.save_map(ss);
+      dp.save_map(ss, test);
       REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
     }
   }
   SUBCASE("Bytes") {
-    auto dp = DynamicMap<int, map_values::Bytes<int8_t>>(0);
+    auto dp = DynamicMap<int, map_values::Bytes<int8_t>>();
     SUBCASE("Add, erase -- small") {
       REQUIRE(dp.length() == 0);
       dp.add(10, {(byte)1, (byte)2});
@@ -121,13 +121,13 @@ TEST_CASE("Dynamic map") {
 }
 
 TEST_CASE("Persistent map") {
-  DynamicMap<int, map_values::Int4> dp(0);
+  DynamicMap<int, map_values::Int4> dp = DynamicMap<int, map_values::Int4>();
   int vals_cnt = 10;
   for (int i = 0; i < vals_cnt; ++i) 
     dp.add(i, i);
   filesystem::create_directories("./temp");
   ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
-  dp.save_map(ofs);
+  dp.save_map(ofs, test);
   ofs.close();
   filesystem::path fp("temp/test_map.bin");
   auto pm = PersistentMap<int, map_values::Int4>(fp);

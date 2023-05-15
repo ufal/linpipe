@@ -8,24 +8,24 @@
 
 namespace linpipe::kbelik {
 
+enum MapType : int32_t { 
+  test
+};
+
 template<typename Key, typename Value>
 class DynamicMap{
  public:
-  DynamicMap<Key, Value>(int32_t id); 
-
   bool find(Key key, typename Value::Type& value) const;
   void add(Key key, const typename Value::Type& value);
   size_t length() const;
   void erase(Key key);
 
-  void save_map(ostream& os);
+  void save_map(ostream& os, MapType type);
 
  private:
   map<Key, typename Value::Type> values;
 
-  int32_t id;
-
-  void write_id(ostream& os);
+  void write_type(ostream& os, MapType type);
   void write_keys_and_values(ostream& os);
   void memcpy_two(byte* dest, const byte* first, const byte* second, 
                   size_t first_count, size_t second_count);
@@ -34,11 +34,6 @@ class DynamicMap{
 
   static void build(map<Key, Value>* data, filesystem::path path); // ??
 };
-
-template<typename Key, typename Value>
-DynamicMap<Key, Value>::DynamicMap(int32_t id) {
-  this->id = id;
-}
 
 template<typename Key, typename Value>
 size_t DynamicMap<Key, Value>::length() const {
@@ -65,8 +60,8 @@ bool DynamicMap<Key, Value>::find(Key key, typename Value::Type& value) const {
 }
 
 template<typename Key, typename Value>
-void DynamicMap<Key, Value>::write_id(ostream& os) {
-  os.write((char*)&id, sizeof(id));
+void DynamicMap<Key, Value>::write_type(ostream& os, MapType type) {
+  os.write((char*)&type, sizeof(type));
 }
 
 template<typename Key, typename Value>
@@ -131,8 +126,8 @@ void DynamicMap<Key, Value>::write_keys_and_values(ostream& os) {
 }
 
 template<typename Key, typename Value>
-void DynamicMap<Key, Value>::save_map(ostream& os) {
-  write_id(os);
+void DynamicMap<Key, Value>::save_map(ostream& os, MapType type) {
+  write_type(os, type);
   write_keys_and_values(os);
 }
 
