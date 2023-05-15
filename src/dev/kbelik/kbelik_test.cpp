@@ -150,6 +150,10 @@ TEST_CASE("Persistent map") {
     bool flag = pm.find(-1, res);
     CHECK(!flag);
   }
+  SUBCASE("map type loaded") {
+    MapType t = pm.get_map_type();
+    CHECK(t == test);
+  }
   /*
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);

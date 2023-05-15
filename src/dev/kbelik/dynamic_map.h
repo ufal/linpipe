@@ -6,11 +6,9 @@
 
 #include "common.h"
 
-namespace linpipe::kbelik {
+#include "dev/kbelik/map_type.h"
 
-enum MapType : int32_t { 
-  test
-};
+namespace linpipe::kbelik {
 
 template<typename Key, typename Value>
 class DynamicMap{

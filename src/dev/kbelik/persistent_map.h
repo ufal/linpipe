@@ -14,6 +14,8 @@
 
 #include "common.h"
 
+#include "dev/kbelik/map_type.h"
+
 namespace linpipe::kbelik {
 
 template<typename Key, typename Value>
@@ -27,8 +29,11 @@ class PersistentMap{
                 
   bool opened() const;
 
+  MapType get_map_type() const;
+
  private:
   size_t length = 0; 
+  MapType map_type;
 #ifdef _WIN_32
   // TODO
 #else
@@ -38,16 +43,32 @@ class PersistentMap{
   byte* index_start;
   size_t index_size;
 
+  size_t one_key; // Size of one key entry in the index.
+
   bool get_val_offset(Key key, uint32_t& offset) const;
   void init_index_ptr();
   void load(filesystem::path fp, size_t offset, size_t length);
 
-  bool exponential_search(Key key, size_t one_key, size_t jump_size, size_t elements_cnt, uint32_t &result) const;
-  bool binary_search(Key key, size_t one_key, size_t l, size_t r, uint32_t &result) const;
+  bool exponential_search(Key key, size_t jump_size, size_t elements_cnt, uint32_t &result) const;
+  bool binary_search(Key key, size_t l, size_t r, uint32_t &result) const;
 
-  void read_ith_key(int i, size_t one_key, Key &res) const;
-  void read_ith_offset(int i, size_t one_key, uint32_t &res) const;
+  void read_ith_key(int i, Key &res) const;
+  void read_ith_offset(int i, uint32_t &res) const;
+
+  void set_map_type();
+
+  void init(); // Only init that is needed, calls other inits and should be called from load.
 };
+
+template<typename Key, typename Value>
+MapType PersistentMap<Key, Value>::get_map_type() const {
+  return map_type;
+}
+
+template<typename Key, typename Value>
+void PersistentMap<Key, Value>::set_map_type() {
+  memcpy(&map_type, (byte*)mmap_addr, sizeof(MapType));
+}
 
 template<typename Key, typename Value>
 bool PersistentMap<Key, Value>::opened() const {
@@ -60,9 +81,18 @@ bool PersistentMap<Key, Value>::opened() const {
 }
 
 template<typename Key, typename Value>
+void PersistentMap<Key, Value>::init() {
+  init_index_ptr();
+  set_map_type();
+  if (map_type == test) {
+    one_key = 8;
+  }
+}
+
+template<typename Key, typename Value>
 PersistentMap<Key, Value>::PersistentMap(filesystem::path fp, size_t offset, size_t length) {
   load(fp, offset, length);
-  init_index_ptr();
+  init();
 }
 
 template<typename Key, typename Value>
@@ -82,29 +112,29 @@ void PersistentMap<Key, Value>::load(filesystem::path fp, size_t /*offset*/, siz
 
 template<typename Key, typename Value>
 void PersistentMap<Key, Value>::init_index_ptr() {
-  index_start = static_cast<byte*>(mmap_addr) + sizeof(size_t) + sizeof(uint32_t);
-  memcpy(&index_size, static_cast<byte*>(mmap_addr) + sizeof(uint32_t), sizeof(size_t));
+  index_start = (byte*)(mmap_addr) + sizeof(size_t) + sizeof(MapType);
+  memcpy(&index_size, (byte*)(mmap_addr) + sizeof(MapType), sizeof(size_t));
 }
 
 template<typename Key, typename Value>
-void PersistentMap<Key, Value>::read_ith_key(int i, size_t one_key, Key &res) const {
+void PersistentMap<Key, Value>::read_ith_key(int i, Key &res) const {
   size_t shift = i * one_key;
   memcpy(&res, index_start + shift , sizeof(Key));
 }
 
 template<typename Key, typename Value>
-void PersistentMap<Key, Value>::read_ith_offset(int i, size_t one_key, uint32_t &res) const {
+void PersistentMap<Key, Value>::read_ith_offset(int i, uint32_t &res) const {
   size_t shift = i * one_key;
   memcpy(&res, index_start + shift + sizeof(Key), sizeof(uint32_t));
   res += shift;
 }
 
 template<typename Key, typename Value>
-bool PersistentMap<Key, Value>::binary_search(Key key, size_t one_key, size_t l, size_t r, uint32_t &result) const {
+bool PersistentMap<Key, Value>::binary_search(Key key, size_t l, size_t r, uint32_t &result) const {
   while(l <= r) {
     size_t m = (l + r) / 2;
     Key from_index;
-    read_ith_key(m, one_key, from_index);
+    read_ith_key(m, from_index);
     if (from_index < key) 
       l = m + 1;
     else if (from_index > key) {
@@ -113,7 +143,7 @@ bool PersistentMap<Key, Value>::binary_search(Key key, size_t one_key, size_t l,
       r = m - 1;
     }
     else {
-      read_ith_offset(m, one_key, result);
+      read_ith_offset(m, result);
       return true;
     }
   }
@@ -121,31 +151,31 @@ bool PersistentMap<Key, Value>::binary_search(Key key, size_t one_key, size_t l,
 }
 
 template<typename Key, typename Value>
-bool PersistentMap<Key, Value>::exponential_search(Key key, size_t one_key, size_t jump_size, size_t elements_cnt, 
+bool PersistentMap<Key, Value>::exponential_search(Key key, size_t jump_size, size_t elements_cnt, 
                                                    uint32_t &result) const {
   size_t r = 1;
   while (r < elements_cnt) {
     Key from_index;
-    read_ith_key(r, one_key, from_index);
+    read_ith_key(r, from_index);
     if (from_index < key)
       r *= jump_size;
     else if (from_index > key) {
       size_t l = r / jump_size;
-      return binary_search(key, one_key, l, min(elements_cnt - 1, r), result);
+      return binary_search(key, l, min(elements_cnt - 1, r), result);
     }
     else {
-      read_ith_offset(r, one_key, result);
+      read_ith_offset(r, result);
       return true;
     }
   }
   size_t l = r / jump_size;
-  return binary_search(key, one_key, l, min(elements_cnt - 1, r), result);
+  return binary_search(key, l, min(elements_cnt - 1, r), result);
 }
 
 template<typename Key, typename Value>
 bool PersistentMap<Key, Value>::get_val_offset(Key key, uint32_t& offset) const {
-  size_t one_key = 8;
-  return exponential_search(key, one_key, 8, index_size / one_key, offset);
+  int jump = 8;
+  return exponential_search(key, jump, index_size / one_key, offset);
   //return binary_search(key, one_key, 0, index_size / one_key - 1, offset);
   /*
   for (size_t shift = 0; shift < index_size; shift+=one_key) {
@@ -183,6 +213,5 @@ PersistentMap<Key, Value>::~PersistentMap() {
   if (opened())
     close();
 }
-
 
 } // namespace linpipe::kbelik
