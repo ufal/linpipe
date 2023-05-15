@@ -15,8 +15,9 @@ class DynamicMap{
  public:
   bool find(Key key, typename Value::Type& value) const;
   void add(Key key, const typename Value::Type& value);
-  size_t length() const;
   void erase(Key key);
+
+  size_t length() const;
 
   void save_map(ostream& os, MapType type);
 
@@ -29,24 +30,7 @@ class DynamicMap{
                   size_t first_count, size_t second_count);
 
   vector<size_t> value_prefix_sums();
-
-  static void build(map<Key, Value>* data, filesystem::path path); // ??
 };
-
-template<typename Key, typename Value>
-size_t DynamicMap<Key, Value>::length() const {
-  return values.size();
-}
-
-template<typename Key, typename Value>
-void DynamicMap<Key, Value>::erase(Key key) {
-  values.erase(key);
-}
-
-template<typename Key, typename Value>
-void DynamicMap<Key, Value>::add(Key key, const typename Value::Type& value) {
-  values.insert({key, value});
-}
 
 template<typename Key, typename Value>
 bool DynamicMap<Key, Value>::find(Key key, typename Value::Type& value) const {
@@ -58,32 +42,29 @@ bool DynamicMap<Key, Value>::find(Key key, typename Value::Type& value) const {
 }
 
 template<typename Key, typename Value>
+void DynamicMap<Key, Value>::add(Key key, const typename Value::Type& value) {
+  values.insert({key, value});
+}
+
+template<typename Key, typename Value>
+void DynamicMap<Key, Value>::erase(Key key) {
+  values.erase(key);
+}
+
+template<typename Key, typename Value>
+size_t DynamicMap<Key, Value>::length() const {
+  return values.size();
+}
+
+template<typename Key, typename Value>
+void DynamicMap<Key, Value>::save_map(ostream& os, MapType type) {
+  write_type(os, type);
+  write_keys_and_values(os);
+}
+
+template<typename Key, typename Value>
 void DynamicMap<Key, Value>::write_type(ostream& os, MapType type) {
   os.write((char*)&type, sizeof(type));
-}
-
-template<typename Key, typename Value>
-vector<size_t> DynamicMap<Key, Value>::value_prefix_sums() {
-  vector<size_t> ps(values.size() + 1, 0);
-  int idx = 1;
-  for (auto p: values) {
-    ps[idx] = Value::length(p.second) + ps[idx - 1];
-    idx++;
-  }
-  return ps;
-}
-
-template<typename Key, typename Value>
-void DynamicMap<Key, Value>::memcpy_two(byte* dest, const byte* first, 
-                                         const byte* second, 
-                                         size_t first_count, 
-                                         size_t second_count) {
-    memcpy(dest, 
-           first, 
-           first_count);
-    memcpy(dest + first_count, 
-           second, 
-           second_count);
 }
 
 template<typename Key, typename Value>
@@ -124,9 +105,27 @@ void DynamicMap<Key, Value>::write_keys_and_values(ostream& os) {
 }
 
 template<typename Key, typename Value>
-void DynamicMap<Key, Value>::save_map(ostream& os, MapType type) {
-  write_type(os, type);
-  write_keys_and_values(os);
+void DynamicMap<Key, Value>::memcpy_two(byte* dest, const byte* first, 
+                                         const byte* second, 
+                                         size_t first_count, 
+                                         size_t second_count) {
+    memcpy(dest, 
+           first, 
+           first_count);
+    memcpy(dest + first_count, 
+           second, 
+           second_count);
+}
+
+template<typename Key, typename Value>
+vector<size_t> DynamicMap<Key, Value>::value_prefix_sums() {
+  vector<size_t> ps(values.size() + 1, 0);
+  int idx = 1;
+  for (auto p: values) {
+    ps[idx] = Value::length(p.second) + ps[idx - 1];
+    idx++;
+  }
+  return ps;
 }
 
 } // namespace linpipe::kbelik
