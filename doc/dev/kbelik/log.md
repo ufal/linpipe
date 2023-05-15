@@ -20,18 +20,18 @@
 	- Use the fact that key gives us information about the structure of the
 	  underlying value
 
-- [ ] Implement header for variable length integers (only unsigned)
+- [x] Implement header for variable length integers (only unsigned)
 
-- [ ] serialization type (id) doesn't need to be given to a constructor of `dynamic_map`. It is only
+- [x] serialization type (id) doesn't need to be given to a constructor of `dynamic_map`. It is only
   important for the saving of `persistent_map`. Also don't use integer to define
   serialization type but prefer enum.
 
-- [ ] Write better algorithm for the index searching and try to mock the real
+- [x] Write better algorithm for the index searching and try to mock the real
   use case.
 
 - [ ] Calculate number of keys and their types in wikidata.
 
-- [ ] `persistant_map` doesn't need indicator to know if the map is already
+- [x] `persistant_map` doesn't need indicator to know if the map is already
   mapped. This functionality can be provided by the file descriptor.
 
 
