@@ -13,11 +13,13 @@
 
 #include "common.h"
 #include "lib/doctest.h"
+#include "lib/json.h"
 
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/map_values/bytes.h"
 //#include "dev/kbelik/map_values/chars.h"
 #include "dev/kbelik/map_values/int4.h"
+#include "dev/kbelik/map_values/simple_json.h"
 #include "dev/kbelik/map_values/vli.h"
 #include "dev/kbelik/persistent_map.h"
 
@@ -307,6 +309,46 @@ TEST_CASE("VLI") {
     }
   }
 }
+TEST_CASE("SimpleJson") {
+  Json small = Json::parse(R"(
+    {
+        "pi": 3.141,
+        "happy": true
+    }
+  )");
+  /*
+  json real = Json::parse(R"({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})");
+  */
+
+
+  vector<byte> small_s;
+  SimpleJson::serialize(small, small_s);
+
+  //vector<byte> real_s;
+  //SimpleJson::serialize(real, real_s);
+
+  SUBCASE("Equal lengths small") {
+    size_t se, de;
+    de = SimpleJson::length(small);
+    se = SimpleJson::length(small_s.data());
+    CHECK(de == se);
+  }
+  /*
+  SUBCASE("Equal lengths real") {
+    size_t se, de;
+    de = SimpleJson::length(real);
+    se = SimpleJson::length(real_s);
+    CHECK(de == se);
+  }
+  */
+  SUBCASE("Serialization/deserialization works.") {
+    Json des;
+    SimpleJson::deserialize(small_s.data(), des);
+    CHECK(des.dump() == small.dump());
+    //VLI::deserialize(real_s.data(), des);
+    //CHECK(des.dump() == real.dump());
+  }
+}
 
 /*
 TEST_CASE("Chars") {
@@ -330,5 +372,5 @@ TEST_CASE("Chars") {
 
 } // namespace map_values
 
-} // namespace linpipe
 } // namespace kbelik
+} // namespace linpipe
