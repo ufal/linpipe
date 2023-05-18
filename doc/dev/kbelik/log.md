@@ -1,5 +1,16 @@
 # Log of KBELik Progress
 
+### May 18, 2023
+- Discussion of json compression and optimizing the search in persistent map.
+    - for now the search is fast enough but we should find better constants 
+    for it.
+
+- [ ] MVP with external json compression 
+
+- [ ] implement custom json compression (stretch goal)
+
+- [ ] Calculate number of keys and their types in wikidata claims.
+
 ### May 4, 2023
 - Reviewing of source files of both maps and all `map_values` and discussion of their further
   improvements.
