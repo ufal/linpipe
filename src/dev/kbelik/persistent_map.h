@@ -120,6 +120,7 @@ void PersistentMap<Key, Value>::init() {
   set_map_type();
   if (map_type == test) {
     one_key = 8;
+    jump_exponential = 8;
   }
 }
 

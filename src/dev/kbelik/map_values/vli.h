@@ -53,7 +53,6 @@ void VLI::deserialize(const byte* ptr, VLI::Type& value) {
 
 void VLI::serialize(const VLI::Type& value, vector<byte>& data) {
   size_t bytes_cnt = VLI::length(value);
-  data.resize(0);
   data.resize(bytes_cnt);
   VLI::Type valuecopy = value;
   for (size_t i = 0; i < bytes_cnt; ++i) {
