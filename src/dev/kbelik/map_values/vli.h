@@ -57,6 +57,7 @@ void VLI::serialize(const VLI::Type& value, vector<byte>& data) {
   VLI::Type valuecopy = value;
   for (size_t i = 0; i < bytes_cnt; ++i) {
     byte b = (byte)valuecopy;
+    b |= (byte)0x80;
     if (i + 1 == bytes_cnt)
       b &= (byte)0x7F;
     data[i] = b;

@@ -16,6 +16,7 @@
 #include "lib/json.h"
 
 #include "dev/kbelik/dynamic_map.h"
+#include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/map_values/bytes.h"
 //#include "dev/kbelik/map_values/chars.h"
 #include "dev/kbelik/map_values/int4.h"
@@ -193,9 +194,11 @@ TEST_CASE("Persistent map") {
 }
 
 /*
+TEST_CASE("Agnostic kbelik") {
 
-   TEST_CASE("Agnostic kbelik") {
-   }
+}
+*/
+/*
 
    TEST_CASE("Specific kbelik") {
    }
@@ -233,6 +236,43 @@ TEST_CASE("Int4") {
   }
   delete[] data;
 }
+
+/*
+TEST_CASE("AgnosticEntityInfo") { 
+  Json example= Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+  
+
+  vector<byte> data;
+  SimpleJson::serialize(example, data);
+
+  SUBCASE("Equal lengths") {
+    size_t se, de;
+    de = SimpleJson::length(example);
+    se = SimpleJson::length(data.data());
+    CHECK(de == se);
+  }
+  SUBCASE("Json deserialization") {
+    Json res;
+    AgnosticEntityInfo::deserialize(data.data(), res);
+    CHECK(res.dump() == example.dump());
+  }
+  SUBCASE("Map deserialization") {
+    map<string, string> res;
+    AgnosticEntityInfo::deserialize(data.data(), res);
+    CHECK(res == example_map);
+  }
+  SUBCASE("Map serialization") {
+    vector<byte> data2;
+    AgnosticEntityInfo::serialize(example, data2);
+    size_t s1, s2;
+    s1 = SimpleJson::length(data);
+    s2 = SimpleJson::length(data2);
+    CHECK(s1 == s2);
+    for (size_t i = 0; i < s1; ++i) 
+      CHECK(data[i] == data2[i]);
+  }
+}
+*/
 
 template<typename SizeType>
 void test_bytes(const char* name) {
@@ -290,7 +330,7 @@ int msb(uint64_t x) {
 }
 
 TEST_CASE("VLI") {
-  for (uint64_t i = 0; i < 288230376151711744; i = 2 * i + 1) {
+  for (uint64_t i = 0; i < 288230376151711744; i = 3 * i + 100) {
     vector<byte> data;
     VLI::serialize(i, data);
     SUBCASE("Correct length from serialized") {
@@ -316,37 +356,41 @@ TEST_CASE("SimpleJson") {
         "happy": true
     }
   )");
-  /*
-  json real = Json::parse(R"({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})");
-  */
+
+  Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+
+  auto length = [](Json& j) {
+    vector<byte> s;
+    SimpleJson::serialize(j, s);
+
+    size_t se, de;
+    de = SimpleJson::length(j);
+    se = SimpleJson::length(s.data());
+    CHECK(de == se);
+  };
+
+  auto serialization_deserialization = [](Json& j) {
+    vector<byte> s;
+    SimpleJson::serialize(j, s);
+
+    Json des;
+    SimpleJson::deserialize(s.data(), des);
+    CHECK(des.dump() == j.dump());
+  };
 
 
-  vector<byte> small_s;
-  SimpleJson::serialize(small, small_s);
-
-  //vector<byte> real_s;
-  //SimpleJson::serialize(real, real_s);
 
   SUBCASE("Equal lengths small") {
-    size_t se, de;
-    de = SimpleJson::length(small);
-    se = SimpleJson::length(small_s.data());
-    CHECK(de == se);
+    length(small);
   }
-  /*
-  SUBCASE("Equal lengths real") {
-    size_t se, de;
-    de = SimpleJson::length(real);
-    se = SimpleJson::length(real_s);
-    CHECK(de == se);
+  SUBCASE("Serialization/deserialization works small.") {
+    serialization_deserialization(small);
   }
-  */
-  SUBCASE("Serialization/deserialization works.") {
-    Json des;
-    SimpleJson::deserialize(small_s.data(), des);
-    CHECK(des.dump() == small.dump());
-    //VLI::deserialize(real_s.data(), des);
-    //CHECK(des.dump() == real.dump());
+  SUBCASE("Equal lengths big") {
+    length(big);
+  }
+  SUBCASE("Serialization/deserialization works big.") {
+    serialization_deserialization(big);
   }
 }
 
