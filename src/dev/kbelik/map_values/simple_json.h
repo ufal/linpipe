@@ -17,6 +17,10 @@ class SimpleJson {
   static inline size_t length(const Type& val);
   static inline void deserialize(const byte* ptr, Type& value);
   static inline void serialize(const Type& value, vector<byte>& data);
+  // Can serialize maps:
+  // The deserialization is not implemented because not all Jsons can be
+  // deserialized into nlohman jsons.
+  static inline void serialize(const map<string, string>& value, vector<byte>& data);
 };
 
 size_t SimpleJson::length(const byte* ptr) {
@@ -52,5 +56,11 @@ void SimpleJson::serialize(const SimpleJson::Type& value, vector<byte>& data) {
   vector<uint8_t> v_bson = Json::to_bson(value);
   memcpy(data.data() + vli_length, (byte*)v_bson.data(), total_length - vli_length);
 }
+
+void SimpleJson::serialize(const map<string, string>& value, vector<byte>& data) {
+  Json j = value;
+  serialize(j, data);
+}
+
 
 } // namespace linpipe::kbelik::map_values

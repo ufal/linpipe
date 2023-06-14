@@ -239,40 +239,46 @@ TEST_CASE("Int4") {
 
 /*
 TEST_CASE("AgnosticEntityInfo") { 
-  Json example= Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
-  
-
+  Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+  cout << "1\n";
   vector<byte> data;
-  SimpleJson::serialize(example, data);
+  auto clms = big["claims"];
+  cout << "2\n";
+  AgnosticEntityInfo::serialize(clms, data);
+  cout << "3\n";
 
-  SUBCASE("Equal lengths") {
-    size_t se, de;
-    de = SimpleJson::length(example);
-    se = SimpleJson::length(data.data());
-    CHECK(de == se);
+  map<string, string> dem;
+  Json dej;
+  cout << clms << endl;
+  AgnosticEntityInfo::deserialize(data.data(), dem);
+  cout << "4\n";
+  AgnosticEntityInfo::deserialize(data.data(), dej);
+  cout << "5\n";
+
+  SUBCASE("Lengths") {
+    size_t l1, l2, l3, l4;
+    l1 = AgnosticEntityInfo::length(clms);
+    l2 = AgnosticEntityInfo::length(data.data());
+    l3 = AgnosticEntityInfo::length(dem);
+    l4 = AgnosticEntityInfo::length(dej);
+    CHECK(l1 == l2);
+    CHECK(l1 == l3);
+    CHECK(l1 == l4);
   }
-  SUBCASE("Json deserialization") {
-    Json res;
-    AgnosticEntityInfo::deserialize(data.data(), res);
-    CHECK(res.dump() == example.dump());
+  SUBCASE("Deserialization") {
+    CHECK(dej == dem);
   }
-  SUBCASE("Map deserialization") {
-    map<string, string> res;
-    AgnosticEntityInfo::deserialize(data.data(), res);
-    CHECK(res == example_map);
-  }
-  SUBCASE("Map serialization") {
+  SUBCASE("Serialization") {
+    size_t l1 = AgnosticEntityInfo::length(data.data());
     vector<byte> data2;
-    AgnosticEntityInfo::serialize(example, data2);
-    size_t s1, s2;
-    s1 = SimpleJson::length(data);
-    s2 = SimpleJson::length(data2);
-    CHECK(s1 == s2);
-    for (size_t i = 0; i < s1; ++i) 
-      CHECK(data[i] == data2[i]);
+    AgnosticEntityInfo::serialize(dem, data2);
+    size_t l2 = AgnosticEntityInfo::length(data2.data());
+    CHECK(l1 == l2);
+    for (size_t i = 0; i < l1; ++i)
+      CHECK(data2.data()[i] == data.data()[i]);
   }
 }
-*/
+  */
 
 template<typename SizeType>
 void test_bytes(const char* name) {
@@ -391,6 +397,19 @@ TEST_CASE("SimpleJson") {
   }
   SUBCASE("Serialization/deserialization works big.") {
     serialization_deserialization(big);
+  }
+  SUBCASE("Map serialization") {
+    auto m = map<string, string>();
+    m["a"] = "hi";
+    m["xyz"] = "abc";
+    vector<byte> s;
+
+    Json out;
+
+    SimpleJson::serialize(m, s);
+    SimpleJson::deserialize(s.data(), out);
+    CHECK(m["a"] == out["a"]);
+    CHECK(m["xyz"] == out["xyz"]);
   }
 }
 
