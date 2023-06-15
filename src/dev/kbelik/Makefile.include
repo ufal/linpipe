@@ -15,4 +15,5 @@ dev/kbelik: $(call exe,dev/kbelik/kbelik)
 dev: dev/kbelik
 
 EXECUTABLES += dev/kbelik/kbelik
+LINPIPE_TESTS += dev/kbelik/huffman
 LINPIPE_TESTS += dev/kbelik/kbelik_test

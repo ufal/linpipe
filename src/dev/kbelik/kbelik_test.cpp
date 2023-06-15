@@ -16,6 +16,7 @@
 #include "lib/json.h"
 
 #include "dev/kbelik/dynamic_map.h"
+#include "dev/kbelik/huffman.h"
 #include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/map_values/bytes.h"
 //#include "dev/kbelik/map_values/chars.h"
@@ -434,6 +435,75 @@ TEST_CASE("Chars") {
 */
 
 } // namespace map_values
+  
+TEST_CASE("HuffmanTree") {
+  SUBCASE("Encode and decode short") {
+    vector<byte> data;
+    string t1, t2;
+    auto huff = HuffmanTree();
+    cout << "1\n";
+    huff.add("abcdefgh");
+    cout << "2\n";
+    huff.build();
+    cout << "3\n";
+    t1 = "abcdefgh";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+    t1 = "";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+    t1 = "a";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+    t1 = "aaaaaaaaaaaaaababababab";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+  }
+  SUBCASE("Encode and decode long") {
+    vector<byte> data;
+    string t1, t2;
+    auto huff = HuffmanTree();
+    string alpha = "abcdefghijklmnopqrstuvwxyz";
+    huff.add(alpha);
+    transform(alpha.begin(), alpha.end(), alpha.begin(), ::toupper);
+    huff.add(alpha);
+    huff.add("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+    huff.add("?!,");
+    huff.build();
+    t1 = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+  }
+  /*
+  SUBCASE("Dump") {
+    vector<byte> data;
+    string t1, t2;
+    auto huff = HuffmanTree();
+    string alpha = "abcdefghijklmnopqrstuvwxyz";
+    huff.add(alpha);
+    huff.add("aaaaaaabbc");
+    huff.dump(data);
+    auto huff2 = HuffmanTree(data.data());
+    huff2.encode(alpha, data);
+    huff2.decode(data.data(),t2);
+    CHECK(alpha == t2);
+  }*/
+  SUBCASE("Empty build error") {
+    auto huff = HuffmanTree();
+    CHECK_THROWS_AS(huff.build(), const LinpipeError);
+  }
+  SUBCASE("Repeated build error") {
+    auto huff = HuffmanTree();
+    huff.add("a");
+    huff.build();
+    CHECK_THROWS_AS(huff.build(), const LinpipeError);
+  }
+}
 
 } // namespace kbelik
 } // namespace linpipe
