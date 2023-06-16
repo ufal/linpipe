@@ -484,8 +484,9 @@ TEST_CASE("HuffmanTree") {
     huff.add(alpha);
     huff.add("aaaaaaabbc");
     huff.build();
-    huff.dump(data);
-    auto huff2 = HuffmanTree(data.data());
+    huff.serialize(data);
+    auto huff2 = HuffmanTree();
+    huff2.deserialize(data.data());
     huff2.encode(alpha, data);
     huff2.decode(data.data(),t2);
     CHECK(alpha == t2);

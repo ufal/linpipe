@@ -8,10 +8,6 @@ HuffmanTree::HuffmanTree() {
   before_build[end_symbol].w = 0;
 }
 
-HuffmanTree::HuffmanTree(byte* in) {
-  load(in);
-}
-
 void HuffmanTree::add(string text) {
   for (char c: text) {
     add_symbol({c});
@@ -135,39 +131,39 @@ void HuffmanTree::decode(byte* in, string& text) {
 }
 
 
-void HuffmanTree::prefix_dump(shared_ptr<Node> n, vector<byte>& result) const {
-  auto dumped = n->dump();
-  result.insert(result.end(), dumped.begin(), dumped.end());
+void HuffmanTree::prefix_serialize(shared_ptr<Node> n, vector<byte>& result) const {
+  auto serializeed = n->serialize();
+  result.insert(result.end(), serializeed.begin(), serializeed.end());
   if (n->left)
-    prefix_dump(n->left, result);
+    prefix_serialize(n->left, result);
   if (n->right)
-    prefix_dump(n->right, result);
+    prefix_serialize(n->right, result);
 }
 
-void HuffmanTree::dump(vector<byte>& to) const {
+void HuffmanTree::serialize(vector<byte>& to) const {
   if (!is_built) 
-    throw LinpipeError("Tree is not built and cannot be dumped.");
+    throw LinpipeError("Tree is not built and cannot be serialized.");
   to.resize(0);
-  prefix_dump(root, to);
-  to.push_back((byte)0b11111111);
+  prefix_serialize(root, to);
+  to.push_back(end_dump_sign);
 }
 
 Node HuffmanTree::prefix_construct(byte*& in) const {
   if (*in == (byte) 1)
     return {nullptr, nullptr, (char)*(in + 1), 0, 0};
   Node n = {nullptr, nullptr, (char)0, 0, 0};
-  if (*(in+2) != (byte)0b11111111) {
+  if (*(in+2) != end_dump_sign) {
     in = in + 2;
     n.left = make_shared<Node>(prefix_construct(in));
   }
-  if (*(in+2) != (byte)0b11111111) {
+  if (*(in+2) != end_dump_sign) {
     in = in + 2;
     n.right = make_shared<Node>(prefix_construct(in));
   }
   return n;
 }
 
-void HuffmanTree::load(byte* in) {
+void HuffmanTree::deserialize(byte* in) {
   root = make_shared<Node>(prefix_construct(in));
   build_paths();
   is_built = true;
