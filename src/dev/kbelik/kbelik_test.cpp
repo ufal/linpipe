@@ -441,11 +441,8 @@ TEST_CASE("HuffmanTree") {
     vector<byte> data;
     string t1, t2;
     auto huff = HuffmanTree();
-    cout << "1\n";
     huff.add("abcdefgh");
-    cout << "2\n";
     huff.build();
-    cout << "3\n";
     t1 = "abcdefgh";
     huff.encode(t1, data);
     huff.decode(data.data(),t2);
@@ -479,7 +476,6 @@ TEST_CASE("HuffmanTree") {
     huff.decode(data.data(),t2);
     CHECK(t1 == t2);
   }
-  /*
   SUBCASE("Dump") {
     vector<byte> data;
     string t1, t2;
@@ -487,12 +483,13 @@ TEST_CASE("HuffmanTree") {
     string alpha = "abcdefghijklmnopqrstuvwxyz";
     huff.add(alpha);
     huff.add("aaaaaaabbc");
+    huff.build();
     huff.dump(data);
     auto huff2 = HuffmanTree(data.data());
     huff2.encode(alpha, data);
     huff2.decode(data.data(),t2);
     CHECK(alpha == t2);
-  }*/
+  }
   SUBCASE("Empty build error") {
     auto huff = HuffmanTree();
     CHECK_THROWS_AS(huff.build(), const LinpipeError);

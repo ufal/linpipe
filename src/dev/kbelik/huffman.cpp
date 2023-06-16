@@ -4,27 +4,28 @@
 
 namespace linpipe::kbelik {
 HuffmanTree::HuffmanTree() { 
-  add_token(end_symbol);
+  add_symbol(end_symbol);
+  before_build[end_symbol].w = 0;
 }
 
-//HuffmanTree::HuffmanTree(byte* in) {
-//  load(in);
-//}
+HuffmanTree::HuffmanTree(byte* in) {
+  load(in);
+}
 
 void HuffmanTree::add(string text) {
   for (char c: text) {
-    add_token({c});
+    add_symbol({c});
   }
 }
-void HuffmanTree::add_token(string text) {
-  if (before_build.find(text) == before_build.end()) 
-    before_build[text] = {nullptr, nullptr, text, 0, creation_time++};
-  before_build[text].w++;
+void HuffmanTree::add_symbol(char symbol) {
+  if (before_build.find(symbol) == before_build.end()) 
+    before_build[symbol] = {nullptr, nullptr, symbol, 0, creation_time++};
+  before_build[symbol].w++;
 }
 
 Node HuffmanTree::merge(Node& l, Node& r) {
   uint64_t tot_w = l.w + l.w;
-  return {make_shared<Node>(l), make_shared<Node>(r), "", tot_w, creation_time++};
+  return {make_shared<Node>(l), make_shared<Node>(r), (char)0, tot_w, creation_time++};
 }
 
 void HuffmanTree::build_tree() {
@@ -89,7 +90,7 @@ void HuffmanTree::encode(string text, vector<byte>& out) {
   int bit_idx = 0;
   byte b = (byte)0;
 
-  auto encode_symbol = [&](const string& symbol) {
+  auto encode_symbol = [&](const char symbol) {
     for(byte bit: paths[symbol]) {
       if (bit == (byte)1) {
         b |= bit << bit_idx;
@@ -110,6 +111,7 @@ void HuffmanTree::encode(string text, vector<byte>& out) {
   if(bit_idx > 0) 
     out.push_back(b);
 }
+
 void HuffmanTree::decode(byte* in, string& text) {
   int bit_idx = 0;
   text = "";
@@ -132,6 +134,43 @@ void HuffmanTree::decode(byte* in, string& text) {
   }
 }
 
-//void HuffmanTree::dump(vector<byte> to) const {}
+
+void HuffmanTree::prefix_dump(shared_ptr<Node> n, vector<byte>& result) const {
+  auto dumped = n->dump();
+  result.insert(result.end(), dumped.begin(), dumped.end());
+  if (n->left)
+    prefix_dump(n->left, result);
+  if (n->right)
+    prefix_dump(n->right, result);
+}
+
+void HuffmanTree::dump(vector<byte>& to) const {
+  if (!is_built) 
+    throw LinpipeError("Tree is not built and cannot be dumped.");
+  to.resize(0);
+  prefix_dump(root, to);
+  to.push_back((byte)0b11111111);
+}
+
+Node HuffmanTree::prefix_construct(byte*& in) const {
+  if (*in == (byte) 1)
+    return {nullptr, nullptr, (char)*(in + 1), 0, 0};
+  Node n = {nullptr, nullptr, (char)0, 0, 0};
+  if (*(in+2) != (byte)0b11111111) {
+    in = in + 2;
+    n.left = make_shared<Node>(prefix_construct(in));
+  }
+  if (*(in+2) != (byte)0b11111111) {
+    in = in + 2;
+    n.right = make_shared<Node>(prefix_construct(in));
+  }
+  return n;
+}
+
+void HuffmanTree::load(byte* in) {
+  root = make_shared<Node>(prefix_construct(in));
+  build_paths();
+  is_built = true;
+}
   
 } // linpipe::kbelik
