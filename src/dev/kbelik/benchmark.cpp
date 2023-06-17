@@ -4,7 +4,7 @@
 #include "common.h"
 
 #include "dev/kbelik/dynamic_map.h"
-#include "dev/kbelik/map_values/int4.h"
+#include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/persistent_map.h"
 
 #define USE(x) asm volatile ("" : : "rm" (x))
@@ -12,8 +12,9 @@
 using namespace linpipe;
 using namespace linpipe::kbelik;
 
-auto dm = DynamicMap<int, map_values::Int4>();
+auto dm = DynamicMap<int, map_values::AgnosticEntityInfo>();
 auto qids_path = filesystem::path("dev/kbelik/utils/qids.txt");
+auto directory_path = filesystem::path("../../damuel_1.0/damuel_1.0_wikidata");
 
 int n_of_finds = 10000;
 
@@ -23,15 +24,26 @@ int string_to_id(string qid_string) {
   return stoi(qid_string.substr(1));
 }
 
-void fill_dm() {
-  std::ifstream infile(qids_path);
+void process_page(filesystem::path p) {
+  std::ifstream infile(p);
   string line;
-  while( infile >> line) {
-    int qid = string_to_id(line);
-    int rv = rand();
-    dm.add(qid, rv);
+  while( getline(infile, line)) {
+    //cout << line << endl;
+    Json j = Json::parse(line);
+    AgnosticEntityInfo aei = AgnosticEntityInfo(j["claims"]);
+    string q_str = j["qid"];
+    int qid = stoi(q_str.substr(1));
+    dm.add(qid, aei);
     qids.push_back(qid);
   }
+}
+
+void fill_dm() {
+  for (const auto &entry : std::filesystem::directory_iterator(directory_path)) 
+    if (entry.is_regular_file()) {
+      cout << "Processing entry: " << entry << "...\n";
+      process_page(entry.path());
+    }
 }
 
 int random_qid() {
@@ -51,11 +63,11 @@ int main() {
   cout << "Dynamic map is filled.\n";
   save_dm();
   cout << "Dynamic map saved.\n";
-  auto dm = DynamicMap<int, map_values::Int4>();
+  auto dm = DynamicMap<int, map_values::AgnosticEntityInfo>();
   cout << "Dynamic map released from memory.\n";
 
   filesystem::path fp("temp/test_map.bin");
-  auto pm = PersistentMap<int, map_values::Int4>(fp);
+  auto pm = PersistentMap<int, map_values::AgnosticEntityInfo>(fp);
   
 
   using chrono::high_resolution_clock;
@@ -63,7 +75,7 @@ int main() {
   using chrono::duration;
   using chrono::nanoseconds;
   auto t1 = high_resolution_clock::now();
-  map_values::Int4::Type res;
+  map_values::AgnosticEntityInfo::Type res;
   int n_of_finds_with_seeks = 0;
   for (int i = 0; i < n_of_finds; ++i) {
     auto tseek1 = high_resolution_clock::now();
