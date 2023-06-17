@@ -6,7 +6,7 @@ from math import ceil
 from multiprocessing import Pool
 import os
 
-PROCESSES = 16
+PROCESSES = 24
 #PROCESSES = 2
 WIKIDATA_DIR = '../../../../../damuel_1.0/damuel_1.0_wikidata'
 # OUTPUT_FILE = 'qids.txt'
@@ -21,8 +21,8 @@ def process_file(path):
         try: 
             d = json.loads(line)
             qids.add(d['qid'])
-            if "named_entities" in d:
-                net = d["named_entities"]["type"]
+            if "claims" in d:
+                net = d["claims"].keys()
                 for entity in net:
                     counts[entity] += 1
         except json.JSONDecodeError:
@@ -43,7 +43,7 @@ def process_files(l):
         qids = qids.union(file_qids)
         for k, v in file_counts.items():
             counts[k] += v
-        print("processed file", path)
+        #print("processed file", path)
     return qids, counts
 
 
@@ -74,5 +74,5 @@ total_counts = sum(counts.values())
 print("RESULTS:")
 print("There are total of ", len(qids), f"in the {WIKIDATA_DIR}")
 print("Named entities type frequencies")
-for k, v in counts.items():
+for k, v in sorted(list(counts.items()), key = lambda x: -x[1]):
     print(f"type {k}, number of occurences {v}, share {round(100 * v / total_counts, 2)} %")
