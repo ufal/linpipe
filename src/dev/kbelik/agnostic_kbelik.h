@@ -27,6 +27,10 @@ class AgnosticEntityInfo {
     for(auto& [key, val] : clms.items()) {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
+      if (sub_type.find("quantity") != string::npos)
+        continue;
+      if (sub_type.find("monolingual") != string::npos)
+        continue;
       claims[key] = TypedValue(sub_type, type_value);
     }
   }

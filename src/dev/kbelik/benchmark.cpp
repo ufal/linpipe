@@ -1,5 +1,7 @@
 #include <chrono>
+#include <future>
 #include <fstream>
+#include <mutex>
 
 #include "common.h"
 
@@ -20,30 +22,48 @@ int n_of_finds = 10000;
 
 vector<int> qids;
 
+mutex map_mutex;
+
 int string_to_id(string qid_string) {
   return stoi(qid_string.substr(1));
 }
 
-void process_page(filesystem::path p) {
+void insert_to_dm(int qid, AgnosticEntityInfo& aei) {
+  lock_guard<std::mutex> lock(map_mutex);
+  dm.add(qid, aei);
+}
+
+DynamicMap<int, map_values::AgnosticEntityInfo> process_page(filesystem::path p) {
   std::ifstream infile(p);
   string line;
+  DynamicMap<int, map_values::AgnosticEntityInfo> m;
   while( getline(infile, line)) {
     //cout << line << endl;
     Json j = Json::parse(line);
     AgnosticEntityInfo aei = AgnosticEntityInfo(j["claims"]);
     string q_str = j["qid"];
     int qid = stoi(q_str.substr(1));
-    dm.add(qid, aei);
-    qids.push_back(qid);
+    m.add(qid, aei);
   }
+  cout << "Processed entry: " << p << "\n";
+  return m;
 }
 
 void fill_dm() {
-  for (const auto &entry : std::filesystem::directory_iterator(directory_path)) 
-    if (entry.is_regular_file()) {
-      cout << "Processing entry: " << entry << "...\n";
-      process_page(entry.path());
-    }
+  /*
+  for (const auto &entry : filesystem::directory_iterator(directory_path)) 
+    if (entry.is_regular_file())
+      futures.emplace_back(async(launch::async, process_page, entry));
+      */
+  vector<future<DynamicMap<int, map_values::AgnosticEntityInfo>>> futures;
+  for (const auto &entry : filesystem::directory_iterator(directory_path)) 
+    if (entry.is_regular_file())
+      futures.emplace_back(async(launch::async, process_page, entry));
+  cout << "Adding everything together..\n";
+  for (auto& future : futures) {
+    auto m = future.get();
+    dm.insert(m);
+  }
 }
 
 int random_qid() {

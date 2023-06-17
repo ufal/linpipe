@@ -16,13 +16,17 @@ class DynamicMap{
   bool find(Key key, typename Value::Type& value) const;
   void add(Key key, const typename Value::Type& value);
   void erase(Key key);
+  void insert(DynamicMap<Key, Value> m2);
+
+  map<Key, typename Value::Type> get_values() const;
 
   size_t length() const;
 
   void save_map(ostream& os, MapType type);
 
- private:
   map<Key, typename Value::Type> values;
+
+ private:
 
   void write_type(ostream& os, MapType type);
   void write_keys_and_values(ostream& os);
@@ -49,6 +53,17 @@ void DynamicMap<Key, Value>::add(Key key, const typename Value::Type& value) {
 template<typename Key, typename Value>
 void DynamicMap<Key, Value>::erase(Key key) {
   values.erase(key);
+}
+
+template<typename Key, typename Value>
+void DynamicMap<Key, Value>::insert(DynamicMap<Key, Value> m2) {
+  auto vals = m2.get_values();
+  values.insert(vals.begin(), vals.end());
+}
+
+template<typename Key, typename Value>
+map<Key, typename Value::Type> DynamicMap<Key, Value>::get_values() const {
+  return values;
 }
 
 template<typename Key, typename Value>
