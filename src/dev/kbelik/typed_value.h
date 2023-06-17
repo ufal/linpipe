@@ -23,7 +23,8 @@ enum class TypedValueSubtype {
   wikibase_sense,
   globe_coordinates,
   monolingualtext,
-  time,
+  time_gregorian,
+  time_julian,
   quantity
 };
 

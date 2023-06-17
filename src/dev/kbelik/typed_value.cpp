@@ -49,7 +49,8 @@ TypedValueSubtype TypedValue::string_to_subtype(const string& subtype) {
     {"wikibase-sense", TypedValueSubtype::wikibase_sense},
     {"globe-coordinate", TypedValueSubtype::globe_coordinates},
     {"monolingualtext", TypedValueSubtype::monolingualtext},
-    {"time", TypedValueSubtype::time},
+    {"time:gregorian", TypedValueSubtype::time_gregorian},
+    {"time:julian", TypedValueSubtype::time_julian},
     {"quantity", TypedValueSubtype::quantity}
   };
 
@@ -79,7 +80,8 @@ string TypedValue::subtype_to_string(const TypedValueSubtype& subtype) {
     {TypedValueSubtype::wikibase_sense, "wikibase-sense"},
     {TypedValueSubtype::globe_coordinates, "globe-coordinate"},
     {TypedValueSubtype::monolingualtext, "monolingualtext"},
-    {TypedValueSubtype::time, "time"},
+    {TypedValueSubtype::time_gregorian, "time:gregorian"},
+    {TypedValueSubtype::time_julian, "time:julian"},
     {TypedValueSubtype::quantity, "quantity"}
   };
 
