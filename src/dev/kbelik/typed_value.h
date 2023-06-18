@@ -33,12 +33,18 @@ class TypedValue {
     TypedValue();  // Needs default constructor so it works with map.
     TypedValue(TypedValueSubtype st, string type_value);
     TypedValue(string st, string type_value);
+    TypedValue(string data);
+
+    void from_string_representation(string data);
+    string to_string_representation() const;
 
     string get_val() const;
     TypedValueSubtype get_subtype() const;
 
     static TypedValueSubtype string_to_subtype(const string& subtype);
     static string subtype_to_string(const TypedValueSubtype& subtype);
+
+    string delimiter() const { return "$|$";}
 
   private:
     string val;

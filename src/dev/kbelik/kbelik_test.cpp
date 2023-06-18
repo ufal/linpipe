@@ -201,11 +201,29 @@ TEST_CASE("Agnostic kbelik") {
 
 }
 */
+
 /*
 
-   TEST_CASE("Specific kbelik") {
-   }
-   */
+TEST_CASE("Specific kbelik") {
+}
+*/
+
+TEST_CASE("TypedValue") {
+  SUBCASE("string_representation") {
+    auto tv = TypedValue("qid", "Q120201");
+    CHECK(tv == TypedValue(tv.to_string_representation()));
+    tv = TypedValue("string", "Q120201");
+    CHECK(tv == TypedValue(tv.to_string_representation()));
+  }
+  SUBCASE("wrong string representation") {
+    CHECK_THROWS_AS(TypedValue(""), const LinpipeError);
+    string d = TypedValue().delimiter();
+    CHECK_THROWS_AS(TypedValue("" + d), const LinpipeError);
+    CHECK_THROWS_AS(TypedValue("0" + d +"qid" + d + "haha" + d), const LinpipeError);
+    CHECK_THROWS_AS(TypedValue("0" + d +"qid" + d + "haha" + d + "x"), const LinpipeError);
+    CHECK_THROWS_AS(TypedValue("0" + d +"qid"), const LinpipeError);
+  }
+}
 
 namespace map_values {
 

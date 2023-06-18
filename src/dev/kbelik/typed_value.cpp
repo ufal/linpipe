@@ -18,6 +18,10 @@ TypedValue::TypedValue(TypedValueSubtype st, string type_value) {
 
 TypedValue::TypedValue(string st, string type_value) : TypedValue(string_to_subtype(st), type_value) { }
 
+TypedValue::TypedValue(string data) {
+  from_string_representation(data);
+}
+
 
 string TypedValue::get_val() const {
   if (subtype != TypedValueSubtype::qid)
@@ -90,6 +94,28 @@ string TypedValue::subtype_to_string(const TypedValueSubtype& subtype) {
     return it->second;
   
   throw LinpipeError("Unknown subtype");
+}
+
+void TypedValue::from_string_representation(string data) {
+  vector<string> splitted;
+  size_t start = 0;
+  size_t end = 0;
+  while((end = data.find(delimiter(), start)) != string::npos) {
+    splitted.push_back(data.substr(start, end - start));
+    start = end + delimiter().size();
+  }
+  splitted.push_back(data.substr(start));
+
+  const int n_of_fields = 3;
+  if (splitted.size() != n_of_fields)
+    throw LinpipeError("The deserializaton of the string failed. Different number of serialized fields is expected.");
+  id = stoull(splitted[0]);
+  subtype = string_to_subtype(splitted[1]);
+  val = splitted[2];
+}
+
+string TypedValue::to_string_representation() const {
+  return to_string(id) + delimiter() + subtype_to_string(subtype) + delimiter() + val;
 }
 
 } // linpipe::kbelik
