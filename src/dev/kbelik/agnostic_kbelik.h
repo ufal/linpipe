@@ -34,6 +34,33 @@ class AgnosticEntityInfo {
       claims[key] = TypedValue(sub_type, type_value);
     }
   }
+
+  string delimiter() const { return "$||$";}
+
+  void from_string_representation(string data) {
+    vector<string> splitted;
+    size_t start = 0;
+    size_t end = 0;
+    while((end = data.find(delimiter(), start)) != string::npos) {
+      splitted.push_back(data.substr(start, end - start));
+      start = end + delimiter().size();
+    }
+    splitted.push_back(data.substr(start));
+
+    if (splitted.size()&1)
+      throw LinpipeError("The deserializaton of the string failed. Different number of serialized fields is expected.");
+    claims = map<string, TypedValue>();
+    for (size_t i = 0; i < splitted.size(); i += 2) {
+      claims[splitted[i]] = TypedValue(splitted[i + 1]);
+    }
+  }
+
+  string to_string_representation() const {
+    string res;
+    for (auto &[k, tv] : claims) 
+      res += k + delimiter() + tv.to_string_representation();
+    return res;
+  }
 };
 
 /*
