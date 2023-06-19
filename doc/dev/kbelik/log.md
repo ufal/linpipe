@@ -1,15 +1,24 @@
 # Log of KBELik Progress
 
+### June 19, 2023
+- Specific kbelik: qid -> triplet(label, aliases, description)
+
+- Agnostic kbelik also needs named entities as bit array
+
+- Add types for qid, quantity and monolingual text (union).
+
+- Change persistent map vals from templates to instances.
+
 ### May 18, 2023
 - Discussion of json compression and optimizing the search in persistent map.
     - for now the search is fast enough but we should find better constants 
     for it.
 
-- [ ] MVP with external json compression 
+- [x] MVP with external json compression 
 
-- [ ] implement custom json compression (stretch goal)
+- [x] implement custom json compression (stretch goal)
 
-- [ ] Calculate number of keys and their types in wikidata claims.
+- [x] Calculate number of keys and their types in wikidata claims.
 
 ### May 4, 2023
 - Reviewing of source files of both maps and all `map_values` and discussion of their further
