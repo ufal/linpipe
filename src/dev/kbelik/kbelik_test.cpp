@@ -19,6 +19,7 @@
 #include "dev/kbelik/huffman.h"
 #include "dev/kbelik/agnostic_kbelik.h"
 #include "dev/kbelik/map_values/agnostic_entity_info.h"
+#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
@@ -241,7 +242,6 @@ TEST_CASE("AgnosticEntityInfo") {
     auto ori = AgnosticEntityInfo(clms);
     string s = ori.to_string_representation();
     auto from_s = AgnosticEntityInfo(s);
-    cout << s << endl;
     CHECK(from_s.claims == ori.claims);
   }
 }
@@ -277,6 +277,32 @@ TEST_CASE("Int4") {
       CHECK(res[i] == data[i]);
   }
   delete[] data;
+}
+
+TEST_CASE("AgnosticEntityInfoHuffman -- map value") { 
+  string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+  Json big = Json::parse(raw);
+  auto huff = HuffmanTree();
+  huff.add(raw);
+  huff.add("|$");
+  huff.build();
+  vector<byte> data;
+  auto clms = big["claims"];
+  auto ori = linpipe::kbelik::AgnosticEntityInfo(clms);
+  AgnosticEntityInfoH::serialize(ori, huff, data);
+
+  
+  SUBCASE("Lengths") {
+    size_t l1, l2;
+    l1 = AgnosticEntityInfoH::length(ori, huff);
+    l2 = AgnosticEntityInfoH::length(data.data());
+    CHECK(l1 == l2);
+  }
+  SUBCASE("Serialization/Desirizalization") {
+    linpipe::kbelik::AgnosticEntityInfo aei;
+    AgnosticEntityInfoH::deserialize(data.data(), huff, aei);
+    CHECK(aei.claims == ori.claims);
+  }
 }
 
 TEST_CASE("AgnosticEntityInfo -- map value") { 

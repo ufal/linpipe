@@ -7,8 +7,8 @@
 
 #include "common.h"
 
-#include "dev/kbelik/map_values/simple_json.h"
 #include "dev/kbelik/huffman.h"
+#include "dev/kbelik/map_values/bytes_vli.h"
 
 #include "dev/kbelik/agnostic_kbelik.h"
 
@@ -21,21 +21,46 @@ class AgnosticEntityInfoH {
   static inline size_t length(const byte* ptr);
   static inline size_t length(const Type& value, HuffmanTree& huff);
    
-  static inline void deserialize(const byte* ptr, Type& value, HuffmanTree& huff);
-  static inline void serialize(const Type& value, vector<byte>& data, HuffmanTree& huff);
+  static inline void deserialize(const byte* ptr,  HuffmanTree& huff, Type& value);
+  static inline void serialize(const Type& value, HuffmanTree& huff, vector<byte>& data);
+ private:
+  static inline void encode(const Type& value, HuffmanTree& huff, vector<byte>& encoded);
+  static inline void decode(vector<byte>& encoded, HuffmanTree& huff, Type& value);
 };
 
 size_t AgnosticEntityInfoH::length(const byte* ptr) {
-  return SimpleJson::length(ptr);
+  return BytesVLI::length(ptr);
 }
 
-size_t AgnosticEntityInfoH::length(const AgnosticEntityInfoH::Type& value, HuffmanTree& huff) {
+size_t AgnosticEntityInfoH::length(const Type& value, HuffmanTree& huff) {
+  vector<byte> encoded;
+  encode(value, huff, encoded);
+  return BytesVLI::length(encoded);
 }
 
-void AgnosticEntityInfoH::deserialize(const byte* ptr, AgnosticEntityInfoH::Type& value, HuffmanTree& huff) {
+void AgnosticEntityInfoH::deserialize(const byte* ptr, HuffmanTree& huff, Type& value) {
+  vector<byte> compressed;
+  BytesVLI::deserialize(ptr, compressed);
+  decode(compressed, huff, value);
 }
 
-void AgnosticEntityInfoH::serialize(const AgnosticEntityInfoH::Type& value, vector<byte>& data, HuffmanTree& huff) {
+void AgnosticEntityInfoH::serialize(const Type& value, HuffmanTree& huff, vector<byte>& data) {
+  vector<byte> encoded;
+  encode(value, huff, encoded);
+  Type v2;
+  decode(encoded, huff, v2);
+  BytesVLI::serialize(encoded, data);
+}
+
+void AgnosticEntityInfoH::encode(const Type& value, HuffmanTree& huff, vector<byte>& encoded){
+  string aei = value.to_string_representation();
+  huff.encode(aei, encoded);
+}
+
+void AgnosticEntityInfoH::decode(vector<byte>& encoded, HuffmanTree& huff, Type& value){
+  string aei;
+  huff.decode(encoded.data(), aei);
+  value = Type(aei);
 }
 
 } // namespace linpipe::kbelik::map_values
