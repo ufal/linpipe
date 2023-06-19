@@ -20,6 +20,7 @@
 #include "dev/kbelik/agnostic_kbelik.h"
 #include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/map_values/bytes.h"
+#include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/simple_json.h"
@@ -209,11 +210,19 @@ TEST_CASE("Specific kbelik") {
 */
 
 TEST_CASE("TypedValue") {
-  SUBCASE("string_representation") {
+  SUBCASE("string_representation -- small") {
     auto tv = TypedValue("qid", "Q120201");
     CHECK(tv == TypedValue(tv.to_string_representation()));
     tv = TypedValue("string", "Q120201");
     CHECK(tv == TypedValue(tv.to_string_representation()));
+  }
+  SUBCASE("string_representation -- large") {
+    Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+    auto clms = big["claims"];
+    auto ori = AgnosticEntityInfo(clms);
+    for (auto &[_, tv] : ori.claims) {
+      CHECK(tv == TypedValue(tv.to_string_representation()));
+    }
   }
   SUBCASE("wrong string representation") {
     CHECK_THROWS_AS(TypedValue(""), const LinpipeError);
@@ -222,6 +231,18 @@ TEST_CASE("TypedValue") {
     CHECK_THROWS_AS(TypedValue("0" + d +"qid" + d + "haha" + d), const LinpipeError);
     CHECK_THROWS_AS(TypedValue("0" + d +"qid" + d + "haha" + d + "x"), const LinpipeError);
     CHECK_THROWS_AS(TypedValue("0" + d +"qid"), const LinpipeError);
+  }
+}
+
+TEST_CASE("AgnosticEntityInfo") {
+  SUBCASE("string_representation") {
+    Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+    auto clms = big["claims"];
+    auto ori = AgnosticEntityInfo(clms);
+    string s = ori.to_string_representation();
+    auto from_s = AgnosticEntityInfo(s);
+    cout << s << endl;
+    CHECK(from_s.claims == ori.claims);
   }
 }
 
@@ -258,7 +279,7 @@ TEST_CASE("Int4") {
   delete[] data;
 }
 
-TEST_CASE("AgnosticEntityInfo") { 
+TEST_CASE("AgnosticEntityInfo -- map value") { 
   Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
   vector<byte> data;
   auto clms = big["claims"];
@@ -282,7 +303,8 @@ template<typename SizeType>
 void test_bytes(const char* name) {
   SUBCASE(name) {
     SizeType sz = 3 + sizeof(SizeType);
-    byte* data = new byte[sz];
+    vector<byte> d = vector<byte>(sz);
+    byte* data = d.data();
     memcpy(data, &sz, sizeof(SizeType));
     data[sizeof(SizeType)] = (byte)2;
     data[sizeof(SizeType) + 1] = (byte)2;
@@ -314,7 +336,6 @@ void test_bytes(const char* name) {
         CHECK(res[i] == data[i]);
 
     }
-    delete[] data;
   }
 }
 
@@ -322,6 +343,30 @@ TEST_CASE("Bytes") {
   test_bytes<uint8_t>("1 byte");
   test_bytes<uint16_t>("2 byte");
   test_bytes<uint32_t>("4 byte");
+}
+
+TEST_CASE("BytesVLI") {
+  auto test = [](vector<byte> data) {
+    vector<byte> data2;
+    BytesVLI::serialize(data, data2);
+    SUBCASE("Correct length") {
+      CHECK(BytesVLI::length(data2.data()) == BytesVLI::length(data));
+    }
+    SUBCASE("Correct de/serialization") {
+      vector<byte> data3;
+      BytesVLI::deserialize(data2.data(), data3);
+      CHECK(data3 == data);
+    }
+  };
+  vector<byte> d;
+  int x = 1;
+  for (int i = 0; i < 10000000; ++i) {
+    d.push_back((byte)(i % 256));
+    if (i == x) {
+      test(d);
+      x *= 100;
+    }
+  }
 }
 
 int msb(uint64_t x) {
