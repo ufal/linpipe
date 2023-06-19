@@ -33,7 +33,7 @@ void BytesVLI::deserialize(const byte* ptr, BytesVLI::Type& value) {
   size_t data_sz;
   VLI::deserialize(ptr, data_sz);
   value.resize(data_sz);
-  memcpy(const_cast<byte*>(ptr) + vli_sz, value.data(), data_sz);
+  memcpy(value.data(), ptr + vli_sz, data_sz);
 }
 
 void BytesVLI::serialize(const BytesVLI::Type& value, vector<byte>& data) {
@@ -41,7 +41,7 @@ void BytesVLI::serialize(const BytesVLI::Type& value, vector<byte>& data) {
   size_t vli_sz = VLI::length(data_sz);
   VLI::serialize(data_sz, data);
   data.resize(vli_sz + data_sz);
-  memcpy(const_cast<byte*>(value.data()), data.data() + vli_sz, data_sz);
+  memcpy(data.data() + vli_sz, value.data(), data_sz);
 
 }
 
