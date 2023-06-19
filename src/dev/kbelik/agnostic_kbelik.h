@@ -22,6 +22,10 @@ class AgnosticEntityInfo {
   AgnosticEntityInfo(Json& clms) {
     from_wikidata_json(clms);
   }
+
+  AgnosticEntityInfo(string representation) {
+    from_string_representation(representation);
+  }
   
   void from_wikidata_json(Json& clms) {
     for(auto& [key, val] : clms.items()) {
@@ -58,7 +62,8 @@ class AgnosticEntityInfo {
   string to_string_representation() const {
     string res;
     for (auto &[k, tv] : claims) 
-      res += k + delimiter() + tv.to_string_representation();
+      res += k + delimiter() + tv.to_string_representation() + delimiter();
+    res = res.substr(0, res.size() - delimiter().size());
     return res;
   }
 };
