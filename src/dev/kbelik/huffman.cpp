@@ -32,7 +32,8 @@ void HuffmanTree::build_tree() {
   auto cmp = [](Node& n1, Node& n2) {
     return n1.w > n2.w || 
       (n1.w == n2.w && !n1.is_leaf() && n2.is_leaf()) ||
-      (n1.w == n2.w && n1.is_leaf() == n2.is_leaf() && n1.creation_time > n2.creation_time);
+      (n1.w == n2.w && n1.is_leaf() == n2.is_leaf() && n1.is_leaf() && n1.val > n2.val) ||
+      (n1.w == n2.w && n1.is_leaf() == n2.is_leaf() && !n1.is_leaf() && n1.creation_time > n2.creation_time);
   };
   priority_queue<Node, vector<Node>, decltype(cmp)> bq(cmp);
   for (auto p: before_build) {
@@ -100,7 +101,7 @@ void HuffmanTree::encode(string text, vector<byte>& out) {
   };
 
   for (auto c: text) {
-    encode_symbol({c});
+    encode_symbol(c);
   }
   encode_symbol(end_symbol);
   
