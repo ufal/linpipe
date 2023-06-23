@@ -15,7 +15,7 @@ namespace linpipe::kbelik {
 struct Node {
   shared_ptr<Node> left = nullptr;
   shared_ptr<Node> right = nullptr;
-  char val; 
+  byte val; 
   uint64_t w;
   uint16_t creation_time;
 
@@ -32,7 +32,7 @@ struct Node {
   }
 
   void print() {
-    cout << val << ' '<< w << ' ' << creation_time << endl;
+    cout <<(int)val << ' '<< w << ' ' << creation_time << endl;
   }
 };
 
@@ -43,24 +43,26 @@ class HuffmanTree {
     void add(string text);
     void build();
 
-    void encode(string text, vector<byte>& out);
-    void decode(byte* in, string& text);
+    void encode(const vector<byte>& data, vector<byte>& out);
+    void encode(const string text, vector<byte>& out);
+
+    void decode(const byte* in, vector<byte>& text);
+    void decode(const byte* in, string& text);
 
     void serialize(vector<byte>& to) const;
 
     void deserialize(byte* from);
 
   private:
-    const char end_symbol = (char)0b11111111;  // <DEL>
-    const byte end_dump_sign = (byte)0b11111111;
+    inline byte end_symbol() const { return (byte)0b11111111; }
 
     uint16_t creation_time = 0;
     bool is_built = false;
-    unordered_map<char , Node> before_build;
-    unordered_map<char , vector<byte>> paths;
+    unordered_map<byte, Node> before_build;
+    unordered_map<byte, vector<byte>> paths;
     shared_ptr<Node> root;
 
-    void add_symbol(char symbol);
+    void add_symbol(byte symbol);
 
     Node merge(Node& l, Node& r);
     void build_paths();

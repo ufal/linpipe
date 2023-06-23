@@ -1,19 +1,22 @@
 #include <queue>
 
+#include "common.h"
+
 #include "dev/kbelik/huffman.h"
 
 namespace linpipe::kbelik {
 HuffmanTree::HuffmanTree() { 
-  add_symbol(end_symbol);
-  before_build[end_symbol].w = 0;
+  add_symbol(end_symbol());
+  before_build[end_symbol()].w = 0;
 }
 
 void HuffmanTree::add(string text) {
-  for (char c: text) {
-    add_symbol({c});
+  vector<byte> bytes(reinterpret_cast<const byte*>(text.data()), reinterpret_cast<const byte*>(text.data() + text.size()));
+  for (byte b: bytes) {
+    add_symbol(b);
   }
 }
-void HuffmanTree::add_symbol(char symbol) {
+void HuffmanTree::add_symbol(byte symbol) {
   if (before_build.find(symbol) == before_build.end()) 
     before_build[symbol] = {nullptr, nullptr, symbol, 0, creation_time++};
   before_build[symbol].w++;
@@ -21,7 +24,7 @@ void HuffmanTree::add_symbol(char symbol) {
 
 Node HuffmanTree::merge(Node& l, Node& r) {
   uint64_t tot_w = l.w + l.w;
-  return {make_shared<Node>(l), make_shared<Node>(r), (char)0, tot_w, creation_time++};
+  return {make_shared<Node>(l), make_shared<Node>(r), (byte)0, tot_w, creation_time++};
 }
 
 void HuffmanTree::build_tree() {
@@ -82,12 +85,17 @@ void HuffmanTree::build() {
   is_built = true;
 }
 
-void HuffmanTree::encode(string text, vector<byte>& out) {
+void HuffmanTree::encode(const string text, vector<byte>& out) {
+  vector<byte> data(reinterpret_cast<const byte*>(text.data()), reinterpret_cast<const byte*>(text.data() + text.size()));
+  encode(data, out);
+}
+
+void HuffmanTree::encode(const vector<byte>& data, vector<byte>& out) {
   out = vector<byte>();
   int bit_idx = 0;
   byte b = (byte)0;
 
-  auto encode_symbol = [&](const char symbol) {
+  auto encode_symbol = [&](const byte symbol) {
     for(byte bit: paths[symbol]) {
       if (bit == (byte)1) {
         b |= bit << bit_idx;
@@ -100,24 +108,30 @@ void HuffmanTree::encode(string text, vector<byte>& out) {
     }
   };
 
-  for (auto c: text) {
+  for (auto c: data) {
     encode_symbol(c);
   }
-  encode_symbol(end_symbol);
+  encode_symbol(end_symbol());
   
   if(bit_idx > 0) 
     out.push_back(b);
 }
 
-void HuffmanTree::decode(byte* in, string& text) {
+void HuffmanTree::decode(const byte* in, string& text) { 
+  vector<byte> decoded;
+  decode(in, decoded);
+  text = string(reinterpret_cast<const char*>(decoded.data()), decoded.size());
+}
+
+void HuffmanTree::decode(const byte* in, vector<byte>& data) {
   int bit_idx = 0;
-  text = "";
+  data = vector<byte>();
   shared_ptr<Node> in_tree = root;
   while (true) {
     if (in_tree->is_leaf()) {
-      if (in_tree->val == end_symbol)
+      if (in_tree->val == end_symbol())
         break;
-      text += in_tree->val;
+      data.push_back(in_tree->val);
       in_tree = root;
     }
     bool go_right = ((((int)*in) >> bit_idx)&1)==1;
@@ -146,18 +160,18 @@ void HuffmanTree::serialize(vector<byte>& to) const {
     throw LinpipeError("Tree is not built and cannot be serialized.");
   to.resize(0);
   prefix_serialize(root, to);
-  to.push_back(end_dump_sign);
+  to.push_back(end_symbol());
 }
 
 Node HuffmanTree::prefix_construct(byte*& in) const {
   if (*in == (byte) 1)
-    return {nullptr, nullptr, (char)*(in + 1), 0, 0};
-  Node n = {nullptr, nullptr, (char)0, 0, 0};
-  if (*(in+2) != end_dump_sign) {
+    return {nullptr, nullptr, (byte)*(in + 1), 0, 0};
+  Node n = {nullptr, nullptr, (byte)0, 0, 0};
+  if (*(in+2) != end_symbol()) {
     in = in + 2;
     n.left = make_shared<Node>(prefix_construct(in));
   }
-  if (*(in+2) != end_dump_sign) {
+  if (*(in+2) != end_symbol()) {
     in = in + 2;
     n.right = make_shared<Node>(prefix_construct(in));
   }
