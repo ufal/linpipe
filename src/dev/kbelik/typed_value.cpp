@@ -1,33 +1,69 @@
 #include <unordered_map>
 
 #include "dev/kbelik/typed_value.h"
+#include "dev/kbelik/utils.h"
 
 namespace linpipe::kbelik {
 
 TypedValue::TypedValue() { }
 
-TypedValue::TypedValue(TypedValueSubtype st, string type_value) {
+TypedValue::TypedValue(TypedValueSubtype st, string type_value, string specifiers) {
+  create(st, type_value, specifiers);
+}
+
+TypedValue::TypedValue(string subtype_string, string type_value) { 
+  auto st = string_to_subtype(subtype_string);
+  string specifiers = "";
+  if (st == TypedValueSubtype::monolingualtext || st == TypedValueSubtype::quantity) {
+    vector<string> splitted;
+    split(subtype_string, ":", splitted);
+    specifiers = splitted[1];
+  }
+  create(st, type_value, specifiers);
+}
+
+void TypedValue::create(TypedValueSubtype st, string type_value, string specifiers) {
   subtype = st;
   if (st == TypedValueSubtype::qid) {
     id = stoull(type_value.substr(1));
-    val = {type_value[0]};
+    generic_string_val = {type_value[0]};
+    vector<string> splitted;
+    split(type_value, ":", splitted);
+    string rest = "";
+    for (size_t i = 1; i < splitted.size(); ++i)
+      rest += splitted[i];
+    specifics = rest;
+  }
+  else if (st == TypedValueSubtype::quantity) {
+    id = stoull(specifiers.substr(1));
+    specifics = stod(type_value);
+  }
+  else if (st == TypedValueSubtype::monolingualtext) {
+    specifics = specifiers;
+    generic_string_val = type_value;
   }
   else 
-    val = type_value;
+    generic_string_val = type_value;
 }
 
-TypedValue::TypedValue(string st, string type_value) : TypedValue(string_to_subtype(st), type_value) { }
-
-TypedValue::TypedValue(string data) {
-  from_string_representation(data);
+pair<string, string> TypedValue::get_as_string() const {
+  string val = get_val();
+  if (subtype == TypedValueSubtype::monolingualtext) {
+    return {subtype_to_string(subtype) + ':' + get<string>(specifics), val};
+  }
+  else if (subtype == TypedValueSubtype::quantity) {
+    return {subtype_to_string(subtype) + ":Q" + to_string(id), to_string(get<double>(specifics)) };
+  }
+  return {subtype_to_string(subtype), val};
 }
-
 
 string TypedValue::get_val() const {
-  if (subtype != TypedValueSubtype::qid)
-    return val;
+  if (subtype == TypedValueSubtype::qid)
+    return generic_string_val + to_string(id) + ((get<string>(specifics).size() > 0) ? (":" + get<string>(specifics)) : "");
+  else if (subtype == TypedValueSubtype::quantity)
+    return to_string(get<double>(specifics));
   else
-    return val + to_string(id);  
+    return generic_string_val;
 }
     
 TypedValueSubtype TypedValue::get_subtype () const {
@@ -52,16 +88,19 @@ TypedValueSubtype TypedValue::string_to_subtype(const string& subtype) {
     {"wikibase-form", TypedValueSubtype::wikibase_form},
     {"wikibase-sense", TypedValueSubtype::wikibase_sense},
     {"globe-coordinate", TypedValueSubtype::globe_coordinates},
-    {"monolingualtext", TypedValueSubtype::monolingualtext},
+//    {"monolingualtext", TypedValueSubtype::monolingualtext},
     {"time:gregorian", TypedValueSubtype::time_gregorian},
     {"time:julian", TypedValueSubtype::time_julian},
-    {"quantity", TypedValueSubtype::quantity}
+//    {"quantity", TypedValueSubtype::quantity}
   };
 
   auto it = map.find(subtype);
-  if (it != map.end()) {
+  if (it != map.end()) 
     return it->second;
-  }
+  else if (subtype.find("quantity") != string::npos)
+    return TypedValueSubtype::quantity;
+  else if (subtype.find("monolingualtext") != string::npos)
+    return TypedValueSubtype::monolingualtext;
 
   throw LinpipeError("Unknown subtype: " + subtype);
 }
@@ -96,6 +135,7 @@ string TypedValue::subtype_to_string(const TypedValueSubtype& subtype) {
   throw LinpipeError("Unknown subtype");
 }
 
+/*
 void TypedValue::from_string_representation(string data) {
   vector<string> splitted;
   size_t start = 0;
@@ -116,6 +156,6 @@ void TypedValue::from_string_representation(string data) {
 
 string TypedValue::to_string_representation() const {
   return to_string(id) + delimiter() + subtype_to_string(subtype) + delimiter() + val;
-}
+}*/
 
 } // linpipe::kbelik
