@@ -19,6 +19,7 @@
 #include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/huffman.h"
+#include "dev/kbelik/named_entity.h"
 
 //#include "dev/kbelik/map_values/agnostic_entity_info.h"
 //#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
@@ -358,6 +359,22 @@ TEST_CASE("AgnosticEntityInfo") {
       auto aei = AgnosticEntityInfo(big);
       CHECK(aei.fictional == Ternary::Maybe);
     }
+  }
+}
+
+TEST_CASE("Named entity converter") {
+  SUBCASE("named entity to bool") {
+    vector<NamedEntity> ne = {static_cast<NamedEntity>(5)};
+    vector<bool> expected = {false, false, false, false, false, true};
+    CHECK(expected == NamedEntityConverter::ne_to_bools(ne));
+  }
+  SUBCASE("Bool to named entity") {
+    vector<bool> vb = {true, false, false, true};
+    vector<NamedEntity> expected = {
+      static_cast<NamedEntity>(0),
+      static_cast<NamedEntity>(3)
+      };
+    CHECK(expected == NamedEntityConverter::bools_to_ne(vb));
   }
 }
 
