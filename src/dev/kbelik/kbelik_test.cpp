@@ -23,6 +23,7 @@
 
 //#include "dev/kbelik/map_values/agnostic_entity_info.h"
 //#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
+#include "dev/kbelik/map_values/bits.h"
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
@@ -379,6 +380,52 @@ TEST_CASE("Named entity converter") {
 }
 
 namespace map_values {
+
+TEST_CASE("Bits") {
+  SUBCASE("short") {
+    vector<bool> v = {true, true, false, false, true, false};
+    vector<byte> data;
+    Bits::serialize(v, data);
+    SUBCASE("length") {
+      CHECK(Bits::length(v) == Bits::length(data.data()));
+    }
+    SUBCASE("serialization and deserialization") {
+      vector<bool> v2;
+      Bits::deserialize(data.data(), v2);
+      CHECK(v2 == v);
+    }
+  }
+  SUBCASE("long multiple of 8") {
+    vector<bool> v(3000);
+    for (int i = 0; i < 1000; ++i)
+      v[i] = true;
+    vector<byte> data;
+    Bits::serialize(v, data);
+    SUBCASE("length") {
+      CHECK(Bits::length(v) == Bits::length(data.data()));
+    }
+    SUBCASE("serialization and deserialization") {
+      vector<bool> v2;
+      Bits::deserialize(data.data(), v2);
+      CHECK(v2 == v);
+    }
+  }
+  SUBCASE("long not multiple of 8") {
+    vector<bool> v(3003);
+    for (int i = 0; i < 1000; ++i)
+      v[i] = true;
+    vector<byte> data;
+    Bits::serialize(v, data);
+    SUBCASE("length") {
+      CHECK(Bits::length(v) == Bits::length(data.data()));
+    }
+    SUBCASE("serialization and deserialization") {
+      vector<bool> v2;
+      Bits::deserialize(data.data(), v2);
+      CHECK(v2 == v);
+    }
+  }
+}
 
 TEST_CASE("Int4") {
   byte* data = new byte[4];
