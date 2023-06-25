@@ -19,5 +19,6 @@ EXECUTABLES += dev/kbelik/kbelik
 LINPIPE_TESTS += dev/kbelik/agnostic_kbelik
 LINPIPE_TESTS += dev/kbelik/huffman
 LINPIPE_TESTS += dev/kbelik/typed_value
+LINPIPE_TESTS += dev/kbelik/utils
 
 LINPIPE_TESTS += dev/kbelik/kbelik_test

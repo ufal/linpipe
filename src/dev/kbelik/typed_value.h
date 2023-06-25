@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-#include <lib/json.h>
+#include "lib/json.h"
 
 namespace linpipe::kbelik {
 
