@@ -27,7 +27,7 @@
 //#include "dev/kbelik/map_values/chars.h"
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/simple_json.h"
-//#include "dev/kbelik/map_values/typed_value.h"
+#include "dev/kbelik/map_values/typed_value.h"
 #include "dev/kbelik/map_values/vli.h"
 
 #include "dev/kbelik/persistent_map.h"
@@ -231,6 +231,7 @@ TEST_CASE("TypedValue") {
       CHECK(subtype == TypedValueSubtype::string);
     }
   }
+
   SUBCASE("Default constructor") {
     TypedValue tv;
   }
@@ -241,22 +242,13 @@ TEST_CASE("TypedValue") {
     CHECK(tv.get_val() == "Q123");
   }
 
-  SUBCASE("Conversion from string to subtype") {
-    CHECK(TypedValue::string_to_subtype("qid") == TypedValueSubtype::qid);
-    CHECK(TypedValue::string_to_subtype("url") == TypedValueSubtype::url);
-  }
-  
-  SUBCASE("Conversion from subtype to string") {
-    CHECK(TypedValue::subtype_to_string(TypedValueSubtype::qid) == "qid");
-    CHECK(TypedValue::subtype_to_string(TypedValueSubtype::url) == "url");
-  }
-
   SUBCASE("get_as_string") {
     TypedValue tv(TypedValueSubtype::qid, "Q123");
     auto p = tv.get_as_string();
     CHECK(p.first == "qid");
     CHECK(p.second == "Q123");
   }
+
   SUBCASE("Equality operator") {
     TypedValue tv1(TypedValueSubtype::qid, "Q123");
     TypedValue tv2(TypedValueSubtype::qid, "Q123");
@@ -369,7 +361,6 @@ TEST_CASE("Int4") {
   delete[] data;
 }
 
-/*
 TEST_CASE("TypedValue -- map value") {
   vector<byte> data;
   ByteSerializerDeserializers bsds;
@@ -377,7 +368,7 @@ TEST_CASE("TypedValue -- map value") {
   bsds.huffman.add(alpha);
   transform(alpha.begin(), alpha.end(), alpha.begin(), ::toupper);
   bsds.huffman.add(alpha);
-  bsds.huffman.add("1234567890 ,.;");
+  bsds.huffman.add("1234567890 :,.;*+-/");
   SUBCASE("qid") {
     string qid = "Q1234567890987654";
     bsds.huffman.build();
@@ -396,27 +387,24 @@ TEST_CASE("TypedValue -- map value") {
     TypedValue::deserialize(data.data(), bsds, tv2);
     CHECK(str == tv2.get_val());
   }
-  SUBCASE("monolingual") {
+  SUBCASE("monolingualtext") {
     string str = "Řeřicha";
     bsds.huffman.add("Řeřicha");
     bsds.huffman.build();
-    auto tv = linpipe::kbelik::TypedValue("monolingual:cs", str);
+    auto tv = linpipe::kbelik::TypedValue("monolingualtext:cs", str);
     TypedValue::serialize(tv, bsds, data);
     linpipe::kbelik::TypedValue tv2;
     TypedValue::deserialize(data.data(), bsds, tv2);
-    CHECK(str == tv2.get_val());
-    CHECK("cs" == tv2.get_lang());
+    CHECK(pair<string, string>("monolingualtext:cs", str) == tv2.get_as_string());
   }
   SUBCASE("time julian") {
     string str = "+1970+08-22";
-    bsds.huffman.add("Řeřicha");
     bsds.huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:julian", str);
     TypedValue::serialize(tv, bsds, data);
     linpipe::kbelik::TypedValue tv2;
     TypedValue::deserialize(data.data(), bsds, tv2);
-    CHECK(str == tv2.get_val());
-    CHECK("julian" == tv2.get_cal());
+    CHECK(pair<string, string>("time:julian", str) == tv2.get_as_string());
   }
   SUBCASE("time gregorian") {
     string str = "+1970+08-22";
@@ -425,8 +413,8 @@ TEST_CASE("TypedValue -- map value") {
     TypedValue::serialize(tv, bsds, data);
     linpipe::kbelik::TypedValue tv2;
     TypedValue::deserialize(data.data(), bsds, tv2);
-    CHECK(str == tv2.get_val());
-    CHECK("gregorian" == tv2.get_cal());
+    CHECK(pair<string, string>("time:gregorian", str) == tv2.get_as_string());
+  }
   SUBCASE("quantity") {
     SUBCASE("with description string") {
       string str = "111129292929";
@@ -436,6 +424,7 @@ TEST_CASE("TypedValue -- map value") {
       linpipe::kbelik::TypedValue tv2;
       TypedValue::deserialize(data.data(), bsds, tv2);
       CHECK(tv == tv2);
+    }
     SUBCASE("without description string") {
       string str = "111129292929";
       bsds.huffman.build();
@@ -453,7 +442,6 @@ TEST_CASE("TypedValue -- map value") {
     huff->add(raw);
     huff->build();
     auto clms = big["claims"];
-    auto ori = linpipe::kbelik::AgnosticEntityInfo(clms);
     for(auto& [key, val] : clms.items()) {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
@@ -464,13 +452,13 @@ TEST_CASE("TypedValue -- map value") {
       SUBCASE("equality") {
         CHECK(tv == tv2);
       }
-      SUBCASE("") {
-        CHECK(TypedValue::length(data.data()) == TypedValue::length(tv));
+      SUBCASE("length") {
+        CHECK(TypedValue::length(data.data()) == TypedValue::length(tv, bsds));
       }
     }
   }
 }
-*/
+
 /*
 
 TEST_CASE("AgnosticEntityInfoHuffman -- map value") { 
@@ -721,6 +709,22 @@ TEST_CASE("HuffmanTree") {
     huff.decode(data.data(),t2);
     CHECK(t1 == t2);
     t1 = "aaaaaaaaaaaaaababababab";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+  }
+  SUBCASE("Non-english chars") {
+    vector<byte> data;
+    string t1, t2;
+    auto huff = HuffmanTree();
+    huff.add("abcdefgh");
+    huff.add("čšďëéŕúôçóůéöľáĺč");
+    huff.build();
+    t1 = "abcdefgh";
+    huff.encode(t1, data);
+    huff.decode(data.data(),t2);
+    CHECK(t1 == t2);
+    t1 = "čšďëéŕúáĺč";
     huff.encode(t1, data);
     huff.decode(data.data(),t2);
     CHECK(t1 == t2);
