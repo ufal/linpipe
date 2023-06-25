@@ -74,4 +74,8 @@ inline bool operator==(const TypedValue& a, const TypedValue& b) {
   return ap == bp;
 }
 
+inline bool operator!=(const TypedValue& a, const TypedValue& b) {
+  return !(a == b);
+}
+
 }  // linpipe:kbelik
