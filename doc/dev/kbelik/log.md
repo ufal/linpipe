@@ -1,5 +1,31 @@
 # Log of KBELik Progress
 
+### June 26, 2023
+- Enum of named entities should be serialized into the map file. It should be
+  preferably represented as an object that contains string (named entities) <-> int
+  mapping and having two methods that can convert between the types of the
+  mapping.
+
+- It is fine to have utility functions but it's better to have them in files
+  with descriptive names than one log utils file.
+
+- fictional can remain Ternary
+
+- The id is going to have the following format
+    - for QID: 1st bit set on 0 indicating Q and 31 bits for the ID
+    - non QID (ASCII ID): 1st bit set 1, 7 bits for the ASCII char, 24 bits for
+      the ID
+
+- The previous ID layout is not the most general but it seems to be general
+  enough for our usecase and isn't overcomplicated as other more general ideas
+  that were discussed.
+
+- Specific map doesn't need the reversed value->key map. The value type is specified in the
+  header.
+
+- Change map value serialization/deserialization so that vectors are being augmented
+  and pointers remain at the position to which they are moved.
+
 ### June 19, 2023
 - Specific kbelik: qid -> triplet(label, aliases, description)
 
