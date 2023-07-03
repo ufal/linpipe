@@ -22,7 +22,7 @@
 #include "dev/kbelik/named_entity.h"
 
 //#include "dev/kbelik/map_values/agnostic_entity_info.h"
-//#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
+#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
 #include "dev/kbelik/map_values/bits.h"
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
@@ -33,6 +33,7 @@
 #include "dev/kbelik/map_values/vli.h"
 
 #include "dev/kbelik/persistent_map.h"
+#include "dev/kbelik/qid.h"
 #include "dev/kbelik/typed_value.h"
 
 namespace linpipe {
@@ -379,6 +380,23 @@ TEST_CASE("Named entity converter") {
   }
 }
 
+TEST_CASE("ID") {
+  ID nq = ID("STR123");
+  ID q = ID("Q1234");
+  SUBCASE("knows its type") {
+    CHECK(q.is_qid());
+    CHECK(!nq.is_qid());
+  }
+  SUBCASE("'qid' field") {
+    CHECK(1234 == q.qid());
+    CHECK(-1 == nq.qid());
+  }
+  SUBCASE("string representation") {
+    CHECK("STR123" == nq.str());
+    CHECK("Q1234" == q.str());
+  }
+}
+
 namespace map_values {
 
 TEST_CASE("Bits") {
@@ -556,8 +574,6 @@ TEST_CASE("TypedValue -- map value") {
   }
 }
 
-/*
-
 TEST_CASE("AgnosticEntityInfoHuffman -- map value") { 
   ByteSerializerDeserializers bsds;
   string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
@@ -567,10 +583,8 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
   huff->add("|$");
   huff->build();
   vector<byte> data;
-  auto clms = big["claims"];
-  auto ori = linpipe::kbelik::AgnosticEntityInfo(clms);
+  auto ori = linpipe::kbelik::AgnosticEntityInfo(big);
   AgnosticEntityInfoH::serialize(ori, bsds, data);
-
   
   SUBCASE("Lengths") {
     size_t l1, l2;
@@ -584,6 +598,7 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
     CHECK(aei.claims == ori.claims);
   }
 }
+/*
 
 TEST_CASE("AgnosticEntityInfo -- map value") { 
 
