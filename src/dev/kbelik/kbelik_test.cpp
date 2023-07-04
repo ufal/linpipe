@@ -396,6 +396,11 @@ TEST_CASE("ID") {
     CHECK("STR123" == nq.str());
     CHECK("Q1234" == q.str());
   }
+  SUBCASE("equality") {
+    ID q2 = ID("Q1234");
+    CHECK(q2 == q);
+    CHECK(q2 != nq);
+  }
 }
 
 namespace map_values {
