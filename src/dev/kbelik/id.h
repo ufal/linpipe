@@ -18,4 +18,12 @@ class ID {
   bool _is_qid_parsable(string& id);
 };
 
+inline bool operator==(const ID& a, const ID& b) {
+  return a.str() == b.str();
+}
+
+inline bool operator!=(const ID& a, const ID& b) {
+  return !(a == b);
+}
+
 } // linpipe::kbelik

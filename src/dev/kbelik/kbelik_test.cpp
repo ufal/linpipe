@@ -27,13 +27,14 @@
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
+//#include "dev/kbelik/map_values/id.h"
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/simple_json.h"
 #include "dev/kbelik/map_values/typed_value.h"
 #include "dev/kbelik/map_values/vli.h"
 
 #include "dev/kbelik/persistent_map.h"
-#include "dev/kbelik/qid.h"
+#include "dev/kbelik/id.h"
 #include "dev/kbelik/typed_value.h"
 
 namespace linpipe {
@@ -475,6 +476,31 @@ TEST_CASE("Int4") {
   }
   delete[] data;
 }
+
+/*
+TEST_CASE("ID -- map value") {
+  vector<byte> data_q, data_n;
+  auto qid = linpipe::kbelik::ID("Q12222234");
+  auto no_qid = linpipe::kbelik::ID("PER");
+  SUBCASE("Lengths") {
+    SUBCASE("QID") {
+
+    }
+    SUBCASE("NO-QID") {
+
+    }
+
+  }
+  SUBCASE("Serialization and deserialization") {
+    SUBCASE("QID") {
+
+    }
+    SUBCASE("NO-QID") {
+
+    }
+  }
+}
+*/
 
 TEST_CASE("TypedValue -- map value") {
   vector<byte> data;

@@ -1,4 +1,4 @@
-#include "dev/kbelik/qid.h"
+#include "dev/kbelik/id.h"
 
 namespace linpipe::kbelik {
 
