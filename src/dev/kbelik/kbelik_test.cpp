@@ -191,9 +191,8 @@ TEST_CASE("Dynamic map") {
   }
 }
 
-/*
 TEST_CASE("Persistent map") {
-  auto dm = DynamicMap<ID, map_values::Int4>();
+  auto dm = DynamicMap<map_values::ID, map_values::Int4>();
   int vals_cnt = 10;
   for (int i = 0; i < vals_cnt; ++i) 
     dm.add(ID("Q" + to_string(i)), i);
@@ -202,7 +201,7 @@ TEST_CASE("Persistent map") {
   dm.save_map(ofs, test);
   ofs.close();
   filesystem::path fp("temp/test_map.bin");
-  auto pm = PersistentMap<ID, map_values::Int4>(fp);
+  auto pm = PersistentMap<map_values::ID, map_values::Int4>(fp);
   SUBCASE("close") {
     int res;
     pm.close();
@@ -226,7 +225,6 @@ TEST_CASE("Persistent map") {
     MapType t = pm.get_map_type();
     CHECK(t == test);
   }
-  */
   /*
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
@@ -259,7 +257,7 @@ TEST_CASE("Persistent map") {
     CHECK(!flag);
   }
   */
-//}
+}
 
 /*
 TEST_CASE("Agnostic kbelik") {
