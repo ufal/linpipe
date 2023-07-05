@@ -6,7 +6,9 @@ namespace linpipe::kbelik {
 
 class ID {
  public:
+  ID();
   ID(string id);
+  ID(int64_t id);
 
   bool is_qid() const;
   int64_t qid() const; // Maybe can return -1 on a not-a-qid?

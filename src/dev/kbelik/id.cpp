@@ -2,6 +2,8 @@
 
 namespace linpipe::kbelik {
 
+ID::ID() {}
+
 ID::ID(string id) {
   _id = id;
   _is_qid = _is_qid_parsable(id);

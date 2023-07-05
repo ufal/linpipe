@@ -27,7 +27,7 @@
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
-//#include "dev/kbelik/map_values/id.h"
+#include "dev/kbelik/map_values/id.h"
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/int8.h"
 #include "dev/kbelik/map_values/simple_json.h"
@@ -482,7 +482,7 @@ TEST_CASE("Int4") {
   }
   delete[] data;
 }
-TEST_CASE("Int4") {
+TEST_CASE("Int8") {
   byte* data = new byte[4];
   data[0] = (byte)2;
   data[1] = (byte)1;
@@ -517,8 +517,6 @@ TEST_CASE("Int4") {
   delete[] data;
 }
 
-
-/*
 TEST_CASE("ID -- map value") {
   vector<byte> data_q, data_n;
   auto qid = linpipe::kbelik::ID("Q12222234");
@@ -527,23 +525,22 @@ TEST_CASE("ID -- map value") {
   ID::serialize(no_qid, data_n);
   SUBCASE("Lengths") {
     SUBCASE("QID")
-      CHECK(ID::length(qid) == ID::length(data_q));
+      CHECK(ID::length(qid) == ID::length(data_q.data()));
     SUBCASE("NO-QID")
-      CHECK(ID::length(no_qid) == ID::length(data_n));
+      CHECK(ID::length(no_qid) == ID::length(data_n.data()));
   }
   SUBCASE("Serialization and deserialization") {
-    ID id;
+    linpipe::kbelik::ID id;
     SUBCASE("QID") {
-      ID::deserialize(data_q, id);
+      ID::deserialize(data_q.data(), id);
       CHECK(id == qid);
     }
     SUBCASE("NO-QID") {
-      ID::deserialize(data_n, id);
+      ID::deserialize(data_n.data(), id);
       CHECK(id == no_qid);
     }
   }
 }
-*/
 
 TEST_CASE("TypedValue -- map value") {
   vector<byte> data;
