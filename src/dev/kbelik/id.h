@@ -28,4 +28,16 @@ inline bool operator!=(const ID& a, const ID& b) {
   return !(a == b);
 }
 
+inline bool operator<(const ID& a, const ID& b) {
+  if (a.is_qid() && b.is_qid())
+    return a.qid() < b.qid();
+  return a.str() < b.str();
+}
+
+inline bool operator>(const ID& a, const ID& b) {
+  if (a.is_qid() && b.is_qid())
+    return a.qid() > b.qid();
+  return a.str() > b.str();
+}
+
 } // linpipe::kbelik

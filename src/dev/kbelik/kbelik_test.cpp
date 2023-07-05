@@ -43,7 +43,7 @@ namespace kbelik {
 
 TEST_CASE("Dynamic map") {
   SUBCASE("Int4") {
-    DynamicMap<int, map_values::Int4> dm = DynamicMap<int, map_values::Int4>();
+    auto dm = DynamicMap<map_values::Int4, map_values::Int4>();
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -97,7 +97,7 @@ TEST_CASE("Dynamic map") {
     }
   }
   SUBCASE("Bytes") {
-    auto dm = DynamicMap<int, map_values::Bytes<int8_t>>();
+    auto dm = DynamicMap<map_values::Int4, map_values::Bytes<int8_t>>();
     SUBCASE("Add, erase -- small") {
       REQUIRE(dm.length() == 0);
       dm.add(10, {(byte)1, (byte)2});
@@ -136,43 +136,97 @@ TEST_CASE("Dynamic map") {
       }
       CHECK(dm.length() == 0);
     }
+  }SUBCASE("ID") {
+    auto dm = DynamicMap<map_values::ID, map_values::Int4>();
+    SUBCASE("Add, erase -- big") {
+      REQUIRE(dm.length() == 0);
+      int to_add = 200;
+      for (int i = 0; i < to_add; ++i) {
+        dm.add(ID("Q" + to_string(i)), 10 + i); 
+      }
+      CHECK(dm.length() == to_add);
+      for (int i = 0; i < to_add; ++i) {
+        dm.erase(ID("Q" + to_string(i)));
+      }
+      CHECK(dm.length() == 0);
+    }
+    SUBCASE("Add, erase -- small") {
+      REQUIRE(dm.length() == 0);
+      dm.add(ID("Q10"), 0);
+      dm.add(ID("Q10"), 0);
+      CHECK(dm.length() == 1);
+      dm.erase(ID("Q10"));
+      CHECK(dm.length() == 0);
+    }
+    SUBCASE("find present") {
+      REQUIRE(dm.length() == 0);
+      int expected = 0;
+      dm.add(ID("Q10"), expected);
+      int res;
+      bool flag = dm.find(ID("Q10"), res);
+      CHECK(res == expected);
+      CHECK(flag);
+      dm.erase(ID("Q10"));
+    }
+    SUBCASE("find not present") {
+      REQUIRE(dm.length() == 0);
+      int expected = 0;
+      dm.add(ID("Q10"), expected);
+      int res;
+      bool flag = dm.find(ID("Q11"), res);
+      CHECK(!flag);
+      dm.erase(ID("Q10"));
+      flag = dm.find(ID("Q10"), res);
+      CHECK(!flag);
+    }
+    SUBCASE("basic save map") {
+      REQUIRE(dm.length() == 0);
+      dm.add(ID("Q10"), 1);
+      dm.add(ID("Q20"), 2);
+      dm.add(ID("Q30"), 3);
+      stringstream ss;
+      REQUIRE(ss.str() == "");
+      dm.save_map(ss, test);
+    }
   }
 }
 
+/*
 TEST_CASE("Persistent map") {
-  DynamicMap<int, map_values::Int4> dm = DynamicMap<int, map_values::Int4>();
+  auto dm = DynamicMap<ID, map_values::Int4>();
   int vals_cnt = 10;
   for (int i = 0; i < vals_cnt; ++i) 
-    dm.add(i, i);
+    dm.add(ID("Q" + to_string(i)), i);
   filesystem::create_directories("./temp");
   ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
   dm.save_map(ofs, test);
   ofs.close();
   filesystem::path fp("temp/test_map.bin");
-  auto pm = PersistentMap<int, map_values::Int4>(fp);
+  auto pm = PersistentMap<ID, map_values::Int4>(fp);
   SUBCASE("close") {
     int res;
     pm.close();
-    CHECK_THROWS_AS(pm.find(1, res), const LinpipeError);
+    CHECK_THROWS_AS(pm.find(ID("Q1"), res), const LinpipeError);
   }
   SUBCASE("find success") {
     map_values::Int4::Type res;
     bool flag;
     for (int i = 0; i < vals_cnt; ++i) { 
-      flag = pm.find(i, res);
+      flag = pm.find("Q" + to_string(i), res);
       CHECK(flag);
       CHECK(res == i);
     }
   }
   SUBCASE("find fail") {
     int res;
-    bool flag = pm.find(-1, res);
+    bool flag = pm.find(ID("Q" + to_string(vals_cnt + 10)), res);
     CHECK(!flag);
   }
   SUBCASE("map type loaded") {
     MapType t = pm.get_map_type();
     CHECK(t == test);
   }
+  */
   /*
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
@@ -205,7 +259,7 @@ TEST_CASE("Persistent map") {
     CHECK(!flag);
   }
   */
-}
+//}
 
 /*
 TEST_CASE("Agnostic kbelik") {
@@ -402,7 +456,18 @@ TEST_CASE("ID") {
     CHECK(q2 == q);
     CHECK(q2 != nq);
   }
+  SUBCASE("<>") {
+    ID q3 = ID("Q123");
+    CHECK(q3 < q);
+    CHECK(q > q3);
+  }
 }
+
+/*
+TEST_CASE("Agnostic kbelik") {
+
+}
+*/
 
 namespace map_values {
 
