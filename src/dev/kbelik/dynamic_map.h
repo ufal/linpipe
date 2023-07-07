@@ -34,6 +34,7 @@ class DynamicMap{
                   size_t first_count, size_t second_count);
 
   vector<size_t> value_prefix_sums();
+  int const key_size = 8;
 };
 
 template<typename KeyMV, typename Value>
@@ -87,7 +88,7 @@ void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
   auto size_sums = value_prefix_sums();
   using address_type = uint32_t;
   size_t address_size = sizeof(address_type);
-  size_t key_address_size = 8 + address_size;
+  size_t key_address_size = key_size + address_size;
   size_t index_size = values.size() *  key_address_size;
   vector<byte> to_stream(size_sums.back() + index_size + sizeof(size_t), (byte)0);
   byte* to_stream_ptr = to_stream.data();
