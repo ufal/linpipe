@@ -21,7 +21,7 @@ namespace linpipe::kbelik {
 template<typename KeyMV, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, size_t offset=0, size_t length=-1);
+  PersistentMap(filesystem::path fp, size_t offset=0, int64_t length=-1);
   ~PersistentMap();
 
   bool find(typename KeyMV::Type key, typename Value::Type& value) const;
@@ -46,7 +46,7 @@ class PersistentMap{
   size_t one_key; // Size of one key entry in the index.
   int jump_exponential; // Jump for the exponential search.
 
-  void load(filesystem::path fp, size_t offset, size_t length);
+  void load(filesystem::path fp, size_t offset, int64_t length);
   void init(); // Only init that is needed, calls other inits and should be called from load.
   void init_index_ptr();
   void set_map_type();
@@ -59,10 +59,12 @@ class PersistentMap{
   void read_ith_key(int i, typename KeyMV::Type &res) const;
   void read_ith_offset(int i, uint32_t &res) const;
 
+  const int key_size = 8;
+
 };
 
 template<typename KeyMV, typename Value>
-PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, size_t offset, size_t length) {
+PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, size_t offset, int64_t length) {
   load(fp, offset, length);
   init();
 }
@@ -100,16 +102,24 @@ MapType PersistentMap<KeyMV, Value>::get_map_type() const {
 }
 
 template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t /*offset*/, size_t length) {
+void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64_t length) {
   fd = open(fp.c_str(), O_RDONLY);
   struct stat sb;
   if (fd == -1)
     LinpipeError("open");
   if (fstat(fd, &sb) == -1)
     LinpipeError("stat");
-  length = sb.st_size;
+  if (length == -1)
+    length = sb.st_size;
 
-  mmap_addr = mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, 0);
+  size_t pagesize = sysconf(_SC_PAGESIZE);
+
+
+  off_t page_start = (offset / pagesize) * pagesize;
+  off_t page_offset = offset % pagesize;
+
+  mmap_addr = mmap(NULL, length + page_offset, PROT_READ, MAP_PRIVATE, fd, page_start);
+  mmap_addr = static_cast<byte*>(mmap_addr) + page_offset;
   if (mmap_addr == MAP_FAILED)
     LinpipeError("map");
 }
@@ -193,7 +203,7 @@ void PersistentMap<KeyMV, Value>::read_ith_key(int i, typename KeyMV::Type &res)
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::read_ith_offset(int i, uint32_t &res) const {
   size_t shift = i * one_key;
-  memcpy(&res, index_start + shift + 8, sizeof(uint32_t));
+  memcpy(&res, index_start + shift + key_size, sizeof(uint32_t));
   res += shift;
 }
 

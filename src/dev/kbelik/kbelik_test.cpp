@@ -15,7 +15,7 @@
 #include "lib/doctest.h"
 #include "lib/json.h"
 
-#include "dev/kbelik/agnostic_kbelik.h"
+//#include "dev/kbelik/agnostic_kbelik.h"
 #include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/huffman.h"
@@ -225,45 +225,86 @@ TEST_CASE("Persistent map") {
     MapType t = pm.get_map_type();
     CHECK(t == test);
   }
-  /*
   SUBCASE("Persistent map with offset") {
     ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
-    ofs.write({(byte)1, (byte)2}, 2);
-    dm.save_map(ofs);
+    char data[2] = {(char)1, (char)2};
+    ofs.write(data, 2);
+    dm.save_map(ofs, test);
     ofs.close();
-    filesystem::path fp_offset("temp/test_map.bin");
-    auto pm_offset = PersistentMap<int, Int4>(fp_offset, 2);
+    filesystem::path fp_offset("temp/test_map_offset.bin");
+    auto pm_offset = PersistentMap<map_values::ID, map_values::Int4>(fp_offset, 2);
     int res;
-    bool flag = find(1, res);
+    bool flag = pm_offset.find(ID("Q1"), res);
     CHECK(flag);
-    CHECK(ress == 1);
-    int res;
-    bool flag = find(-1, res);
+    CHECK(res == 1);
+    flag = pm_offset.find(ID("Q" + to_string(vals_cnt + 10)), res);
     CHECK(!flag);
   }
   SUBCASE("Persistent map with length") {
     ofs.open("temp/test_map_length.bin", ofstream::out | ofstream::binary);
-    dm.save_map(ofs);
+    dm.save_map(ofs, test);
     size_t length = ofs.tellp();
-    ofs.write({(byte)1, (byte)2}, 2);
+    char data[2] = {(char)1, (char)2};
+    ofs.write(data, 2);
     ofs.close();
-    auto pm_offset = PersistentMap<int, Int4>(fp_offset, length=length);
+    filesystem::path fp_length("temp/test_map_length.bin");
+    auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, length=length);
     int res;
-    bool flag = find(1, res);
+    bool flag = pm_length.find(ID("Q1"), res);
     CHECK(flag);
-    CHECK(ress == 1);
-    int res;
-    bool flag = find(-1, res);
+    CHECK(res == 1);
+    flag = pm_length.find(ID("Q" + to_string(vals_cnt + 10)), res);
     CHECK(!flag);
   }
-  */
 }
 
 /*
 TEST_CASE("Agnostic kbelik") {
+  string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}}\n{"qid": "Q96890921", "claims": {"instance of": [["qid", "Q5:human", {}]], "sex or gender": [["qid", "Q6581097:male", {}]], "country of citizenship": [["qid", "Q142:France", {}]], "occupation": [["qid", "Q42973:architect", {}]], "date of birth": [["time:gregorian", "+1814-05-21T00:00:00Z", {}]], "place of birth": [["qid", "Q971866:Croutelle", {}]], "date of death": [["time:gregorian", "+1889-01-23T00:00:00Z", {}]], "place of death": [["qid", "Q949093:Migné-Auxances", {}]], "given name": [["qid", "Q1499767:Jean-Baptiste", {}]], "languages spoken, written or signed": [["qid", "Q150:French", {}]]}, "named_entities": {"type": ["PER"]}}\n{"qid": "Q49496872", "claims": {"LfDS object ID": [["external-id", "09241968", {}]], "instance of": [["qid", "Q3947:house", {}]], "coordinate location": [["globe-coordinate", "50.844588063567 12.455779739649", {}]], "inception": [["time:gregorian", "+1920-01-17T00:00:00Z", {}]], "heritage designation": [["qid", "Q11691318:cultural heritage monument in Germany", {}]], "country": [["qid", "Q183:Germany", {}]], "located in the administrative territorial entity": [["qid", "Q20083:Meerane", {}]], "street address": [["monolingualtext:de", "Philippstraße 68; 70; 72; 74", {}]]}, "named_entities": {"type": ["LOC"]}}\n{"qid": "Q66638937", "claims": {"instance of": [["qid", "Q66619497:HDFC Bank branch", {}]], "country": [["qid", "Q668:India", {}]], "operator": [["qid", "Q631047:HDFC Bank call now‪ 09382691063‬= ‪09382691063‬", {}]], "located in the administrative territorial entity": [["qid", "Q620297:Umaria district", {}]], "Indian Financial System Code": [["external-id", "HDFC0001778", {}]]}, "named_entities": {"type": ["ORG", "LOC"]}}\n{"qid": "Q112471937", "claims": {"occupation": [["qid", "Q36180:writer", {}], ["qid", "Q201788:historian", {}]], "date of death": [["time:gregorian", "+2012-00-00T00:00:00Z", {}]], "NKCR AUT ID": [["external-id", "jo2013794598", {"subject named as": [["string", "Cvetkov, Sergej Vasil'jevič"]]}]], "given name": [["qid", "Q18946707:Sergej", {"series ordinal": [["string", "1"]]}]], "date of birth": [["time:gregorian", "+1952-00-00T00:00:00Z", {}]], "instance of": [["qid", "Q5:human", {}]], "VIAF ID": [["external-id", "120746555", {}]], "ISNI": [["external-id", "0000 0004 4928 8498", {}]], "Library of Congress authority ID": [["external-id", "n00092256", {}]], "Bibliothèque nationale de France ID": [["external-id", "150142744", {}]], "IdRef ID": [["external-id", "137102690", {}]], "PLWABN ID": [["external-id", "9810632583205606", {}]], "National Library of Israel J9U ID": [["external-id", "987007439703105171", {}]]}, "named_entities": {"type": ["PER"]}})del";
 
-}
-*/
+  istream jsons = istringstream(raw);
+
+  ofstream ofs("temp/test_ak.bin", ofstream::out | ofstream::binary);
+  AgnosticKbelik::build(jsons, ofs);
+  filesystem::path fp("temp/test_map.bin");
+
+  SUBCASE("Build") {
+    ifstream file(fp, ios::ate); // Open file and position read pointer at the end
+    streampos size = file.tellg(); // Get current position which corresponds to file size
+    file.close();
+    CHECK(size > 0);
+  }
+  SUBCASE("Instance methods") {
+    SUBCASE("Constructor") {
+      SUBCASE("Basic") {
+        auto ak = AgnosticKbelik(fp);
+        auto aei = AgnosticEntityInfo();
+        ak.find(ID("Q2417271"), aei);
+        CHECK(aei.claims.size() > 0);
+      }
+      SUBCASE("offset") {
+        // TODO
+      }
+      SUBCASE("length") {
+        // TODO
+      }
+    }
+    SUBCASE("Find") {
+      auto ak = AgnosticKbelik(fp);
+      auto aei = AgnosticEntityInfo();
+      ak.find(ID("Q66638937"), aei);
+      CHECK(aei.claims.size() == 5);
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
+    }
+    SUBCASE("Close") {
+      auto ak = AgnosticKbelik(fp);
+      auto aei = AgnosticEntityInfo();
+      ak.close()
+      CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
+    }
+  }
+}*/
 
 /*
 
@@ -460,12 +501,6 @@ TEST_CASE("ID") {
     CHECK(q > q3);
   }
 }
-
-/*
-TEST_CASE("Agnostic kbelik") {
-
-}
-*/
 
 namespace map_values {
 
