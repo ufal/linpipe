@@ -265,7 +265,7 @@ TEST_CASE("Agnostic kbelik") {
   istream jsons = istringstream(raw);
 
   ofstream ofs("temp/test_ak.bin", ofstream::out | ofstream::binary);
-  AgnosticKbelik::build(jsons, ofs);
+  AgnosticKbelik().build(jsons, ofs);
   filesystem::path fp("temp/test_map.bin");
 
   SUBCASE("Build") {
@@ -304,7 +304,8 @@ TEST_CASE("Agnostic kbelik") {
       CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
     }
   }
-}*/
+}
+*/
 
 /*
 
@@ -642,82 +643,82 @@ TEST_CASE("ID -- map value") {
 
 TEST_CASE("TypedValue -- map value") {
   vector<byte> data;
-  ByteSerializerDeserializers bsds;
+  ByteSerializerDeserializers* bsds = new ByteSerializerDeserializers();
   string alpha = "abcdefghijklmnopqrstuvwxyz";
-  bsds.huffman.add(alpha);
+  bsds->huffman.add(alpha);
   transform(alpha.begin(), alpha.end(), alpha.begin(), ::toupper);
-  bsds.huffman.add(alpha);
-  bsds.huffman.add("1234567890 :,.;*+-/");
+  bsds->huffman.add(alpha);
+  bsds->huffman.add("1234567890 :,.;*+-/");
   SUBCASE("qid") {
     string qid = "Q1234567890987654";
-    bsds.huffman.build();
+    bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("qid", qid);
-    TypedValue::serialize(tv, bsds, data);
+    TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), bsds, tv2);
+    TypedValue::deserialize(data.data(), tv2, bsds);
     CHECK(qid == tv2.get_val());
   }
   SUBCASE("non qid") {
     string str = "This is some peculiar string";
-    bsds.huffman.build();
+    bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("string", str);
-    TypedValue::serialize(tv, bsds, data);
+    TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), bsds, tv2);
+    TypedValue::deserialize(data.data(), tv2, bsds);
     CHECK(str == tv2.get_val());
   }
   SUBCASE("monolingualtext") {
     string str = "Řeřicha";
-    bsds.huffman.add("Řeřicha");
-    bsds.huffman.build();
+    bsds->huffman.add("Řeřicha");
+    bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("monolingualtext:cs", str);
-    TypedValue::serialize(tv, bsds, data);
+    TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), bsds, tv2);
+    TypedValue::deserialize(data.data(), tv2, bsds);
     CHECK(pair<string, string>("monolingualtext:cs", str) == tv2.get_as_string());
   }
   SUBCASE("time julian") {
     string str = "+1970+08-22";
-    bsds.huffman.build();
+    bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:julian", str);
-    TypedValue::serialize(tv, bsds, data);
+    TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), bsds, tv2);
+    TypedValue::deserialize(data.data(), tv2, bsds);
     CHECK(pair<string, string>("time:julian", str) == tv2.get_as_string());
   }
   SUBCASE("time gregorian") {
     string str = "+1970+08-22";
-    bsds.huffman.build();
+    bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:gregorian", str);
-    TypedValue::serialize(tv, bsds, data);
+    TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), bsds, tv2);
+    TypedValue::deserialize(data.data(), tv2, bsds);
     CHECK(pair<string, string>("time:gregorian", str) == tv2.get_as_string());
   }
   SUBCASE("quantity") {
     SUBCASE("with description string") {
       string str = "111129292929";
-      bsds.huffman.build();
+      bsds->huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1:desc string", str);
-      TypedValue::serialize(tv, bsds, data);
+      TypedValue::serialize(tv, data, bsds);
       linpipe::kbelik::TypedValue tv2;
-      TypedValue::deserialize(data.data(), bsds, tv2);
+      TypedValue::deserialize(data.data(), tv2, bsds);
       CHECK(tv == tv2);
     }
     SUBCASE("without description string") {
       string str = "111129292929";
-      bsds.huffman.build();
+      bsds->huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1", str);
-      TypedValue::serialize(tv, bsds, data);
+      TypedValue::serialize(tv, data, bsds);
       linpipe::kbelik::TypedValue tv2;
-      TypedValue::deserialize(data.data(), bsds, tv2);
+      TypedValue::deserialize(data.data(), tv2, bsds);
       CHECK(tv == tv2);
     }
   }
   SUBCASE("Real usecase") {
     string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
     Json big = Json::parse(raw);
-    auto huff = &bsds.huffman;
+    auto huff = &((*bsds).huffman);
     huff->add(raw);
     huff->build();
     auto clms = big["claims"];
@@ -725,9 +726,9 @@ TEST_CASE("TypedValue -- map value") {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
       auto tv = linpipe::kbelik::TypedValue(sub_type, type_value);
-      TypedValue::serialize(tv, bsds, data);
+      TypedValue::serialize(tv, data, bsds);
       linpipe::kbelik:: TypedValue tv2;
-      TypedValue::deserialize(data.data(), bsds, tv2);
+      TypedValue::deserialize(data.data(), tv2, bsds);
       SUBCASE("equality") {
         CHECK(tv == tv2);
       }
@@ -748,17 +749,17 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
   huff->build();
   vector<byte> data;
   auto ori = linpipe::kbelik::AgnosticEntityInfo(big);
-  AgnosticEntityInfoH::serialize(ori, bsds, data);
+  AgnosticEntityInfoH::serialize(ori, data, &bsds);
   
   SUBCASE("Lengths") {
     size_t l1, l2;
-    l1 = AgnosticEntityInfoH::length(ori, bsds);
+    l1 = AgnosticEntityInfoH::length(ori, &bsds);
     l2 = AgnosticEntityInfoH::length(data.data());
     CHECK(l1 == l2);
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::AgnosticEntityInfo aei;
-    AgnosticEntityInfoH::deserialize(data.data(), bsds, aei);
+    AgnosticEntityInfoH::deserialize(data.data(), aei, &bsds);
     CHECK(aei.claims == ori.claims);
   }
 }

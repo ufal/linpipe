@@ -25,13 +25,13 @@ class AgnosticEntityInfoH {
   using Type = linpipe::kbelik::AgnosticEntityInfo;
 
   static inline size_t length(const byte* ptr);
-  static inline size_t length(const Type& value, ByteSerializerDeserializers& bsds);
+  static inline size_t length(const Type& value, ByteSerializerDeserializers* bsds);
    
-  static inline void serialize(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& data);
-  static inline void deserialize(const byte* ptr_whole,  ByteSerializerDeserializers& bsds, Type& value);
+  static inline void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds);
+  static inline void deserialize(const byte* ptr_whole, Type& value, ByteSerializerDeserializers* bsds);
  private:
-  static inline void encodeAEIP(const AEIProperties& aeip, ByteSerializerDeserializers& bsds, vector<byte>& encoded);
-  static inline void decodeAEIP(const byte* ptr_whole, ByteSerializerDeserializers& bsds, AEIProperties& aeip);
+  static inline void encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded, ByteSerializerDeserializers* bsds);
+  static inline void decodeAEIP(const byte* ptr_whole, AEIProperties& aeip, ByteSerializerDeserializers* bsds);
 
   static inline void encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded);
   static inline void decodeNE(const byte* ptr, vector<NamedEntity>& ne);
@@ -41,13 +41,13 @@ size_t AgnosticEntityInfoH::length(const byte* ptr) {
   return BytesVLI::length(ptr);
 }
 
-size_t AgnosticEntityInfoH::length(const Type& value, ByteSerializerDeserializers& bsds) {
+size_t AgnosticEntityInfoH::length(const Type& value, ByteSerializerDeserializers* bsds) {
   vector<byte> serialized;
-  serialize(value, bsds, serialized);
+  serialize(value, serialized, bsds);
   return BytesVLI::length(serialized.data());
 }
 
-void AgnosticEntityInfoH::serialize(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& data) {
+void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds) {
   vector<byte> result;
 
   size_t claims_cnt = value.claims.size();
@@ -58,11 +58,11 @@ void AgnosticEntityInfoH::serialize(const Type& value, ByteSerializerDeserialize
   for (auto &[key, aeip]: value.claims) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
-    bsds.huffman.encode(key, key_huffed);
+    bsds->huffman.encode(key, key_huffed);
     BytesVLI::serialize(key_huffed, key_encoded);
 
     vector<byte> aeip_encoded;
-    encodeAEIP(aeip, bsds, aeip_encoded);
+    encodeAEIP(aeip, aeip_encoded, bsds);
 
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
     result.insert(result.end(), aeip_encoded.begin(), aeip_encoded.end());
@@ -81,7 +81,7 @@ void AgnosticEntityInfoH::serialize(const Type& value, ByteSerializerDeserialize
   BytesVLI::serialize(result, data);
 }
 
-void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, ByteSerializerDeserializers& bsds, Type& value) {
+void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSerializerDeserializers* bsds) {
   vector<byte> result;
   BytesVLI::deserialize(ptr_whole, result);
 
@@ -97,11 +97,11 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, ByteSerializerDeser
     string key;
     vector<byte> key_bytes;
     BytesVLI::deserialize(ptr, key_bytes);
-    bsds.huffman.decode(key_bytes.data(), key);
+    bsds->huffman.decode(key_bytes.data(), key);
     ptr += BytesVLI::length(ptr);
 
     AEIProperties aeip;
-    decodeAEIP(ptr, bsds, aeip);
+    decodeAEIP(ptr, aeip, bsds);
     ptr += BytesVLI::length(ptr);
 
     claims[key] = aeip;
@@ -120,9 +120,9 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, ByteSerializerDeser
   value.fictional = fictional;
 }
 
-void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, ByteSerializerDeserializers& bsds, vector<byte>& encoded){
+void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded, ByteSerializerDeserializers* bsds){
   vector<byte> tv_encoded;
-  TypedValue::serialize(aeip.tv, bsds, tv_encoded);
+  TypedValue::serialize(aeip.tv, tv_encoded, bsds);
 
   size_t optionals_cnt = aeip.optionals.size();
   vector<byte> cnt_encoded;
@@ -136,24 +136,24 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, ByteSerializerDe
   for (auto &[key, val] : aeip.optionals) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
-    bsds.huffman.encode(key, key_huffed);
+    bsds->huffman.encode(key, key_huffed);
     BytesVLI::serialize(key_huffed, key_encoded);
 
     vector<byte> val_encoded;
-    TypedValue::serialize(val, bsds, val_encoded);
+    TypedValue::serialize(val, val_encoded, bsds);
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
     result.insert(result.end(), val_encoded.begin(), val_encoded.end());
   }
   BytesVLI::serialize(result, encoded);
 }
 
-void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, ByteSerializerDeserializers& bsds, AEIProperties& aeip){
+void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip, ByteSerializerDeserializers* bsds){
   vector<byte> result;
   BytesVLI::deserialize(ptr_whole, result);
 
   byte* ptr = result.data();
 
-  TypedValue::deserialize(ptr, bsds, aeip.tv);
+  TypedValue::deserialize(ptr, aeip.tv, bsds);
   ptr += TypedValue::length(ptr);
 
   size_t optionals_cnt;
@@ -166,10 +166,10 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, ByteSerializerDeseri
     vector<byte> key_bytes;
     BytesVLI::deserialize(ptr, key_bytes);
     ptr += BytesVLI::length(ptr);
-    bsds.huffman.decode(key_bytes.data(), key);
+    bsds->huffman.decode(key_bytes.data(), key);
 
     linpipe::kbelik::TypedValue tv;
-    TypedValue::deserialize(ptr, bsds, tv);
+    TypedValue::deserialize(ptr, tv, bsds);
     ptr += TypedValue::length(ptr);
 
     optionals[key] = tv;

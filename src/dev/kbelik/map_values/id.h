@@ -10,15 +10,17 @@
 #include "dev/kbelik/map_values/vli.h"
 #include "dev/kbelik/map_values/int8.h"
 
+#include "dev/kbelik/byte_serializer_deserializer.h"
+
 namespace linpipe::kbelik::map_values {
 
 class ID {
  public:
   using Type = linpipe::kbelik::ID;
   static size_t length(const byte* ptr);
-  static size_t length(const Type& val);
-  static void deserialize(const byte* ptr, Type& value);
-  static void serialize(const Type& value, vector<byte>& data);
+  static size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
+  static void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
+  static void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
 };
 
 size_t ID::length(const byte* ptr) {
@@ -32,7 +34,7 @@ size_t ID::length(const byte* ptr) {
   return 8;
 }
 
-size_t ID::length(const ID::Type& value) {
+size_t ID::length(const ID::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   if (value.is_qid())
     return 8;
   string text = value.str();
@@ -41,7 +43,7 @@ size_t ID::length(const ID::Type& value) {
   return VLI::length(sz) + bytes.size();
 }
 
-void ID::deserialize(const byte* ptr, ID::Type& value) {
+void ID::deserialize(const byte* ptr, ID::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   if ((int)*ptr & 1)  { 
     size_t bytes_sz;
     VLI::deserialize(ptr, bytes_sz);
@@ -60,7 +62,7 @@ void ID::deserialize(const byte* ptr, ID::Type& value) {
   }
 }
 
-void ID::serialize(const ID::Type& value, vector<byte>& data) {
+void ID::serialize(const ID::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
   if (value.is_qid()) {
     int64_t id_val = value.qid();
     Int8::serialize(id_val << 1, data);

@@ -17,27 +17,27 @@ class TypedValue {
   using Type = linpipe::kbelik::TypedValue;
 
   static inline size_t length(const byte* ptr);
-  static inline size_t length(const Type& value, ByteSerializerDeserializers& bsds);
+  static inline size_t length(const Type& value, ByteSerializerDeserializers* bsds);
    
-  static inline void deserialize(const byte* ptr,  ByteSerializerDeserializers& bsds, Type& value);
-  static inline void serialize(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& data);
+  static inline void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds);
+  static inline void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds);
  private:
-  static inline void encode(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& encoded_st, vector<byte>& encoded_val);
-  static inline void decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers& bsds, Type& value);
+  static inline void encode(const Type& value, ByteSerializerDeserializers* bsds, vector<byte>& encoded_st, vector<byte>& encoded_val);
+  static inline void decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers* bsds, Type& value);
 };
 
 size_t TypedValue::length(const byte* ptr) {
   return BytesVLI::length(ptr);
 }
 
-size_t TypedValue::length(const Type& value, ByteSerializerDeserializers& bsds) {
+size_t TypedValue::length(const Type& value, ByteSerializerDeserializers* bsds) {
   vector<byte> encoded_st, encoded_val;
   encode(value, bsds, encoded_st, encoded_val);
 
   return BytesVLI::length(encoded_st) + BytesVLI::length(encoded_val);
 }
 
-void TypedValue::deserialize(const byte* ptr, ByteSerializerDeserializers& bsds, Type& value) {
+void TypedValue::deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds) {
   vector<byte> encoded_st, encoded_val, encoded;
 
   BytesVLI::deserialize(ptr, encoded);
@@ -50,7 +50,7 @@ void TypedValue::deserialize(const byte* ptr, ByteSerializerDeserializers& bsds,
   decode(encoded_st, encoded_val, bsds, value);
 }
 
-void TypedValue::serialize(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& data) {
+void TypedValue::serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds) {
   vector<byte> encoded_st, encoded_val;
   encode(value, bsds, encoded_st, encoded_val);
 
@@ -65,18 +65,18 @@ void TypedValue::serialize(const Type& value, ByteSerializerDeserializers& bsds,
   BytesVLI::serialize(encoded, data);
 }
 
-void TypedValue::encode(const Type& value, ByteSerializerDeserializers& bsds, vector<byte>& encoded_st, vector<byte>& encoded_val){
+void TypedValue::encode(const Type& value, ByteSerializerDeserializers* bsds, vector<byte>& encoded_st, vector<byte>& encoded_val){
   auto [st, val] = value.get_as_string();
 
-  bsds.huffman.encode(st, encoded_st);
-  bsds.huffman.encode(val, encoded_val);
+  bsds->huffman.encode(st, encoded_st);
+  bsds->huffman.encode(val, encoded_val);
 }
 
-void TypedValue::decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers& bsds, Type& value){
+void TypedValue::decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers* bsds, Type& value){
   string st, val;
 
-  bsds.huffman.decode(encoded_st.data(), st);
-  bsds.huffman.decode(encoded_val.data(), val);
+  bsds->huffman.decode(encoded_st.data(), st);
+  bsds->huffman.decode(encoded_val.data(), val);
 
   value = Type(st, val);
 }

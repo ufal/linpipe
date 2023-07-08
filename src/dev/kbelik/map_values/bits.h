@@ -7,27 +7,29 @@
 
 #include "dev/kbelik/map_values/bytes_vli.h"
 
+#include "dev/kbelik/byte_serializer_deserializer.h"
+
 namespace linpipe::kbelik::map_values {
 
 class Bits {
  public:
   using Type = vector<bool>;
   static inline size_t length(const byte* ptr);
-  static inline size_t length(const Type& val);
-  static inline void deserialize(const byte* ptr, Type& value);
-  static inline void serialize(const Type& value, vector<byte>& data);
+  static inline size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
 };
 
 size_t Bits::length(const byte* ptr) {
   return BytesVLI::length(ptr);
 }
 
-size_t Bits::length(const Bits::Type& value) {
+size_t Bits::length(const Bits::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   vector<byte> mock(ceil(value.size() / 8.0) + 1);
   return BytesVLI::length(mock);
 }
 
-void Bits::deserialize(const byte* ptr, Bits::Type& value) {
+void Bits::deserialize(const byte* ptr, Bits::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   vector<byte> bytes;
   BytesVLI::deserialize(ptr, bytes);
 
@@ -42,7 +44,7 @@ void Bits::deserialize(const byte* ptr, Bits::Type& value) {
   }
 }
 
-void Bits::serialize(const Bits::Type& value, vector<byte>& data) {
+void Bits::serialize(const Bits::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
   vector<byte> bytes;
 
   byte over_eight = (byte)(value.size() - (value.size() / 8) * 8);

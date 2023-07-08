@@ -5,15 +5,17 @@
 
 #include "common.h"
 
+#include "dev/kbelik/byte_serializer_deserializer.h"
+
 namespace linpipe::kbelik::map_values {
 
 class VLI {
  public:
   using Type = uint64_t;
   static inline size_t length(const byte* ptr);
-  static inline size_t length(const Type& val);
-  static inline void deserialize(const byte* ptr, Type& value);
-  static inline void serialize(const Type& value, vector<byte>& data);
+  static inline size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
  private:
   static inline byte get_byte(const byte* ptr, size_t offset);
 };
@@ -24,7 +26,7 @@ size_t VLI::length(const byte* ptr) {
   return count;
 }
 
-size_t VLI::length(const VLI::Type& value) {
+size_t VLI::length(const VLI::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   Type valuecopy = value;
   int msb = 0;
   size_t res = 0;
@@ -41,7 +43,7 @@ size_t VLI::length(const VLI::Type& value) {
   return max((Type)1, res);
 }
 
-void VLI::deserialize(const byte* ptr, VLI::Type& value) {
+void VLI::deserialize(const byte* ptr, VLI::Type& value, ByteSerializerDeserializers* /*bsds*/) {
   value = 0;
   //cout << length(ptr) << '\n';
   for (size_t i = 0; i < length(ptr); ++i) {
@@ -51,7 +53,7 @@ void VLI::deserialize(const byte* ptr, VLI::Type& value) {
   }
 }
 
-void VLI::serialize(const VLI::Type& value, vector<byte>& data) {
+void VLI::serialize(const VLI::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
   size_t bytes_cnt = VLI::length(value);
   data.resize(bytes_cnt);
   VLI::Type valuecopy = value;
