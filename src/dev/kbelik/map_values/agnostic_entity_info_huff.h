@@ -13,7 +13,7 @@
 #include "dev/kbelik/map_values/typed_value.h"
 #include "dev/kbelik/map_values/vli.h"
 
-#include "dev/kbelik/agnostic_kbelik.h"
+#include "dev/kbelik/agnostic_entity_info.h"
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/typed_value.h"
 #include "dev/kbelik/utils.h"
@@ -118,6 +118,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
   value.claims = claims;
   value.named_entities = ne;
   value.fictional = fictional;
+
 }
 
 void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded, ByteSerializerDeserializers* bsds){

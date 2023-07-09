@@ -21,7 +21,7 @@ namespace linpipe::kbelik {
 template<typename KeyMV, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, size_t offset=0, int64_t length=-1);
+  PersistentMap(filesystem::path fp, size_t offset=0, int64_t length=-1, ByteSerializerDeserializers* bsds=nullptr);
   ~PersistentMap();
 
   bool find(typename KeyMV::Type key, typename Value::Type& value) const;
@@ -32,6 +32,7 @@ class PersistentMap{
   MapType get_map_type() const;
 
  private:
+  ByteSerializerDeserializers* bsds;
   size_t length = 0; 
   MapType map_type;
 #ifdef _WIN_32
@@ -64,7 +65,8 @@ class PersistentMap{
 };
 
 template<typename KeyMV, typename Value>
-PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, size_t offset, int64_t length) {
+PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, size_t offset, int64_t length, ByteSerializerDeserializers* bsds) {
+  this->bsds = bsds;
   load(fp, offset, length);
   init();
 }
@@ -76,7 +78,7 @@ bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value:
   uint32_t offset;
   bool success = get_val_offset(key, offset);
   if (success)
-    Value::deserialize(static_cast<byte*>(index_start) + offset, value);
+    Value::deserialize(static_cast<byte*>(index_start) + offset, value, bsds);
   return success;
 }
 
@@ -113,7 +115,6 @@ void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64
     length = sb.st_size;
 
   size_t pagesize = sysconf(_SC_PAGESIZE);
-
 
   off_t page_start = (offset / pagesize) * pagesize;
   off_t page_offset = offset % pagesize;
@@ -196,7 +197,7 @@ bool PersistentMap<KeyMV, Value>::exponential_search(typename KeyMV::Type& key, 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::read_ith_key(int i, typename KeyMV::Type &res) const {
   size_t shift = i * one_key;
-  KeyMV::deserialize(index_start + shift, res);
+  KeyMV::deserialize(index_start + shift, res, bsds);
   //memcpy(&res, index_start + shift , sizeof(KeyMV));
 }
 

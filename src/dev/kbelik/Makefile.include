@@ -16,6 +16,7 @@ dev: dev/kbelik
 
 EXECUTABLES += dev/kbelik/kbelik
 
+LINPIPE_TESTS += dev/kbelik/agnostic_entity_info
 LINPIPE_TESTS += dev/kbelik/agnostic_kbelik
 LINPIPE_TESTS += dev/kbelik/huffman
 LINPIPE_TESTS += dev/kbelik/id

@@ -15,7 +15,8 @@
 #include "lib/doctest.h"
 #include "lib/json.h"
 
-//#include "dev/kbelik/agnostic_kbelik.h"
+#include "dev/kbelik/agnostic_kbelik.h"
+#include "dev/kbelik/agnostic_entity_info.h"
 #include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/huffman.h"
@@ -192,84 +193,133 @@ TEST_CASE("Dynamic map") {
 }
 
 TEST_CASE("Persistent map") {
-  auto dm = DynamicMap<map_values::ID, map_values::Int4>();
-  int vals_cnt = 10;
-  for (int i = 0; i < vals_cnt; ++i) 
-    dm.add(ID("Q" + to_string(i)), i);
-  filesystem::create_directories("./temp");
-  ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
-  dm.save_map(ofs, test);
-  ofs.close();
-  filesystem::path fp("temp/test_map.bin");
-  auto pm = PersistentMap<map_values::ID, map_values::Int4>(fp);
-  SUBCASE("close") {
-    int res;
-    pm.close();
-    CHECK_THROWS_AS(pm.find(ID("Q1"), res), const LinpipeError);
-  }
-  SUBCASE("find success") {
-    map_values::Int4::Type res;
-    bool flag;
-    for (int i = 0; i < vals_cnt; ++i) { 
-      flag = pm.find("Q" + to_string(i), res);
+  SUBCASE("mock") {
+    auto dm = DynamicMap<map_values::ID, map_values::Int4>();
+    int vals_cnt = 10;
+    for (int i = 0; i < vals_cnt; ++i) 
+      dm.add(ID("Q" + to_string(i)), i);
+    filesystem::create_directories("./temp");
+    ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
+    dm.save_map(ofs, test);
+    ofs.close();
+    filesystem::path fp("temp/test_map.bin");
+    auto pm = PersistentMap<map_values::ID, map_values::Int4>(fp);
+    SUBCASE("close") {
+      int res;
+      pm.close();
+      CHECK_THROWS_AS(pm.find(ID("Q1"), res), const LinpipeError);
+    }
+    SUBCASE("find success") {
+      map_values::Int4::Type res;
+      bool flag;
+      for (int i = 0; i < vals_cnt; ++i) { 
+        flag = pm.find("Q" + to_string(i), res);
+        CHECK(flag);
+        CHECK(res == i);
+      }
+    }
+    SUBCASE("find fail") {
+      int res;
+      bool flag = pm.find(ID("Q" + to_string(vals_cnt + 10)), res);
+      CHECK(!flag);
+    }
+    SUBCASE("map type loaded") {
+      MapType t = pm.get_map_type();
+      CHECK(t == test);
+    }
+    SUBCASE("Persistent map with offset") {
+      ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
+      char data[2] = {(char)1, (char)2};
+      ofs.write(data, 2);
+      dm.save_map(ofs, test);
+      ofs.close();
+      filesystem::path fp_offset("temp/test_map_offset.bin");
+      auto pm_offset = PersistentMap<map_values::ID, map_values::Int4>(fp_offset, 2);
+      int res;
+      bool flag = pm_offset.find(ID("Q1"), res);
       CHECK(flag);
-      CHECK(res == i);
+      CHECK(res == 1);
+      flag = pm_offset.find(ID("Q" + to_string(vals_cnt + 10)), res);
+      CHECK(!flag);
+    }
+    SUBCASE("Persistent map with length") {
+      ofs.open("temp/test_map_length.bin", ofstream::out | ofstream::binary);
+      dm.save_map(ofs, test);
+      size_t length = ofs.tellp();
+      char data[2] = {(char)1, (char)2};
+      ofs.write(data, 2);
+      ofs.close();
+      filesystem::path fp_length("temp/test_map_length.bin");
+      auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, length=length);
+      int res;
+      bool flag = pm_length.find(ID("Q1"), res);
+      CHECK(flag);
+      CHECK(res == 1);
+      flag = pm_length.find(ID("Q" + to_string(vals_cnt + 10)), res);
+      CHECK(!flag);
     }
   }
-  SUBCASE("find fail") {
-    int res;
-    bool flag = pm.find(ID("Q" + to_string(vals_cnt + 10)), res);
-    CHECK(!flag);
-  }
-  SUBCASE("map type loaded") {
-    MapType t = pm.get_map_type();
-    CHECK(t == test);
-  }
-  SUBCASE("Persistent map with offset") {
-    ofs.open("temp/test_map_offset.bin", ofstream::out | ofstream::binary);
-    char data[2] = {(char)1, (char)2};
-    ofs.write(data, 2);
+  SUBCASE("Real usecase") {
+    string raw1 = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+    string raw2 = R"del({"qid": "Q96890921", "claims": {"instance of": [["qid", "Q5:human", {}]], "sex or gender": [["qid", "Q6581097:male", {}]], "country of citizenship": [["qid", "Q142:France", {}]], "occupation": [["qid", "Q42973:architect", {}]], "date of birth": [["time:gregorian", "+1814-05-21T00:00:00Z", {}]], "place of birth": [["qid", "Q971866:Croutelle", {}]], "date of death": [["time:gregorian", "+1889-01-23T00:00:00Z", {}]], "place of death": [["qid", "Q949093:Migné-Auxances", {}]], "given name": [["qid", "Q1499767:Jean-Baptiste", {}]], "languages spoken, written or signed": [["qid", "Q150:French", {}]]}, "named_entities": {"type": ["PER"]}})del";
+    string raw3 = R"del({"qid": "Q49496872", "claims": {"LfDS object ID": [["external-id", "09241968", {}]], "instance of": [["qid", "Q3947:house", {}]], "coordinate location": [["globe-coordinate", "50.844588063567 12.455779739649", {}]], "inception": [["time:gregorian", "+1920-01-17T00:00:00Z", {}]], "heritage designation": [["qid", "Q11691318:cultural heritage monument in Germany", {}]], "country": [["qid", "Q183:Germany", {}]], "located in the administrative territorial entity": [["qid", "Q20083:Meerane", {}]], "street address": [["monolingualtext:de", "Philippstraße 68; 70; 72; 74", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+    string raw4 = R"del({"qid": "Q66638937", "claims": {"instance of": [["qid", "Q66619497:HDFC Bank branch", {}]], "country": [["qid", "Q668:India", {}]], "operator": [["qid", "Q631047:HDFC Bank call now‪ 09382691063‬= ‪09382691063‬", {}]], "located in the administrative territorial entity": [["qid", "Q620297:Umaria district", {}]], "Indian Financial System Code": [["external-id", "HDFC0001778", {}]]}, "named_entities": {"type": ["ORG", "LOC"]}})del";
+    string raw5 = R"del({"qid": "Q112471937", "claims": {"occupation": [["qid", "Q36180:writer", {}], ["qid", "Q201788:historian", {}]], "date of death": [["time:gregorian", "+2012-00-00T00:00:00Z", {}]], "NKCR AUT ID": [["external-id", "jo2013794598", {"subject named as": [["string", "Cvetkov, Sergej Vasil'jevič"]]}]], "given name": [["qid", "Q18946707:Sergej", {"series ordinal": [["string", "1"]]}]], "date of birth": [["time:gregorian", "+1952-00-00T00:00:00Z", {}]], "instance of": [["qid", "Q5:human", {}]], "VIAF ID": [["external-id", "120746555", {}]], "ISNI": [["external-id", "0000 0004 4928 8498", {}]], "Library of Congress authority ID": [["external-id", "n00092256", {}]], "Bibliothèque nationale de France ID": [["external-id", "150142744", {}]], "IdRef ID": [["external-id", "137102690", {}]], "PLWABN ID": [["external-id", "9810632583205606", {}]], "National Library of Israel J9U ID": [["external-id", "987007439703105171", {}]]}, "named_entities": {"type": ["PER"]}})del";
+
+    auto huff = HuffmanTree();
+    huff.add(raw1);
+    huff.add(raw2);
+    huff.add(raw3);
+    huff.add(raw4);
+    huff.add(raw5);
+    huff.build();
+
+    ByteSerializerDeserializers bsds;
+    bsds.huffman = huff;
+
+    auto dm = DynamicMap<map_values::ID, map_values::AgnosticEntityInfoH>(&bsds);
+    for (auto line : {raw1, raw2, raw3, raw4, raw5}) {
+      auto js = Json::parse(line);
+      string q_str = js["qid"];
+      auto id = ID(q_str);
+      auto aei = AgnosticEntityInfo(js);
+      dm.add(id, aei);
+    }
+
+    ofstream ofs("temp/test_map.bin", ofstream::out | ofstream::binary);
     dm.save_map(ofs, test);
     ofs.close();
-    filesystem::path fp_offset("temp/test_map_offset.bin");
-    auto pm_offset = PersistentMap<map_values::ID, map_values::Int4>(fp_offset, 2);
-    int res;
-    bool flag = pm_offset.find(ID("Q1"), res);
-    CHECK(flag);
-    CHECK(res == 1);
-    flag = pm_offset.find(ID("Q" + to_string(vals_cnt + 10)), res);
-    CHECK(!flag);
-  }
-  SUBCASE("Persistent map with length") {
-    ofs.open("temp/test_map_length.bin", ofstream::out | ofstream::binary);
-    dm.save_map(ofs, test);
-    size_t length = ofs.tellp();
-    char data[2] = {(char)1, (char)2};
-    ofs.write(data, 2);
-    ofs.close();
-    filesystem::path fp_length("temp/test_map_length.bin");
-    auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, length=length);
-    int res;
-    bool flag = pm_length.find(ID("Q1"), res);
-    CHECK(flag);
-    CHECK(res == 1);
-    flag = pm_length.find(ID("Q" + to_string(vals_cnt + 10)), res);
-    CHECK(!flag);
+
+    filesystem::path fp("temp/test_map.bin");
+    auto pm = PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(fp, 0, -1, &bsds);
+    SUBCASE("find") {
+      auto aei = AgnosticEntityInfo();
+      pm.find(ID("Q66638937"), aei);
+      CHECK(aei.claims.size() == 5);
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
+    }
   }
 }
 
-/*
 TEST_CASE("Agnostic kbelik") {
-  string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}}\n{"qid": "Q96890921", "claims": {"instance of": [["qid", "Q5:human", {}]], "sex or gender": [["qid", "Q6581097:male", {}]], "country of citizenship": [["qid", "Q142:France", {}]], "occupation": [["qid", "Q42973:architect", {}]], "date of birth": [["time:gregorian", "+1814-05-21T00:00:00Z", {}]], "place of birth": [["qid", "Q971866:Croutelle", {}]], "date of death": [["time:gregorian", "+1889-01-23T00:00:00Z", {}]], "place of death": [["qid", "Q949093:Migné-Auxances", {}]], "given name": [["qid", "Q1499767:Jean-Baptiste", {}]], "languages spoken, written or signed": [["qid", "Q150:French", {}]]}, "named_entities": {"type": ["PER"]}}\n{"qid": "Q49496872", "claims": {"LfDS object ID": [["external-id", "09241968", {}]], "instance of": [["qid", "Q3947:house", {}]], "coordinate location": [["globe-coordinate", "50.844588063567 12.455779739649", {}]], "inception": [["time:gregorian", "+1920-01-17T00:00:00Z", {}]], "heritage designation": [["qid", "Q11691318:cultural heritage monument in Germany", {}]], "country": [["qid", "Q183:Germany", {}]], "located in the administrative territorial entity": [["qid", "Q20083:Meerane", {}]], "street address": [["monolingualtext:de", "Philippstraße 68; 70; 72; 74", {}]]}, "named_entities": {"type": ["LOC"]}}\n{"qid": "Q66638937", "claims": {"instance of": [["qid", "Q66619497:HDFC Bank branch", {}]], "country": [["qid", "Q668:India", {}]], "operator": [["qid", "Q631047:HDFC Bank call now‪ 09382691063‬= ‪09382691063‬", {}]], "located in the administrative territorial entity": [["qid", "Q620297:Umaria district", {}]], "Indian Financial System Code": [["external-id", "HDFC0001778", {}]]}, "named_entities": {"type": ["ORG", "LOC"]}}\n{"qid": "Q112471937", "claims": {"occupation": [["qid", "Q36180:writer", {}], ["qid", "Q201788:historian", {}]], "date of death": [["time:gregorian", "+2012-00-00T00:00:00Z", {}]], "NKCR AUT ID": [["external-id", "jo2013794598", {"subject named as": [["string", "Cvetkov, Sergej Vasil'jevič"]]}]], "given name": [["qid", "Q18946707:Sergej", {"series ordinal": [["string", "1"]]}]], "date of birth": [["time:gregorian", "+1952-00-00T00:00:00Z", {}]], "instance of": [["qid", "Q5:human", {}]], "VIAF ID": [["external-id", "120746555", {}]], "ISNI": [["external-id", "0000 0004 4928 8498", {}]], "Library of Congress authority ID": [["external-id", "n00092256", {}]], "Bibliothèque nationale de France ID": [["external-id", "150142744", {}]], "IdRef ID": [["external-id", "137102690", {}]], "PLWABN ID": [["external-id", "9810632583205606", {}]], "National Library of Israel J9U ID": [["external-id", "987007439703105171", {}]]}, "named_entities": {"type": ["PER"]}})del";
+  string raw1 = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+  string raw2 = R"del({"qid": "Q96890921", "claims": {"instance of": [["qid", "Q5:human", {}]], "sex or gender": [["qid", "Q6581097:male", {}]], "country of citizenship": [["qid", "Q142:France", {}]], "occupation": [["qid", "Q42973:architect", {}]], "date of birth": [["time:gregorian", "+1814-05-21T00:00:00Z", {}]], "place of birth": [["qid", "Q971866:Croutelle", {}]], "date of death": [["time:gregorian", "+1889-01-23T00:00:00Z", {}]], "place of death": [["qid", "Q949093:Migné-Auxances", {}]], "given name": [["qid", "Q1499767:Jean-Baptiste", {}]], "languages spoken, written or signed": [["qid", "Q150:French", {}]]}, "named_entities": {"type": ["PER"]}})del";
+  string raw3 = R"del({"qid": "Q49496872", "claims": {"LfDS object ID": [["external-id", "09241968", {}]], "instance of": [["qid", "Q3947:house", {}]], "coordinate location": [["globe-coordinate", "50.844588063567 12.455779739649", {}]], "inception": [["time:gregorian", "+1920-01-17T00:00:00Z", {}]], "heritage designation": [["qid", "Q11691318:cultural heritage monument in Germany", {}]], "country": [["qid", "Q183:Germany", {}]], "located in the administrative territorial entity": [["qid", "Q20083:Meerane", {}]], "street address": [["monolingualtext:de", "Philippstraße 68; 70; 72; 74", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+  string raw4 = R"del({"qid": "Q66638937", "claims": {"instance of": [["qid", "Q66619497:HDFC Bank branch", {}]], "country": [["qid", "Q668:India", {}]], "operator": [["qid", "Q631047:HDFC Bank call now‪ 09382691063‬= ‪09382691063‬", {}]], "located in the administrative territorial entity": [["qid", "Q620297:Umaria district", {}]], "Indian Financial System Code": [["external-id", "HDFC0001778", {}]]}, "named_entities": {"type": ["ORG", "LOC"]}})del";
+  string raw5 = R"del({"qid": "Q112471937", "claims": {"occupation": [["qid", "Q36180:writer", {}], ["qid", "Q201788:historian", {}]], "date of death": [["time:gregorian", "+2012-00-00T00:00:00Z", {}]], "NKCR AUT ID": [["external-id", "jo2013794598", {"subject named as": [["string", "Cvetkov, Sergej Vasil'jevič"]]}]], "given name": [["qid", "Q18946707:Sergej", {"series ordinal": [["string", "1"]]}]], "date of birth": [["time:gregorian", "+1952-00-00T00:00:00Z", {}]], "instance of": [["qid", "Q5:human", {}]], "VIAF ID": [["external-id", "120746555", {}]], "ISNI": [["external-id", "0000 0004 4928 8498", {}]], "Library of Congress authority ID": [["external-id", "n00092256", {}]], "Bibliothèque nationale de France ID": [["external-id", "150142744", {}]], "IdRef ID": [["external-id", "137102690", {}]], "PLWABN ID": [["external-id", "9810632583205606", {}]], "National Library of Israel J9U ID": [["external-id", "987007439703105171", {}]]}, "named_entities": {"type": ["PER"]}})del";
 
-  istream jsons = istringstream(raw);
+  string raw = raw1 + "\n" + raw2 + "\n" + raw3 + "\n" + raw4 + "\n" + raw5;
+
+  istringstream jsons = istringstream(raw);
 
   ofstream ofs("temp/test_ak.bin", ofstream::out | ofstream::binary);
-  AgnosticKbelik().build(jsons, ofs);
-  filesystem::path fp("temp/test_map.bin");
+  AgnosticKbelik::build(jsons, ofs);
+  ofs.close();
+  filesystem::path fp("temp/test_ak.bin");
 
   SUBCASE("Build") {
-    ifstream file(fp, ios::ate); // Open file and position read pointer at the end
+    ifstream file(fp, ifstream::ate | ifstream::binary); // Open file and position read pointer at the end
     streampos size = file.tellg(); // Get current position which corresponds to file size
     file.close();
     CHECK(size > 0);
@@ -297,15 +347,16 @@ TEST_CASE("Agnostic kbelik") {
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
     }
+    /*
     SUBCASE("Close") {
       auto ak = AgnosticKbelik(fp);
       auto aei = AgnosticEntityInfo();
-      ak.close()
+      ak.close();
       CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
     }
+    */
   }
 }
-*/
 
 /*
 
@@ -872,7 +923,6 @@ TEST_CASE("VLI") {
     VLI::serialize(i, data);
     SUBCASE("Correct length from serialized") {
       size_t expected = max((size_t)1, (size_t)ceil(msb(i) / 7.0));
-      //cout << i << ' ' << expected << '\n'; 
       CHECK(expected == VLI::length(data.data()));
     }
     SUBCASE("Correct length from deserialized") {
@@ -957,7 +1007,6 @@ TEST_CASE("Chars") {
       string result;
       Chars<uint8_t>::serialize(text, data.data());
       Chars<uint8_t>::deserialize(data.data(), result);
-      cout << string(text.begin(), text.end());
       CHECK(string(text.begin(), text.end()) == result);
     }
   }

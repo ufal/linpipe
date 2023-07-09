@@ -52,9 +52,11 @@ class HuffmanTree {
     void serialize(vector<byte>& to) const;
 
     void deserialize(byte* from);
+    void deserialize(const vector<byte>& from);
 
-  private:
     inline byte end_symbol() const { return (byte)0b11111111; }
+    inline byte end_serialize_symbol() const { return (byte)0b11111110; }
+  private:
 
     uint16_t creation_time = 0;
     bool is_built = false;

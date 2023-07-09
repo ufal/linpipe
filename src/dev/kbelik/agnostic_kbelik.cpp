@@ -5,58 +5,72 @@
 #include "dev/kbelik/typed_value.h"
 #include "dev/kbelik/utils.h"
 
+#include "dev/kbelik/byte_serializer_deserializer.h"
+#include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
+#include "dev/kbelik/map_values/huffman.h"
+#include "dev/kbelik/map_values/id.h"
+
+#include "dev/kbelik/dynamic_map.h"
+#include "dev/kbelik/persistent_map.h"
+
 namespace linpipe::kbelik {
 
-AgnosticEntityInfo::AgnosticEntityInfo() {
-  claims = unordered_map<string, AEIProperties>();
+// Agnostic Kbelik
+
+AgnosticKbelik::AgnosticKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
+  this->kbelik_path = kbelik_path;
+  size_t bsds_bytes = load_bsds(offset);
+  load_map(offset + bsds_bytes, -1);
 }
 
-AgnosticEntityInfo::AgnosticEntityInfo(Json& js) {
-  claims_from_wikidata_json(js["claims"]);
-  fictional_from_wikidata_json(js["named_entities"]);
-  ne_from_wikidata_json(js["names_entities"]);
+bool AgnosticKbelik::find(ID id, AgnosticEntityInfo& value) const {
+  return map->find(id, value);
 }
 
-void AgnosticEntityInfo::claims_from_wikidata_json(Json& clms) {
-  for(auto& [key, val] : clms.items()) {
-    string sub_type = val.at(0).at(0);
-    string type_value = val.at(0).at(1);
-    auto optionals = create_optionals(val.at(0).at(2));
-    claims[key] = {TypedValue(sub_type, type_value), optionals};
+void AgnosticKbelik::close() {
+  map->close();
+}
+
+bool AgnosticKbelik::opened() const {
+  return map->opened();
+}
+
+size_t AgnosticKbelik::load_bsds(size_t offset) {
+  size_t bsds_size = 0;
+
+  std::ifstream ifs(kbelik_path, std::ios::binary | std::ios::in);
+  byte b;
+
+  auto huff = HuffmanTree();
+  vector<byte> huff_bytes;
+
+
+  if (ifs.is_open()) {
+    ifs.seekg(offset);
+    while (ifs.read((char*)&b, sizeof(b))) {
+      huff_bytes.push_back(b);
+      if(b == huff.end_serialize_symbol()) 
+        break;
+    }
+    ifs.close();
+  } 
+  else {
+    throw LinpipeError("Failed to open file for reading.\n");
   }
+  huff.deserialize(huff_bytes);
+  bsds.huffman = huff;
+
+  bsds_size += huff_bytes.size();
+  return bsds_size;
 }
 
-void AgnosticEntityInfo::fictional_from_wikidata_json(Json& ne) {
-  fictional = Ternary::Maybe;
-  if (ne.contains("fictional"))  
-    fictional = ne["fictional"] ? Ternary::True : Ternary::False;
+void AgnosticKbelik::load_map(size_t offset, int64_t length) {
+  map = new PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(kbelik_path, offset, length, &bsds);
 }
 
-void AgnosticEntityInfo::ne_from_wikidata_json(Json& ne) {
-  for (auto val : ne["type"])
-    named_entities.push_back(named_entity_from_string(val));
+AgnosticKbelik::~AgnosticKbelik() {
+  close();
+  delete map;
 }
-
-unordered_map<string, TypedValue> AgnosticEntityInfo::create_optionals(Json& js) {
-  unordered_map<string, TypedValue> optionals;
-  for(auto& [key, val] : js.items()) {
-    string sub_type = val.at(0).at(0);
-    string type_value = val.at(0).at(1);
-    optionals[key] = TypedValue(sub_type, type_value);
-  }
-  return optionals;
-}
-  
-NamedEntity AgnosticEntityInfo::named_entity_from_string(const string& str) {
-  if (str == "PER") return NamedEntity::PER;
-  else if (str == "ORG") return NamedEntity::ORG;
-  else if (str == "LOC") return NamedEntity::LOC;
-  else if (str == "EVENT") return NamedEntity::EVENT;
-  else if (str == "BRAND") return NamedEntity::BRAND;
-  else if (str == "WORK_OF_ART") return NamedEntity::WORK_OF_ART;
-  else if (str == "MANUFACTURED") return NamedEntity::MANUFACTURED;
-  else throw LinpipeError("Invalid string value for NamedEntity");
-}
-
 
 } // linpipe::kbelik

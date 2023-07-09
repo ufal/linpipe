@@ -160,7 +160,7 @@ void HuffmanTree::serialize(vector<byte>& to) const {
     throw LinpipeError("Tree is not built and cannot be serialized.");
   to.resize(0);
   prefix_serialize(root, to);
-  to.push_back(end_symbol());
+  to.push_back(end_serialize_symbol());
 }
 
 Node HuffmanTree::prefix_construct(byte*& in) const {
@@ -182,6 +182,11 @@ void HuffmanTree::deserialize(byte* in) {
   root = make_shared<Node>(prefix_construct(in));
   build_paths();
   is_built = true;
+}
+
+void HuffmanTree::deserialize(const vector<byte>& in) {
+  byte* in_ptr = const_cast<byte*>(in.data());
+  deserialize(in_ptr);
 }
   
 } // linpipe::kbelik
