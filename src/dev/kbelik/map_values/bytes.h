@@ -13,10 +13,10 @@ template<typename SizeType>
 class Bytes {
  public:
   using Type = vector<byte>;
-  static size_t length(const byte* ptr);
-  static size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
-  static void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
-  static void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
+  static inline size_t length(const byte* ptr);
+  static inline size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
+  static inline void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
 };
 
 template<typename SizeType>
