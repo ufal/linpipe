@@ -6,6 +6,7 @@
 
 #include "common.h"
 
+#include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/map_type.h"
 
 namespace linpipe::kbelik {
@@ -13,6 +14,8 @@ namespace linpipe::kbelik {
 template<typename KeyMV, typename Value>
 class DynamicMap{
  public:
+  DynamicMap(ByteSerializerDeserializers* bsds=nullptr) : bsds(bsds) {};
+
   bool find(typename KeyMV::Type key, typename Value::Type& value) const;
   void add(typename KeyMV::Type key, const typename Value::Type& value);
   void erase(typename KeyMV::Type key);
@@ -27,6 +30,7 @@ class DynamicMap{
   map<typename KeyMV::Type, typename Value::Type> values;
 
  private:
+  ByteSerializerDeserializers* bsds;
 
   void write_type(ostream& os, MapType type);
   void write_keys_and_values(ostream& os);
@@ -104,10 +108,10 @@ void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
     address_type offset = size_sums[idx] + index_size - key_address_size * idx;
 
     vector<byte> serialized_key;
-    KeyMV::serialize(p.first, serialized_key);
+    KeyMV::serialize(p.first, serialized_key, bsds);
     memcpy_two(data.data(), serialized_key.data(), 
                (byte*)&offset,
-               KeyMV::length(p.first), address_size);
+               KeyMV::length(p.first, bsds), address_size);
 
     // data -> to_stream
     memcpy(to_stream_ptr + idx * key_address_size, 
@@ -115,7 +119,8 @@ void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
            key_address_size);
 
     // data (contains value) -> to_stream
-    Value::serialize(p.second, data);
+    data.clear();
+    Value::serialize(p.second, data, bsds);
     memcpy(to_stream_ptr + index_size + size_sums[idx++], 
            data.data(), 
            data.size());
@@ -141,7 +146,7 @@ vector<size_t> DynamicMap<KeyMV, Value>::value_prefix_sums() {
   vector<size_t> ps(values.size() + 1, 0);
   int idx = 1;
   for (auto p: values) {
-    ps[idx] = Value::length(p.second) + ps[idx - 1];
+    ps[idx] = Value::length(p.second, bsds) + ps[idx - 1];
     idx++;
   }
   return ps;
