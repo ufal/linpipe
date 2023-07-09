@@ -10,15 +10,19 @@ namespace kbelik {
   class SpecificKbelik{
     private:
       PersistentMap<Key, Value> ids_to_atts;
-      PersistentMap<Value, Key> atts_to_ids; // Maybe we need to use something different than PersistentMap
       void load(string map_path);
     public:
       SpecificKbelik(filesystem::path map_path);
       static void build(istream json);
       Value find_att(Key id);
-      Key find_id(Value att);
       void save();
       ~SpecificKbelik();
   };
 }
 }
+
+// - Values jsou
+//   - label: str
+//   - aliases: list[str]
+//   - description: str
+//   - text: str (je ve "wiki"/"text", ale "wiki" tam nemusí být
