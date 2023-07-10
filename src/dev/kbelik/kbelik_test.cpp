@@ -33,6 +33,7 @@
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/int8.h"
 #include "dev/kbelik/map_values/simple_json.h"
+#include "dev/kbelik/map_values/specific_entity_info_huff.h"
 #include "dev/kbelik/map_values/typed_value.h"
 #include "dev/kbelik/map_values/vli.h"
 
@@ -348,14 +349,12 @@ TEST_CASE("Agnostic kbelik") {
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
     }
-    /*
     SUBCASE("Close") {
       auto ak = AgnosticKbelik(fp);
       auto aei = AgnosticEntityInfo();
       ak.close();
       CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
     }
-    */
   }
 }
 
@@ -849,6 +848,32 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
     AgnosticEntityInfoH::deserialize(data.data(), aei, &bsds);
     CHECK(aei.claims == ori.claims);
   }
+}
+
+TEST_CASE("SpecificEntityInfoH -- map value") {
+  ByteSerializerDeserializers bsds;
+  string raw = R"del({"qid": "Q6723460", "label": "blabla", "lang": "cs", "description": "asteroid", "wiki": {"title": "Slunce", "text": "Slunce je jak znamo asteroid"}})del";
+  Json big = Json::parse(raw);
+  auto huff = &bsds.huffman;
+  huff->add(raw);
+  huff->build();
+  vector<byte> data;
+  auto ori = linpipe::kbelik::SpecificEntityInfo(big);
+  SpecificEntityInfoH::serialize(ori, data, &bsds);
+
+  SUBCASE("Lengths") {
+    size_t l1, l2;
+    l1 = SpecificEntityInfoH::length(ori, &bsds);
+    l2 = SpecificEntityInfoH::length(data.data());
+    CHECK(l1 == l2);
+  }
+  SUBCASE("Serialization/Desirizalization") {
+    linpipe::kbelik::SpecificEntityInfo sp;
+    SpecificEntityInfoH::deserialize(data.data(), sp, &bsds);
+  
+    CHECK(sp == ori);
+  }
+
 }
 /*
 
