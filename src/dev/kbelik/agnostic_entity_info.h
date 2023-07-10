@@ -25,6 +25,7 @@ inline bool operator!=(const AEIProperties& a, const AEIProperties& b) {
 class AgnosticEntityInfo {
  public:
   unordered_map<string, AEIProperties> claims;
+  // Might be better to use un_set:
   vector<NamedEntity> named_entities;
   Ternary fictional;
 
