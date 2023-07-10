@@ -8,12 +8,16 @@ namespace linpipe::kbelik {
 SpecificEntityInfo::SpecificEntityInfo() {}
 
 SpecificEntityInfo::SpecificEntityInfo(Json& js) {
-  label = js["label"];
-  description = js["description"];
-  text = js["text"];
-
-  for (auto alias : js["aliases"])
-    aliases.insert(alias);
+  if (js.contains("label"))
+    label = js["label"];
+  if (js.contains("description"))
+    description = js["description"];
+  if (js.contains("wiki"))
+    if(js["wiki"].contains("text"))
+      text = js["wiki"]["text"];
+  if (js.contains("aliases"))
+    for (string alias : js["aliases"])
+      aliases.insert(alias);
 }
 
 } // namespace linpipe::kbelik

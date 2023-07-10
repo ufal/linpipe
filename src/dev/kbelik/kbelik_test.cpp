@@ -21,6 +21,7 @@
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/huffman.h"
 #include "dev/kbelik/named_entity.h"
+#include "dev/kbelik/specific_entity_info.h"
 
 //#include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
@@ -363,6 +364,41 @@ TEST_CASE("Agnostic kbelik") {
 TEST_CASE("Specific kbelik") {
 }
 */
+
+TEST_CASE("Specific entity info") {
+  string raw1 = R"del({"qid": "Q7365597", "lang": "cs", "label": "Ronen", "aliases": ["רונן"], "description": "příjmení (רונן)"})del";
+  string raw2 = R"del({"qid": "Q6723460", "lang": "cs", "description": "asteroid"})del";
+  string raw3 = R"del({"qid": "Q6723460", "lang": "cs", "description": "asteroid", "wiki": {"title": "Slunce", "text": "Slunce je jak znamo asteroid"}})del";
+
+  auto js1 = Json::parse(raw1);
+  auto js2 = Json::parse(raw2);
+  auto js3 = Json::parse(raw3);
+
+  auto sp1 = SpecificEntityInfo(js1);
+  auto sp2 = SpecificEntityInfo(js2);
+  auto sp3 = SpecificEntityInfo(js3);
+
+  SUBCASE("From json") {
+    SUBCASE("==") {
+      CHECK(sp1 == sp1);
+      CHECK(sp2 == sp2);
+      CHECK(sp3 == sp3);
+    }
+    SUBCASE("!=") {
+      CHECK(sp1 != sp2);
+      CHECK(sp1 != sp3);
+      CHECK(sp2 != sp3);
+    }
+
+    SUBCASE("fields") {
+      CHECK(sp1.label == "Ronen");
+      CHECK(sp3.description == "asteroid");
+      CHECK(sp3.text == "Slunce je jak znamo asteroid");
+      CHECK(sp1.text == "");
+      CHECK(sp1.aliases.find("רונן") != sp1.aliases.end());
+    }
+  }
+}
 
 TEST_CASE("TypedValue") {
   SUBCASE("general functionality tests with subtype string") {

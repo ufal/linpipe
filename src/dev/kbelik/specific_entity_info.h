@@ -29,7 +29,7 @@ inline bool operator==(const SpecificEntityInfo& a, const SpecificEntityInfo& b)
 }
 
 inline bool operator!=(const SpecificEntityInfo& a, const SpecificEntityInfo& b) {
-  !(a == b);
+  return !(a == b);
 }
 
 } // namespace linpipe::kbelik
