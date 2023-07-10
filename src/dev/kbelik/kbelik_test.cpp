@@ -19,6 +19,7 @@
 #include "dev/kbelik/agnostic_entity_info.h"
 #include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
+#include "dev/kbelik/general_kbelik.h"
 #include "dev/kbelik/huffman.h"
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/specific_entity_info.h"
@@ -316,7 +317,7 @@ TEST_CASE("Agnostic kbelik") {
   istringstream jsons = istringstream(raw);
 
   ofstream ofs("temp/test_ak.bin", ofstream::out | ofstream::binary);
-  AgnosticKbelik::build(jsons, ofs);
+  GeneralKbelik<map_values::AgnosticEntityInfoH>::build(jsons, ofs);
   ofs.close();
   filesystem::path fp("temp/test_ak.bin");
 
@@ -329,7 +330,7 @@ TEST_CASE("Agnostic kbelik") {
   SUBCASE("Instance methods") {
     SUBCASE("Constructor") {
       SUBCASE("Basic") {
-        auto ak = AgnosticKbelik(fp);
+        auto ak = GeneralKbelik<map_values::AgnosticEntityInfoH>(fp);
         auto aei = AgnosticEntityInfo();
         ak.find(ID("Q2417271"), aei);
         CHECK(aei.claims.size() > 0);
@@ -342,7 +343,7 @@ TEST_CASE("Agnostic kbelik") {
       }
     }
     SUBCASE("Find") {
-      auto ak = AgnosticKbelik(fp);
+      auto ak = GeneralKbelik<map_values::AgnosticEntityInfoH>(fp);
       auto aei = AgnosticEntityInfo();
       ak.find(ID("Q66638937"), aei);
       CHECK(aei.claims.size() == 5);
@@ -350,7 +351,7 @@ TEST_CASE("Agnostic kbelik") {
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
     }
     SUBCASE("Close") {
-      auto ak = AgnosticKbelik(fp);
+      auto ak = GeneralKbelik<map_values::AgnosticEntityInfoH>(fp);
       auto aei = AgnosticEntityInfo();
       ak.close();
       CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
@@ -358,11 +359,56 @@ TEST_CASE("Agnostic kbelik") {
   }
 }
 
-/*
 
 TEST_CASE("Specific kbelik") {
+  string raw1 = R"del({"qid": "Q7365597", "lang": "cs", "label": "Ronen", "aliases": ["רונן"], "description": "příjmení (רונן)"})del";
+  string raw2 = R"del({"qid": "Q6723460", "lang": "cs", "description": "asteroid"})del";
+  string raw3 = R"del({"qid": "Q6723460", "lang": "cs", "description": "asteroid", "wiki": {"title": "Slunce", "text": "Slunce je jak znamo asteroid"}})del";
+  
+  string raw = raw1 + "\n" + raw2 + "\n" + raw3;
+
+  istringstream jsons = istringstream(raw);
+
+  ofstream ofs("temp/test_sk.bin", ofstream::out | ofstream::binary);
+  GeneralKbelik<map_values::SpecificEntityInfoH>::build(jsons, ofs);
+  ofs.close();
+  filesystem::path fp("temp/test_sk.bin");
+
+  SUBCASE("Build") {
+    ifstream file(fp, ifstream::ate | ifstream::binary); // Open file and position read pointer at the end
+    streampos size = file.tellg(); // Get current position which corresponds to file size
+    file.close();
+    CHECK(size > 0);
+  }
+  SUBCASE("Instance methods") {
+    SUBCASE("Constructor") {
+      SUBCASE("Basic") {
+        auto sk = GeneralKbelik<map_values::SpecificEntityInfoH>(fp);
+        auto sei = SpecificEntityInfo();
+        bool flag = sk.find(ID("Q2417271"), sei);
+        CHECK(!flag);
+      }
+      SUBCASE("offset") {
+        // TODO
+      }
+      SUBCASE("length") {
+        // TODO
+      }
+    }
+    SUBCASE("Find") {
+      auto sk = GeneralKbelik<map_values::SpecificEntityInfoH>(fp);
+      auto sei = SpecificEntityInfo();
+      sk.find(ID("Q7365597"), sei);
+      CHECK(sei.label == "Ronen");
+    }
+    SUBCASE("Close") {
+      auto sk = GeneralKbelik<map_values::SpecificEntityInfoH>(fp);
+      auto sei = SpecificEntityInfo();
+      sk.close();
+      CHECK_THROWS_AS(sk.find(ID("Q66638937"), sei), LinpipeError);
+    }
+  }
 }
-*/
 
 TEST_CASE("Specific entity info") {
   string raw1 = R"del({"qid": "Q7365597", "lang": "cs", "label": "Ronen", "aliases": ["רונן"], "description": "příjmení (רונן)"})del";
