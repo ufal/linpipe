@@ -1,5 +1,22 @@
 # Log of KBELik Progress
 
+### July 11, 2023
+- General kbelik is fine but agnostic and specific should be aliased
+
+- Passing bsds to map is not good so make all map values instances and pass them
+  to the map
+
+- Using map_value::ID when working with keys is too heavy. All keys have the
+  same size so map_value::ID is complicated when it doesn't have to be.
+  Generality of ID also decreases performance. Because of that, create
+  map_key::ID that solves these issues.
+
+- fictional shouldn't be Ternary but only true/false
+
+- rewrite TypeValue so it's simpler and supports more type specific methods
+
+- There are mistakes in the format of AgnosticEntityInfo, rewrite it.
+
 ### June 26, 2023
 - Enum of named entities should be serialized into the map file. It should be
   preferably represented as an object that contains string (named entities) <-> int
