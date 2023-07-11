@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#include <unordered_map>
+
 #include "dev/kbelik/typed_value.h"
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/utils.h"

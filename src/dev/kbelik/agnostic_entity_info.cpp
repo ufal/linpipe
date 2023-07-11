@@ -1,7 +1,10 @@
-
 #include "common.h"
 
+#include <unordered_map>
+
 #include "dev/kbelik/agnostic_entity_info.h"
+
+#include "lib/json.h"
 
 namespace linpipe::kbelik {
 

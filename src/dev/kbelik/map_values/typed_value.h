@@ -66,7 +66,8 @@ void TypedValue::serialize(const Type& value, vector<byte>& data, ByteSerializer
 }
 
 void TypedValue::encode(const Type& value, ByteSerializerDeserializers* bsds, vector<byte>& encoded_st, vector<byte>& encoded_val){
-  auto [st, val] = value.get_as_string();
+  string st =value.get_type_string();
+  string val = value.get_string();
 
   bsds->huffman.encode(st, encoded_st);
   bsds->huffman.encode(val, encoded_val);
