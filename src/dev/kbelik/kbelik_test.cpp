@@ -463,14 +463,14 @@ TEST_CASE("TypedValue") {
   }
 
   SUBCASE("Non-default constructor") {
-    TypedValue tv("qid", "Q123");
+    TypedValue tv("id", "Q123");
     CHECK(tv.get_type() == TypedValueSubtype::id);
     CHECK(tv.get_string() == ID("Q123"));
   }
 
   SUBCASE("Equality operator") {
-    TypedValue tv1("qid", "Q123");
-    TypedValue tv2("qid", "Q123");
+    TypedValue tv1("id", "Q123");
+    TypedValue tv2("id", "Q123");
     CHECK(tv1 == tv2);
   }
   SUBCASE("Language") {
@@ -500,8 +500,8 @@ TEST_CASE("TypedValue") {
   }
   
   SUBCASE("Equality operator with different objects") {
-    TypedValue tv1("qid", "Q123");
-    TypedValue tv2("qid", "Q124");
+    TypedValue tv1("id", "Q123");
+    TypedValue tv2("id", "Q124");
     CHECK_FALSE(tv1 == tv2);
   }
 
@@ -517,7 +517,7 @@ TEST_CASE("TypedValue") {
     CHECK_THROWS_AS(TypedValue("unknown", "value"), LinpipeError);
   }
   SUBCASE("Real usecase") {
-    Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
+    Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["id", "Q183:Germany", {}]], "instance of": [["id", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["id", "Q1997469:Nord", {}]], "heritage designation": [["id", "Q811165:architectural heritage monument", {}]], "pof": [["id", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["id", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["id", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["id", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
     auto clms = big["claims"];
     for(auto& [key, val] : clms.items()) {
       string sub_type = val.at(0).at(0);
@@ -773,7 +773,7 @@ TEST_CASE("TypedValue -- map value") {
   SUBCASE("qid") {
     string qid = "Q1234567890987654";
     bsds->huffman.build();
-    auto tv = linpipe::kbelik::TypedValue("qid", qid);
+    auto tv = linpipe::kbelik::TypedValue("id", qid);
     TypedValue::serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
     TypedValue::deserialize(data.data(), tv2, bsds);
@@ -837,7 +837,7 @@ TEST_CASE("TypedValue -- map value") {
     }
   }
   SUBCASE("Real usecase") {
-    string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
+    string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["id", "Q183:Germany", {}]], "instance of": [["id", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["id", "Q1997469:Nord", {}]], "heritage designation": [["id", "Q811165:architectural heritage monument", {}]], "pof": [["id", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["id", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["id", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["id", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
     Json big = Json::parse(raw);
     auto huff = &((*bsds).huffman);
     huff->add(raw);

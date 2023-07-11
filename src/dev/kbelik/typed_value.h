@@ -68,7 +68,7 @@ class TypedValue {
 
 TypedValueSubtype TypedValue::string_to_subtype(const string& subtype) {
   static const unordered_map<string, TypedValueSubtype> map {
-    {"qid", TypedValueSubtype::id},
+    {"id", TypedValueSubtype::id},
     {"url", TypedValueSubtype::url},
     {"string", TypedValueSubtype::string},
     {"external-id", TypedValueSubtype::external_id},
@@ -102,7 +102,7 @@ TypedValueSubtype TypedValue::string_to_subtype(const string& subtype) {
 
 string TypedValue::subtype_to_string(const TypedValueSubtype& subtype) {
   static const unordered_map<TypedValueSubtype, string> map {
-    {TypedValueSubtype::id, "qid"},
+    {TypedValueSubtype::id, "id"},
     {TypedValueSubtype::url, "url"},
     {TypedValueSubtype::string, "string"},
     {TypedValueSubtype::external_id, "external-id"},

@@ -23,6 +23,8 @@ void AgnosticEntityInfo::claims_from_wikidata_json(Json& clms) {
     vector<AEIProperties> claim;
     for (auto &item : val) {
       string sub_type = item[0];
+      if (sub_type == "qid")
+        sub_type = "id";
       string type_value = item[1];
       Json raw_optionals = item[2];
       auto optionals = create_optionals(raw_optionals);
