@@ -6,7 +6,7 @@
 namespace linpipe::kbelik {
 
 AgnosticEntityInfo::AgnosticEntityInfo() {
-  claims = unordered_map<string, AEIProperties>();
+  claims = unordered_map<string, vector<AEIProperties>>();
 }
 
 AgnosticEntityInfo::AgnosticEntityInfo(Json& js) {
@@ -17,10 +17,15 @@ AgnosticEntityInfo::AgnosticEntityInfo(Json& js) {
 
 void AgnosticEntityInfo::claims_from_wikidata_json(Json& clms) {
   for(auto& [key, val] : clms.items()) {
-    string sub_type = val.at(0).at(0);
-    string type_value = val.at(0).at(1);
-    auto optionals = create_optionals(val.at(0).at(2));
-    claims[key] = {TypedValue(sub_type, type_value), optionals};
+    vector<AEIProperties> claim;
+    for (auto &item : val) {
+      string sub_type = item[0];
+      string type_value = item[1];
+      Json raw_optionals = item[2];
+      auto optionals = create_optionals(raw_optionals);
+      claim.push_back({TypedValue(sub_type, type_value), optionals});
+    }
+    claims[key] = claim;
   }
 }
 
@@ -35,12 +40,16 @@ void AgnosticEntityInfo::ne_from_wikidata_json(Json& ne) {
     named_entities.push_back(named_entity_from_string(val));
 }
 
-unordered_map<string, TypedValue> AgnosticEntityInfo::create_optionals(Json& js) {
-  unordered_map<string, TypedValue> optionals;
+unordered_map<string, vector<TypedValue>> AgnosticEntityInfo::create_optionals(Json& js) {
+  unordered_map<string, vector<TypedValue>> optionals;
   for(auto& [key, val] : js.items()) {
-    string sub_type = val.at(0).at(0);
-    string type_value = val.at(0).at(1);
-    optionals[key] = TypedValue(sub_type, type_value);
+    vector<TypedValue> optional;
+    for (auto& item : val) {
+      string sub_type = item[0];
+      string type_value = item[1];
+      optional.push_back(TypedValue(sub_type, type_value));
+    }
+    optionals[key] = optional;
   }
   return optionals;
 }

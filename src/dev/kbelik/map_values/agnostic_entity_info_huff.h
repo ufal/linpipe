@@ -55,17 +55,24 @@ void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteS
   VLI::serialize(claims_cnt, result);
 
 
-  for (auto &[key, aeip]: value.claims) {
+  for (auto &[key, vaeip]: value.claims) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
     bsds->huffman.encode(key, key_huffed);
     BytesVLI::serialize(key_huffed, key_encoded);
 
-    vector<byte> aeip_encoded;
-    encodeAEIP(aeip, aeip_encoded, bsds);
-
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
-    result.insert(result.end(), aeip_encoded.begin(), aeip_encoded.end());
+
+    vector<byte> aeip_cnt_encoded;
+    VLI::serialize(vaeip.size(), aeip_cnt_encoded);
+    result.insert(result.end(), aeip_cnt_encoded.begin(), aeip_cnt_encoded.end());
+
+    for (auto &aeip : vaeip) {
+      vector<byte> aeip_encoded;
+      encodeAEIP(aeip, aeip_encoded, bsds);
+
+      result.insert(result.end(), aeip_encoded.begin(), aeip_encoded.end());
+    }
   }
 
   vector<byte> ne_encoded;
@@ -91,7 +98,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
   VLI::deserialize(ptr, claims_cnt);
   ptr += VLI::length(ptr);
 
-  unordered_map<string, AEIProperties> claims;
+  unordered_map<string, vector<AEIProperties>> claims;
 
   for (size_t i = 0; i < claims_cnt; ++i) {
     string key;
@@ -100,11 +107,20 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
     bsds->huffman.decode(key_bytes.data(), key);
     ptr += BytesVLI::length(ptr);
 
-    AEIProperties aeip;
-    decodeAEIP(ptr, aeip, bsds);
-    ptr += BytesVLI::length(ptr);
+    size_t aeip_cnt;
+    VLI::deserialize(ptr, aeip_cnt);
+    ptr += VLI::length(ptr);
 
-    claims[key] = aeip;
+    vector<AEIProperties> vaeip;
+    for (size_t j = 0; j < aeip_cnt; ++j) {
+      AEIProperties aeip;
+      decodeAEIP(ptr, aeip, bsds);
+      ptr += BytesVLI::length(ptr);
+
+      vaeip.push_back(aeip);
+    }
+
+    claims[key] = vaeip;
   }
 
   vector<NamedEntity> ne;
@@ -134,16 +150,22 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& en
   result.insert(result.end(), tv_encoded.begin(), tv_encoded.end());
   result.insert(result.end(), cnt_encoded.begin(), cnt_encoded.end());
 
-  for (auto &[key, val] : aeip.optionals) {
+  for (auto &[key, vtv] : aeip.optionals) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
     bsds->huffman.encode(key, key_huffed);
     BytesVLI::serialize(key_huffed, key_encoded);
-
-    vector<byte> val_encoded;
-    TypedValue::serialize(val, val_encoded, bsds);
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
-    result.insert(result.end(), val_encoded.begin(), val_encoded.end());
+
+    vector<byte> vtv_cnt_encoded;
+    VLI::serialize(vtv.size(), vtv_cnt_encoded);
+    result.insert(result.end(), vtv_cnt_encoded.begin(), vtv_cnt_encoded.end());
+
+    for (auto &val : vtv) {
+      vector<byte> val_encoded;
+      TypedValue::serialize(val, val_encoded, bsds);
+      result.insert(result.end(), val_encoded.begin(), val_encoded.end());
+    }
   }
   BytesVLI::serialize(result, encoded);
 }
@@ -161,7 +183,7 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip,
   VLI::deserialize(ptr, optionals_cnt);
   ptr += VLI::length(ptr);
 
-  unordered_map<string, linpipe::kbelik::TypedValue> optionals;
+  unordered_map<string, vector<linpipe::kbelik::TypedValue>> optionals;
   for (size_t i = 0; i < optionals_cnt; ++i) {
     string key;
     vector<byte> key_bytes;
@@ -169,11 +191,21 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip,
     ptr += BytesVLI::length(ptr);
     bsds->huffman.decode(key_bytes.data(), key);
 
-    linpipe::kbelik::TypedValue tv;
-    TypedValue::deserialize(ptr, tv, bsds);
-    ptr += TypedValue::length(ptr);
+    size_t vtv_cnt;
+    VLI::deserialize(ptr, vtv_cnt);
+    ptr += VLI::length(ptr);
 
-    optionals[key] = tv;
+    vector<linpipe::kbelik::TypedValue> vtv;
+
+    for (size_t j = 0; j < vtv_cnt; ++j) {
+      linpipe::kbelik::TypedValue tv;
+      TypedValue::deserialize(ptr, tv, bsds);
+      ptr += TypedValue::length(ptr);
+
+      vtv.push_back(tv);
+    }
+
+    optionals[key] = vtv;
   }
   aeip.optionals = optionals;
 }

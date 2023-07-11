@@ -10,7 +10,8 @@ namespace linpipe::kbelik {
 
 struct AEIProperties {
   TypedValue tv;
-  unordered_map<string, TypedValue> optionals;
+  unordered_map<string, vector<TypedValue>> optionals;
+  //unordered_map<string, TypedValue> optionals;
 };
 
 inline bool operator==(const AEIProperties& a, const AEIProperties& b) {
@@ -24,7 +25,8 @@ inline bool operator!=(const AEIProperties& a, const AEIProperties& b) {
 
 class AgnosticEntityInfo {
  public:
-  unordered_map<string, AEIProperties> claims;
+  unordered_map<string, vector<AEIProperties>> claims;
+  //unordered_map<string, AEIProperties> claims;
   // Might be better to use un_set:
   vector<NamedEntity> named_entities;
   Ternary fictional;
@@ -39,7 +41,7 @@ class AgnosticEntityInfo {
 
   static inline NamedEntity named_entity_from_string(const string& str);
 
-  unordered_map<string, TypedValue> create_optionals(Json& js);
+  unordered_map<string, vector<TypedValue>> create_optionals(Json& js);
 };
 
 inline bool operator==(const AgnosticEntityInfo& a, const AgnosticEntityInfo& b) {
