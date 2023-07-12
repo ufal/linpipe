@@ -47,7 +47,9 @@ namespace kbelik {
 
 TEST_CASE("Dynamic map") {
   SUBCASE("Int4") {
-    auto dm = DynamicMap<map_values::Int4, map_values::Int4>();
+    auto mv = map_values::Int4();
+    auto mk = map_values::Int4();
+    auto dm = DynamicMap<map_values::Int4, map_values::Int4>(mk, mv);
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -97,11 +99,13 @@ TEST_CASE("Dynamic map") {
       stringstream ss;
       REQUIRE(ss.str() == "");
       dm.save_map(ss, test);
-      REQUIRE(ss.str().size() > 3 * map_values::Int4::length(0) + sizeof(int) * 3);
+      REQUIRE(ss.str().size() > 3 * map_values::Int4().length(0) + sizeof(int) * 3);
     }
   }
   SUBCASE("Bytes") {
-    auto dm = DynamicMap<map_values::Int4, map_values::Bytes<int8_t>>();
+    auto mv = map_values::Bytes<int8_t>();
+    auto mk = map_values::Int4();
+    auto dm = DynamicMap<map_values::Int4, map_values::Bytes<int8_t>>(mk, mv);
     SUBCASE("Add, erase -- small") {
       REQUIRE(dm.length() == 0);
       dm.add(10, {(byte)1, (byte)2});
@@ -141,7 +145,9 @@ TEST_CASE("Dynamic map") {
       CHECK(dm.length() == 0);
     }
   }SUBCASE("ID") {
-    auto dm = DynamicMap<map_values::ID, map_values::Int4>();
+    auto mv = map_values::Int4();
+    auto mk = map_values::ID();
+    auto dm = DynamicMap<map_values::ID, map_values::Int4>(mk, mv);
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -197,7 +203,9 @@ TEST_CASE("Dynamic map") {
 
 TEST_CASE("Persistent map") {
   SUBCASE("mock") {
-    auto dm = DynamicMap<map_values::ID, map_values::Int4>();
+    auto mv = map_values::Int4();
+    auto mk = map_values::ID();
+    auto dm = DynamicMap<map_values::ID, map_values::Int4>(mk, mv);
     int vals_cnt = 10;
     for (int i = 0; i < vals_cnt; ++i) 
       dm.add(ID("Q" + to_string(i)), i);
@@ -206,7 +214,8 @@ TEST_CASE("Persistent map") {
     dm.save_map(ofs, test);
     ofs.close();
     filesystem::path fp("temp/test_map.bin");
-    auto pm = PersistentMap<map_values::ID, map_values::Int4>(fp);
+    auto mv2 = map_values::Int4();
+    auto pm = PersistentMap<map_values::ID, map_values::Int4>(fp, mk, mv2);
     SUBCASE("close") {
       int res;
       pm.close();
@@ -237,7 +246,7 @@ TEST_CASE("Persistent map") {
       dm.save_map(ofs, test);
       ofs.close();
       filesystem::path fp_offset("temp/test_map_offset.bin");
-      auto pm_offset = PersistentMap<map_values::ID, map_values::Int4>(fp_offset, 2);
+      auto pm_offset = PersistentMap<map_values::ID, map_values::Int4>(fp_offset, mk, mv, 2);
       int res;
       bool flag = pm_offset.find(ID("Q1"), res);
       CHECK(flag);
@@ -253,7 +262,7 @@ TEST_CASE("Persistent map") {
       ofs.write(data, 2);
       ofs.close();
       filesystem::path fp_length("temp/test_map_length.bin");
-      auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, len);
+      auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, mk, mv, 0, len);
       int res;
       bool flag = pm_length.find(ID("Q1"), res);
       CHECK(flag);
@@ -280,7 +289,10 @@ TEST_CASE("Persistent map") {
     ByteSerializerDeserializers bsds;
     bsds.huffman = huff;
 
-    auto dm = DynamicMap<map_values::ID, map_values::AgnosticEntityInfoH>(&bsds);
+    auto mv = map_values::AgnosticEntityInfoH();
+    auto mk = map_values::ID();
+
+    auto dm = DynamicMap<map_values::ID, map_values::AgnosticEntityInfoH>(mk, mv, &bsds);
     for (auto line : {raw1, raw2, raw3, raw4, raw5}) {
       auto js = Json::parse(line);
       string q_str = js["qid"];
@@ -294,7 +306,8 @@ TEST_CASE("Persistent map") {
     ofs.close();
 
     filesystem::path fp("temp/test_map.bin");
-    auto pm = PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(fp, 0, -1, &bsds);
+    auto mv2 = map_values::AgnosticEntityInfoH();
+    auto pm = PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1, &bsds);
     SUBCASE("find") {
       auto aei = AgnosticEntityInfo();
       pm.find(ID("Q66638937"), aei);
@@ -631,16 +644,17 @@ TEST_CASE("ID") {
 namespace map_values {
 
 TEST_CASE("Bits") {
+  auto mv = Bits();
   SUBCASE("short") {
     vector<bool> v = {true, true, false, false, true, false};
     vector<byte> data;
-    Bits::serialize(v, data);
+    mv.serialize(v, data);
     SUBCASE("length") {
-      CHECK(Bits::length(v) == Bits::length(data.data()));
+      CHECK(mv.length(v) == mv.length(data.data()));
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      Bits::deserialize(data.data(), v2);
+      mv.deserialize(data.data(), v2);
       CHECK(v2 == v);
     }
   }
@@ -649,13 +663,13 @@ TEST_CASE("Bits") {
     for (int i = 0; i < 1000; ++i)
       v[i] = true;
     vector<byte> data;
-    Bits::serialize(v, data);
+    mv.serialize(v, data);
     SUBCASE("length") {
-      CHECK(Bits::length(v) == Bits::length(data.data()));
+      CHECK(mv.length(v) == mv.length(data.data()));
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      Bits::deserialize(data.data(), v2);
+      mv.deserialize(data.data(), v2);
       CHECK(v2 == v);
     }
   }
@@ -664,13 +678,13 @@ TEST_CASE("Bits") {
     for (int i = 0; i < 1000; ++i)
       v[i] = true;
     vector<byte> data;
-    Bits::serialize(v, data);
+    mv.serialize(v, data);
     SUBCASE("length") {
-      CHECK(Bits::length(v) == Bits::length(data.data()));
+      CHECK(mv.length(v) == mv.length(data.data()));
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      Bits::deserialize(data.data(), v2);
+      mv.deserialize(data.data(), v2);
       CHECK(v2 == v);
     }
   }
@@ -683,24 +697,26 @@ TEST_CASE("Int4") {
   data[2] = (byte)2;
   data[3] = (byte)2;
 
+  auto mv = Int4();
+
   int expected = (int)data[0];
   for (int i = 1; i <= 3; ++i)
     expected |= (int)data[i] << (8 * i);
 
   SUBCASE("Correct length, serialized") {
-    CHECK(4 == Int4::length(data));
+    CHECK(4 == mv.length(data));
   }
   SUBCASE("Correct length, deserialized") {
-    CHECK(4 == Int4::length(42));
+    CHECK(4 == mv.length(42));
   }
   SUBCASE("Correct deserialization") {
     int res;
-    Int4::deserialize(data, res);
+    mv.deserialize(data, res);
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
     vector<byte> res;
-    Int4::serialize(expected, res);
+    mv.serialize(expected, res);
     for (int i = 0; i < 4; ++i) 
       CHECK(res[i] == data[i]);
   }
@@ -717,24 +733,26 @@ TEST_CASE("Int8") {
   data[6] = (byte)2;
   data[7] = (byte)2;
 
+  auto mv = Int8();
+
   int64_t expected = (int64_t)data[0];
   for (int i = 1; i <= 7; ++i)
     expected |= (int64_t)data[i] << (8 * i);
 
   SUBCASE("Correct length, serialized") {
-    CHECK(8 == Int8::length(data));
+    CHECK(8 == mv.length(data));
   }
   SUBCASE("Correct length, deserialized") {
-    CHECK(8 == Int8::length(42));
+    CHECK(8 == mv.length(42));
   }
   SUBCASE("Correct deserialization") {
     int64_t res;
-    Int8::deserialize(data, res);
+    mv.deserialize(data, res);
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
     vector<byte> res;
-    Int8::serialize(expected, res);
+    mv.serialize(expected, res);
     for (int i = 0; i < 4; ++i) 
       CHECK(res[i] == data[i]);
   }
@@ -745,22 +763,23 @@ TEST_CASE("ID -- map value") {
   vector<byte> data_q, data_n;
   auto qid = linpipe::kbelik::ID("Q12222234");
   auto no_qid = linpipe::kbelik::ID("PER");
-  ID::serialize(qid, data_q);
-  ID::serialize(no_qid, data_n);
+  auto mv = ID();
+  mv.serialize(qid, data_q);
+  mv.serialize(no_qid, data_n);
   SUBCASE("Lengths") {
     SUBCASE("QID")
-      CHECK(ID::length(qid) == ID::length(data_q.data()));
+      CHECK(mv.length(qid) == mv.length(data_q.data()));
     SUBCASE("NO-QID")
-      CHECK(ID::length(no_qid) == ID::length(data_n.data()));
+      CHECK(mv.length(no_qid) == mv.length(data_n.data()));
   }
   SUBCASE("Serialization and deserialization") {
     linpipe::kbelik::ID id;
     SUBCASE("QID") {
-      ID::deserialize(data_q.data(), id);
+      mv.deserialize(data_q.data(), id);
       CHECK(id == qid);
     }
     SUBCASE("NO-QID") {
-      ID::deserialize(data_n.data(), id);
+      mv.deserialize(data_n.data(), id);
       CHECK(id == no_qid);
     }
   }
@@ -774,22 +793,23 @@ TEST_CASE("TypedValue -- map value") {
   transform(alpha.begin(), alpha.end(), alpha.begin(), ::toupper);
   bsds->huffman.add(alpha);
   bsds->huffman.add("1234567890 :,.;*+-/");
+  auto mv = TypedValue();
   SUBCASE("qid") {
     string qid = "Q1234567890987654";
     bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("id", qid);
-    TypedValue::serialize(tv, data, bsds);
+    mv.serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2, bsds);
     CHECK(qid == tv2.get_string());
   }
   SUBCASE("non qid") {
     string str = "This is some peculiar string";
     bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("string", str);
-    TypedValue::serialize(tv, data, bsds);
+    mv.serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2, bsds);
     CHECK(str == tv2.get_string());
   }
   SUBCASE("monolingualtext") {
@@ -797,27 +817,27 @@ TEST_CASE("TypedValue -- map value") {
     bsds->huffman.add("Řeřicha");
     bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("monolingualtext:cs", str);
-    TypedValue::serialize(tv, data, bsds);
+    mv.serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2, bsds);
     CHECK(tv == tv2);
   }
   SUBCASE("time julian") {
     string str = "+1970+08-22";
     bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:julian", str);
-    TypedValue::serialize(tv, data, bsds);
+    mv.serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2, bsds);
     CHECK(tv == tv2);
   }
   SUBCASE("time gregorian") {
     string str = "+1970+08-22";
     bsds->huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:gregorian", str);
-    TypedValue::serialize(tv, data, bsds);
+    mv.serialize(tv, data, bsds);
     linpipe::kbelik::TypedValue tv2;
-    TypedValue::deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2, bsds);
     CHECK(tv == tv2);
   }
   SUBCASE("quantity") {
@@ -825,18 +845,18 @@ TEST_CASE("TypedValue -- map value") {
       string str = "111129292929";
       bsds->huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1:desc string", str);
-      TypedValue::serialize(tv, data, bsds);
+      mv.serialize(tv, data, bsds);
       linpipe::kbelik::TypedValue tv2;
-      TypedValue::deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2, bsds);
       CHECK(tv == tv2);
     }
     SUBCASE("without description string") {
       string str = "111129292929";
       bsds->huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1", str);
-      TypedValue::serialize(tv, data, bsds);
+      mv.serialize(tv, data, bsds);
       linpipe::kbelik::TypedValue tv2;
-      TypedValue::deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2, bsds);
       CHECK(tv == tv2);
     }
   }
@@ -851,14 +871,14 @@ TEST_CASE("TypedValue -- map value") {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
       auto tv = linpipe::kbelik::TypedValue(sub_type, type_value);
-      TypedValue::serialize(tv, data, bsds);
+      mv.serialize(tv, data, bsds);
       linpipe::kbelik:: TypedValue tv2;
-      TypedValue::deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2, bsds);
       SUBCASE("equality") {
         CHECK(tv == tv2);
       }
       SUBCASE("length") {
-        CHECK(TypedValue::length(data.data()) == TypedValue::length(tv, bsds));
+        CHECK(mv.length(data.data()) == mv.length(tv, bsds));
       }
     }
   }
@@ -875,17 +895,20 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
   huff->build();
   vector<byte> data;
   auto ori = linpipe::kbelik::AgnosticEntityInfo(big);
-  AgnosticEntityInfoH::serialize(ori, data, &bsds);
+  
+  auto mv = AgnosticEntityInfoH();
+
+  mv.serialize(ori, data, &bsds);
   
   SUBCASE("Lengths") {
     size_t l1, l2;
-    l1 = AgnosticEntityInfoH::length(ori, &bsds);
-    l2 = AgnosticEntityInfoH::length(data.data());
+    l1 = mv.length(ori, &bsds);
+    l2 = mv.length(data.data());
     CHECK(l1 == l2);
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::AgnosticEntityInfo aei;
-    AgnosticEntityInfoH::deserialize(data.data(), aei, &bsds);
+    mv.deserialize(data.data(), aei, &bsds);
     CHECK(aei.claims == ori.claims);
   }
 }
@@ -898,18 +921,19 @@ TEST_CASE("SpecificEntityInfoH -- map value") {
   huff->add(raw);
   huff->build();
   vector<byte> data;
+  auto mv = SpecificEntityInfoH();
   auto ori = linpipe::kbelik::SpecificEntityInfo(big);
-  SpecificEntityInfoH::serialize(ori, data, &bsds);
+  mv.serialize(ori, data, &bsds);
 
   SUBCASE("Lengths") {
     size_t l1, l2;
-    l1 = SpecificEntityInfoH::length(ori, &bsds);
-    l2 = SpecificEntityInfoH::length(data.data());
+    l1 = mv.length(ori, &bsds);
+    l2 = mv.length(data.data());
     CHECK(l1 == l2);
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::SpecificEntityInfo sp;
-    SpecificEntityInfoH::deserialize(data.data(), sp, &bsds);
+    mv.deserialize(data.data(), sp, &bsds);
   
     CHECK(sp == ori);
   }
@@ -950,28 +974,30 @@ void test_bytes(const char* name) {
     data[sizeof(SizeType) + 1] = (byte)2;
     data[sizeof(SizeType) + 2] = (byte)1;
 
+    auto mv = Bytes<SizeType>();
+
     vector<byte> expected(3);
     for (size_t i = 0; i < 3; ++i)
       expected[i] = data[i + sizeof(SizeType)];
 
     SUBCASE("Correct length") {
       SUBCASE("serialized") {
-        CHECK(sz == Bytes<SizeType>::length(data));
+        CHECK(sz == mv.length(data));
       }
       SUBCASE("deserialized") {
         vector<byte> data2(12345, (byte)0);
-        CHECK(data2.size() + sizeof(SizeType) == Bytes<SizeType>::length(data2));
+        CHECK(data2.size() + sizeof(SizeType) == mv.length(data2));
       }
     }
     SUBCASE("Correct deserialization") {
       vector<byte> res;
-      Bytes<SizeType>::deserialize(data, res);
+      mv.deserialize(data, res);
       for (int i = 0; i < 3; ++i)
         CHECK(expected[i] == res[i]);
     }
     SUBCASE("Correct serialization") {
       vector<byte> res;
-      Bytes<SizeType>::serialize(expected, res);
+      mv.serialize(expected, res);
       for (size_t i = 0; i < res.size(); ++i) 
         CHECK(res[i] == data[i]);
 
@@ -988,13 +1014,14 @@ TEST_CASE("Bytes") {
 TEST_CASE("BytesVLI") {
   auto test = [](vector<byte> data) {
     vector<byte> data2;
-    BytesVLI::serialize(data, data2);
+    auto mv = BytesVLI();
+    mv.serialize(data, data2);
     SUBCASE("Correct length") {
-      CHECK(BytesVLI::length(data2.data()) == BytesVLI::length(data));
+      CHECK(mv.length(data2.data()) == mv.length(data));
     }
     SUBCASE("Correct de/serialization") {
       vector<byte> data3;
-      BytesVLI::deserialize(data2.data(), data3);
+      mv.deserialize(data2.data(), data3);
       CHECK(data3 == data);
     }
   };
@@ -1021,18 +1048,19 @@ int msb(uint64_t x) {
 TEST_CASE("VLI") {
   for (uint64_t i = 0; i < 288230376151711744; i = 3 * i + 100) {
     vector<byte> data;
-    VLI::serialize(i, data);
+    auto mv = VLI();
+    mv.serialize(i, data);
     SUBCASE("Correct length from serialized") {
       size_t expected = max((size_t)1, (size_t)ceil(msb(i) / 7.0));
-      CHECK(expected == VLI::length(data.data()));
+      CHECK(expected == mv.length(data.data()));
     }
     SUBCASE("Correct length from deserialized") {
       size_t expected = max((size_t)1, (size_t)ceil(msb(i) / 7.0));
-      CHECK(expected == VLI::length(i));
+      CHECK(expected == mv.length(i));
     }
     SUBCASE("Serialization/deserialization works.") {
       uint64_t des;
-      VLI::deserialize(data.data(), des);
+      mv.deserialize(data.data(), des);
       CHECK(des == i);
     }
   }
@@ -1047,22 +1075,24 @@ TEST_CASE("SimpleJson") {
 
   Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "part of": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
 
-  auto length = [](Json& j) {
+  auto mv = SimpleJson();
+
+  auto length = [&](Json& j) {
     vector<byte> s;
-    SimpleJson::serialize(j, s);
+    mv.serialize(j, s);
 
     size_t se, de;
-    de = SimpleJson::length(j);
-    se = SimpleJson::length(s.data());
+    de = mv.length(j);
+    se = mv.length(s.data());
     CHECK(de == se);
   };
 
-  auto serialization_deserialization = [](Json& j) {
+  auto serialization_deserialization = [&](Json& j) {
     vector<byte> s;
-    SimpleJson::serialize(j, s);
+    mv.serialize(j, s);
 
     Json des;
-    SimpleJson::deserialize(s.data(), des);
+    mv.deserialize(s.data(), des);
     CHECK(des.dump() == j.dump());
   };
 
@@ -1088,8 +1118,8 @@ TEST_CASE("SimpleJson") {
 
     Json out;
 
-    SimpleJson::serialize(m, s);
-    SimpleJson::deserialize(s.data(), out);
+    mv.serialize(m, s);
+    mv.deserialize(s.data(), out);
     CHECK(m["a"] == out["a"]);
     CHECK(m["xyz"] == out["xyz"]);
   }

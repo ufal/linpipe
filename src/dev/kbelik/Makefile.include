@@ -17,11 +17,21 @@ dev: dev/kbelik
 EXECUTABLES += dev/kbelik/kbelik
 
 LINPIPE_TESTS += dev/kbelik/agnostic_entity_info
-LINPIPE_TESTS += dev/kbelik/agnostic_kbelik
 LINPIPE_TESTS += dev/kbelik/huffman
 LINPIPE_TESTS += dev/kbelik/id
 LINPIPE_TESTS += dev/kbelik/specific_entity_info
 LINPIPE_TESTS += dev/kbelik/typed_value
 LINPIPE_TESTS += dev/kbelik/utils
+
+LINPIPE_TESTS += dev/kbelik/map_values/agnostic_entity_info_huff
+LINPIPE_TESTS += dev/kbelik/map_values/bits
+LINPIPE_TESTS += dev/kbelik/map_values/bytes_vli
+LINPIPE_TESTS += dev/kbelik/map_values/id
+LINPIPE_TESTS += dev/kbelik/map_values/int4
+LINPIPE_TESTS += dev/kbelik/map_values/int8
+LINPIPE_TESTS += dev/kbelik/map_values/simple_json
+LINPIPE_TESTS += dev/kbelik/map_values/specific_entity_info_huff
+LINPIPE_TESTS += dev/kbelik/map_values/typed_value
+LINPIPE_TESTS += dev/kbelik/map_values/vli
 
 LINPIPE_TESTS += dev/kbelik/kbelik_test

@@ -18,12 +18,23 @@ LINPIPE_OBJECTS += utils/arguments utils/json_utils utils/string_helper
 
 # kbelik
 LINPIPE_OBJECTS += dev/kbelik/agnostic_entity_info
-LINPIPE_OBJECTS += dev/kbelik/agnostic_kbelik
 LINPIPE_OBJECTS += dev/kbelik/huffman
 LINPIPE_OBJECTS += dev/kbelik/id
 LINPIPE_OBJECTS += dev/kbelik/specific_entity_info
 LINPIPE_OBJECTS += dev/kbelik/typed_value
 LINPIPE_OBJECTS += dev/kbelik/utils
+
+LINPIPE_OBJECTS += dev/kbelik/map_values/agnostic_entity_info_huff
+LINPIPE_OBJECTS += dev/kbelik/map_values/bits
+LINPIPE_OBJECTS += dev/kbelik/map_values/bytes_vli
+LINPIPE_OBJECTS += dev/kbelik/map_values/id
+LINPIPE_OBJECTS += dev/kbelik/map_values/int4
+LINPIPE_OBJECTS += dev/kbelik/map_values/int8
+LINPIPE_OBJECTS += dev/kbelik/map_values/simple_json
+LINPIPE_OBJECTS += dev/kbelik/map_values/specific_entity_info_huff
+LINPIPE_OBJECTS += dev/kbelik/map_values/typed_value
+LINPIPE_OBJECTS += dev/kbelik/map_values/vli
+
 
 
 LINPIPE_TESTS = core/document_test core/pipeline_test

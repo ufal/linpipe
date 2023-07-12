@@ -24,8 +24,8 @@ class SpecificEntityInfo {
 inline bool operator==(const SpecificEntityInfo& a, const SpecificEntityInfo& b) {
   return a.label == b.label && \
   a.description == b.description && \
-  a.text == b.text && \
   a.aliases == b.aliases;
+  //a.text == b.text && 
 }
 
 inline bool operator!=(const SpecificEntityInfo& a, const SpecificEntityInfo& b) {

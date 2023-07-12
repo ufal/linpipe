@@ -24,7 +24,11 @@ namespace linpipe::kbelik {
 template<typename KeyMV, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, size_t offset=0, int64_t length=-1, ByteSerializerDeserializers* bsds=nullptr);
+  PersistentMap(filesystem::path fp, KeyMV& mk, Value& mv, size_t offset=0, int64_t length=-1, 
+    ByteSerializerDeserializers* bsds=nullptr) : mk(mk), mv(mv), bsds(bsds) {
+    load(fp, offset, length);
+    init();
+  }
   ~PersistentMap();
 
   bool find(typename KeyMV::Type key, typename Value::Type& value) const;
@@ -35,6 +39,8 @@ class PersistentMap{
   MapType get_map_type() const;
 
  private:
+  KeyMV& mk;
+  Value& mv;
   ByteSerializerDeserializers* bsds;
   size_t length = 0; 
   MapType map_type;
@@ -67,12 +73,13 @@ class PersistentMap{
 
 };
 
+/*
 template<typename KeyMV, typename Value>
-PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, size_t offset, int64_t length, ByteSerializerDeserializers* bsds) {
+PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, Value& mv, size_t offset, int64_t length, ByteSerializerDeserializers* bsds) {
+  this->mv = mv;
   this->bsds = bsds;
   load(fp, offset, length);
-  init();
-}
+}*/
 
 template<typename KeyMV, typename Value>
 bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value::Type& value) const {
@@ -81,7 +88,7 @@ bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value:
   uint32_t offset;
   bool success = get_val_offset(key, offset);
   if (success)
-    Value::deserialize(static_cast<std::byte*>(index_start) + offset, value, bsds);
+    mv.deserialize(static_cast<std::byte*>(index_start) + offset, value, bsds);
   return success;
 }
 
@@ -226,7 +233,7 @@ bool PersistentMap<KeyMV, Value>::exponential_search(typename KeyMV::Type& key, 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::read_ith_key(int i, typename KeyMV::Type &res) const {
   size_t shift = i * one_key;
-  KeyMV::deserialize(index_start + shift, res, bsds);
+  mk.deserialize(index_start + shift, res, bsds);
   //memcpy(&res, index_start + shift , sizeof(KeyMV));
 }
 

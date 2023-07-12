@@ -30,7 +30,6 @@ class GeneralKbelik {
 
   static inline void build(istream& jsons, ostream& result);
  private:
-  // Chápe PM formát dat?
   filesystem::path kbelik_path;
   ByteSerializerDeserializers bsds;
   PersistentMap<map_values::ID, ValueMV>* map = nullptr;
@@ -47,7 +46,10 @@ void GeneralKbelik<ValueMV>::build(istream& jsons, ostream& result) {
   ByteSerializerDeserializers bsds;
   GeneralKbelik::build_bsds(jsons, bsds);
   
-  auto dm = DynamicMap<map_values::ID, ValueMV>(&bsds);
+  auto mv = ValueMV();
+  auto mk = map_values::ID();
+
+  auto dm = DynamicMap<map_values::ID, ValueMV>(mk, mv, &bsds);
   GeneralKbelik::build_map(jsons, dm);
 
   vector<byte> huff_serialized;
@@ -142,7 +144,9 @@ size_t GeneralKbelik<ValueMV>::load_bsds(size_t offset) {
 
 template<typename ValueMV>
 void GeneralKbelik<ValueMV>::load_map(size_t offset, int64_t length) {
-  map = new PersistentMap<map_values::ID, ValueMV>(kbelik_path, offset, length, &bsds);
+  auto mv = ValueMV();
+  auto mk = map_values::ID();
+  map = new PersistentMap<map_values::ID, ValueMV>(kbelik_path, mk, mv, offset, length, &bsds);
 }
 
 template<typename ValueMV>

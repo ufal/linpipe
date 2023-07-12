@@ -6,17 +6,18 @@
 
 namespace linpipe {
 namespace kbelik {
-  template<typename Key, typename Value>
   class SpecificKbelik{
+    public:
+      SpecificKbelik(filesystem::path map_path);
+      ~SpecificKbelik();
+
+      static void build(istream json);
+      Value find(Key id);
+      void save();
+
     private:
       PersistentMap<Key, Value> ids_to_atts;
       void load(string map_path);
-    public:
-      SpecificKbelik(filesystem::path map_path);
-      static void build(istream json);
-      Value find_att(Key id);
-      void save();
-      ~SpecificKbelik();
   };
 }
 }

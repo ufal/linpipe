@@ -1,23 +1,13 @@
-#pragma once
-
 #include <cstring>
 #include <filesystem>
 
 #include "common.h"
 
+#include "dev/kbelik/map_values/bytes.h"
+
 #include "dev/kbelik/byte_serializer_deserializer.h"
 
 namespace linpipe::kbelik::map_values {
-
-template<typename SizeType>
-class Bytes {
- public:
-  using Type = vector<byte>;
-  size_t length(const byte* ptr);
-  size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
-  void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
-  void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
-};
 
 template<typename SizeType>
 size_t Bytes<SizeType>::length(const byte* ptr) {

@@ -12,9 +12,9 @@ SpecificEntityInfo::SpecificEntityInfo(Json& js) {
     label = js["label"];
   if (js.contains("description"))
     description = js["description"];
-  if (js.contains("wiki"))
-    if(js["wiki"].contains("text"))
-      text = js["wiki"]["text"];
+  //if (js.contains("wiki"))
+  //  if(js["wiki"].contains("text"))
+  //    text = js["wiki"]["text"];
   if (js.contains("aliases"))
     for (string alias : js["aliases"])
       aliases.insert(alias);
