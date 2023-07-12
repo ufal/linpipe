@@ -491,7 +491,11 @@ TEST_CASE("TypedValue") {
     TypedValue tv("time:gregorian", "2019-01-01T00:00:00Z");
     CHECK(tv.get_type() == TypedValueSubtype::time_gregorian);
     TypedValue::Time tm {2019, 1, 1, "gregorian"};
-    CHECK(tv.get_time() == tm);
+    CHECK(tv.get_time().year == tm.year);
+    CHECK(tv.get_time().month == tm.month);
+    CHECK(tv.get_time().day == tm.day);
+    CHECK(tv.get_time().calendar == tm.calendar);
+
   }
 
   SUBCASE("Not- midnight time") {
@@ -726,7 +730,6 @@ TEST_CASE("Int8") {
   SUBCASE("Correct deserialization") {
     int64_t res;
     Int8::deserialize(data, res);
-    cout << "expected: " << expected << endl;
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
