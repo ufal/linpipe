@@ -248,12 +248,12 @@ TEST_CASE("Persistent map") {
     SUBCASE("Persistent map with length") {
       ofs.open("temp/test_map_length.bin", ofstream::out | ofstream::binary);
       dm.save_map(ofs, test);
-      size_t length = ofs.tellp();
+      size_t len = ofs.tellp();
       char data[2] = {(char)1, (char)2};
       ofs.write(data, 2);
       ofs.close();
       filesystem::path fp_length("temp/test_map_length.bin");
-      auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, length=length);
+      auto pm_length = PersistentMap<map_values::ID, map_values::Int4>(fp_length, 0, len);
       int res;
       bool flag = pm_length.find(ID("Q1"), res);
       CHECK(flag);

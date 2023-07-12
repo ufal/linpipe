@@ -44,7 +44,7 @@ class PersistentMap{
   int fd = -1;
 #endif
   void* mmap_addr = NULL;
-  byte* index_start;
+  std::byte* index_start;
   size_t index_size;
 
   size_t one_key; // Size of one key entry in the index.
@@ -81,7 +81,7 @@ bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value:
   uint32_t offset;
   bool success = get_val_offset(key, offset);
   if (success)
-    Value::deserialize(static_cast<byte*>(index_start) + offset, value, bsds);
+    Value::deserialize(static_cast<std::byte*>(index_start) + offset, value, bsds);
   return success;
 }
 
@@ -133,7 +133,7 @@ void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64
   }
 
   mmap_addr = MapViewOfFile(fd, FILE_MAP_READ, 0, page_start, length + page_offset);
-  mmap_addr = static_cast<byte*>(mmap_addr) + page_offset;
+  mmap_addr = static_cast<std::byte*>(mmap_addr) + page_offset;
   if (mmap_addr == NULL)
     LinpipeError("map");
   
@@ -148,7 +148,7 @@ void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64
     length = sb.st_size;
 
   mmap_addr = mmap(NULL, length + page_offset, PROT_READ, MAP_PRIVATE, fd, page_start);
-  mmap_addr = static_cast<byte*>(mmap_addr) + page_offset;
+  mmap_addr = static_cast<std::byte*>(mmap_addr) + page_offset;
   if (mmap_addr == MAP_FAILED)
     LinpipeError("map");
 #endif
@@ -166,13 +166,13 @@ void PersistentMap<KeyMV, Value>::init() {
 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::init_index_ptr() {
-  index_start = (byte*)(mmap_addr) + sizeof(size_t) + sizeof(MapType);
-  memcpy(&index_size, (byte*)(mmap_addr) + sizeof(MapType), sizeof(size_t));
+  index_start = (std::byte*)(mmap_addr) + sizeof(size_t) + sizeof(MapType);
+  memcpy(&index_size, (std::byte*)(mmap_addr) + sizeof(MapType), sizeof(size_t));
 }
 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::set_map_type() {
-  memcpy(&map_type, (byte*)mmap_addr, sizeof(MapType));
+  memcpy(&map_type, (std::byte*)mmap_addr, sizeof(MapType));
 }
 
 template<typename KeyMV, typename Value>
