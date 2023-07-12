@@ -3,13 +3,16 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#ifdef _WIN_32
-      // TODO
+#ifdef _WIN32
+  #include <Windows.h>
+  #include <memoryapi.h>
+  #include <winbase.h>
+  #include <fileapi.h>
 #else
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
+  #include <sys/mman.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
+  #include <unistd.h>
 #endif
 
 #include "common.h"
@@ -36,11 +39,11 @@ class PersistentMap{
   size_t length = 0; 
   MapType map_type;
 #ifdef _WIN_32
-  // TODO
+  HANDLE fd;
 #else
   int fd = -1;
-  void* mmap_addr = NULL;
 #endif
+  void* mmap_addr = NULL;
   byte* index_start;
   size_t index_size;
 
@@ -91,7 +94,7 @@ void PersistentMap<KeyMV, Value>::close() {
 template<typename KeyMV, typename Value>
 bool PersistentMap<KeyMV, Value>::opened() const {
 #ifdef _WIN_32
-  // TODO
+  return fd != INVALID_HANDLE_VALUE;
 #else
   struct stat file_stat;
   return fstat(fd, &file_stat) == 0;
@@ -105,6 +108,36 @@ MapType PersistentMap<KeyMV, Value>::get_map_type() const {
 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64_t length) {
+
+  size_t pagesize;
+#ifdef _WIN_32
+  SYSTEM_INFO si;
+  GetSystemInfo(&si);
+  pagesize = si.dwPageSize;
+#else
+  pagesize = sysconf(_SC_PAGESIZE);
+#endif
+
+  off_t page_start = (offset / pagesize) * pagesize;
+  off_t page_offset = offset % pagesize;
+
+#ifdef _WIN_32
+  fd = CreateFile(fp.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+  if (fd == INVALID_HANDLE_VALUE)
+    LinpipeError("open");
+  if (length == -1) {
+    LARGE_INTEGER file_size;
+    if (!GetFileSizeEx(fd, &file_size))
+      LinpipeError("stat");
+    length = file_size.QuadPart;
+  }
+
+  mmap_addr = MapViewOfFile(fd, FILE_MAP_READ, 0, page_start, length + page_offset);
+  mmap_addr = static_cast<byte*>(mmap_addr) + page_offset;
+  if (mmap_addr == NULL)
+    LinpipeError("map");
+  
+#else
   fd = open(fp.c_str(), O_RDONLY);
   struct stat sb;
   if (fd == -1)
@@ -114,15 +147,11 @@ void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64
   if (length == -1)
     length = sb.st_size;
 
-  size_t pagesize = sysconf(_SC_PAGESIZE);
-
-  off_t page_start = (offset / pagesize) * pagesize;
-  off_t page_offset = offset % pagesize;
-
   mmap_addr = mmap(NULL, length + page_offset, PROT_READ, MAP_PRIVATE, fd, page_start);
   mmap_addr = static_cast<byte*>(mmap_addr) + page_offset;
   if (mmap_addr == MAP_FAILED)
     LinpipeError("map");
+#endif
 }
 
 template<typename KeyMV, typename Value>
