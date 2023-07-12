@@ -16,6 +16,16 @@ LINPIPE_OBJECTS += operations/ne_recognizer/ne_recognizer_toy operations/operati
 LINPIPE_OBJECTS += operations/tokenize operations/tokenizer/rule_based_tokenizer
 LINPIPE_OBJECTS += utils/arguments utils/json_utils utils/string_helper
 
+# kbelik
+LINPIPE_OBJECTS += dev/kbelik/agnostic_entity_info
+LINPIPE_OBJECTS += dev/kbelik/agnostic_kbelik
+LINPIPE_OBJECTS += dev/kbelik/huffman
+LINPIPE_OBJECTS += dev/kbelik/id
+LINPIPE_OBJECTS += dev/kbelik/specific_entity_info
+LINPIPE_OBJECTS += dev/kbelik/typed_value
+LINPIPE_OBJECTS += dev/kbelik/utils
+
+
 LINPIPE_TESTS = core/document_test core/pipeline_test
 LINPIPE_TESTS += formats/text_test
 LINPIPE_TESTS += layers/layer_test layers/text_test
