@@ -703,15 +703,15 @@ TEST_CASE("Int4") {
   delete[] data;
 }
 TEST_CASE("Int8") {
-  byte* data = new byte[4];
+  byte* data = new byte[8];
   data[0] = (byte)2;
   data[1] = (byte)1;
   data[2] = (byte)2;
   data[3] = (byte)2;
-  data[0] = (byte)2;
-  data[1] = (byte)1;
-  data[2] = (byte)2;
-  data[3] = (byte)2;
+  data[4] = (byte)2;
+  data[5] = (byte)1;
+  data[6] = (byte)2;
+  data[7] = (byte)2;
 
   int64_t expected = (int64_t)data[0];
   for (int i = 1; i <= 7; ++i)
@@ -726,6 +726,7 @@ TEST_CASE("Int8") {
   SUBCASE("Correct deserialization") {
     int64_t res;
     Int8::deserialize(data, res);
+    cout << "expected: " << expected << endl;
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
