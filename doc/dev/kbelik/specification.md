@@ -1,9 +1,5 @@
 # Specification to Kbelik
 
-Podrobná specifikace - detailní popis problematiky, podle něhož by jiný programátor napsal "tentýž" program:
-
-- Návrh struktury programu (moduly, knihovny, příp. framework, vzájemná provázanost)
-
 ## Goal
 
 The goal is to create a knowledge base for entity linking usable with any dataset following JSON structures described in the paper [[2306.09288] DaMuEL: A Large Multilingual Dataset for Entity Linking](https://arxiv.org/abs/2306.09288) by Kubeša and Straka.
