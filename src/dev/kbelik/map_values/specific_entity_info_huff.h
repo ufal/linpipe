@@ -15,20 +15,24 @@ namespace linpipe::kbelik::map_values {
 
 class SpecificEntityInfoH {
  public:
+  SpecificEntityInfoH() = delete;
+  SpecificEntityInfoH(HuffmanTree& huffman) : huffman(huffman) {};
   using Type = linpipe::kbelik::SpecificEntityInfo;
 
-  size_t length(const byte* ptr);
-  size_t length(const Type& value, ByteSerializerDeserializers* bsds);
+  size_t length(const byte* ptr) const;
+  size_t length(const Type& value) const;
    
-  void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds);
-  void deserialize(const byte* ptr_whole, Type& value, ByteSerializerDeserializers* bsds);
+  void serialize(const Type& value, vector<byte>& data) const;
+  void deserialize(const byte* ptr_whole, Type& value) const;
 
+  HuffmanTree& huffman;
  private:
+
   BytesVLI bytes_vli;
   VLI vli;
 
-  void encode_aliases(const unordered_set<string>& aliases, vector<byte>& encoded, ByteSerializerDeserializers* bsds);
-  void decode_aliases(const byte* ptr_whole, unordered_set<string>& aliases, ByteSerializerDeserializers* bsds);
+  void encode_aliases(const unordered_set<string>& aliases, vector<byte>& encoded) const;
+  void decode_aliases(const byte* ptr_whole, unordered_set<string>& aliases) const;
 };
 
 

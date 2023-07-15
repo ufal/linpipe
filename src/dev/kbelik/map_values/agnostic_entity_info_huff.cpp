@@ -18,17 +18,17 @@
 
 namespace linpipe::kbelik::map_values {
 
-size_t AgnosticEntityInfoH::length(const byte* ptr) {
+size_t AgnosticEntityInfoH::length(const byte* ptr) const {
   return bytes_vli.length(ptr);
 }
 
-size_t AgnosticEntityInfoH::length(const Type& value, ByteSerializerDeserializers* bsds) {
+size_t AgnosticEntityInfoH::length(const Type& value) const {
   vector<byte> serialized;
-  serialize(value, serialized, bsds);
+  serialize(value, serialized);
   return bytes_vli.length(serialized.data());
 }
 
-void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds) {
+void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data) const {
   vector<byte> result;
 
   size_t claims_cnt = value.claims.size();
@@ -39,7 +39,7 @@ void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteS
   for (auto &[key, vaeip]: value.claims) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
-    bsds->huffman.encode(key, key_huffed);
+    huffman.encode(key, key_huffed);
     bytes_vli.serialize(key_huffed, key_encoded);
 
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
@@ -50,7 +50,7 @@ void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteS
 
     for (auto &aeip : vaeip) {
       vector<byte> aeip_encoded;
-      encodeAEIP(aeip, aeip_encoded, bsds);
+      encodeAEIP(aeip, aeip_encoded);
 
       result.insert(result.end(), aeip_encoded.begin(), aeip_encoded.end());
     }
@@ -69,7 +69,7 @@ void AgnosticEntityInfoH::serialize(const Type& value, vector<byte>& data, ByteS
   bytes_vli.serialize(result, data);
 }
 
-void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSerializerDeserializers* bsds) {
+void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value) const {
   vector<byte> result;
   bytes_vli.deserialize(ptr_whole, result);
 
@@ -79,13 +79,14 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
   vli.deserialize(ptr, claims_cnt);
   ptr += vli.length(ptr);
 
+
   unordered_map<string, vector<AEIProperties>> claims;
 
   for (size_t i = 0; i < claims_cnt; ++i) {
     string key;
     vector<byte> key_bytes;
     bytes_vli.deserialize(ptr, key_bytes);
-    bsds->huffman.decode(key_bytes.data(), key);
+    huffman.decode(key_bytes.data(), key);
     ptr += bytes_vli.length(ptr);
 
     size_t aeip_cnt;
@@ -95,7 +96,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
     vector<AEIProperties> vaeip;
     for (size_t j = 0; j < aeip_cnt; ++j) {
       AEIProperties aeip;
-      decodeAEIP(ptr, aeip, bsds);
+      decodeAEIP(ptr, aeip);
       ptr += bytes_vli.length(ptr);
 
       vaeip.push_back(aeip);
@@ -118,9 +119,9 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value, ByteSe
 
 }
 
-void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded, ByteSerializerDeserializers* bsds){
+void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded) const {
   vector<byte> tv_encoded;
-  TypedValue().serialize(aeip.tv, tv_encoded, bsds);
+  tv.serialize(aeip.tv, tv_encoded);
 
   size_t optionals_cnt = aeip.optionals.size();
   vector<byte> cnt_encoded;
@@ -134,7 +135,7 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& en
   for (auto &[key, vtv] : aeip.optionals) {
     vector<byte> key_encoded;
     vector<byte> key_huffed;
-    bsds->huffman.encode(key, key_huffed);
+    huffman.encode(key, key_huffed);
     bytes_vli.serialize(key_huffed, key_encoded);
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
 
@@ -144,21 +145,21 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& en
 
     for (auto &val : vtv) {
       vector<byte> val_encoded;
-      TypedValue().serialize(val, val_encoded, bsds);
+      tv.serialize(val, val_encoded);
       result.insert(result.end(), val_encoded.begin(), val_encoded.end());
     }
   }
   bytes_vli.serialize(result, encoded);
 }
 
-void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip, ByteSerializerDeserializers* bsds){
+void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip) const {
   vector<byte> result;
   bytes_vli.deserialize(ptr_whole, result);
 
   byte* ptr = result.data();
 
-  TypedValue().deserialize(ptr, aeip.tv, bsds);
-  ptr += TypedValue().length(ptr);
+  tv.deserialize(ptr, aeip.tv);
+  ptr += tv.length(ptr);
 
   size_t optionals_cnt;
   vli.deserialize(ptr, optionals_cnt);
@@ -170,7 +171,7 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip,
     vector<byte> key_bytes;
     bytes_vli.deserialize(ptr, key_bytes);
     ptr += bytes_vli.length(ptr);
-    bsds->huffman.decode(key_bytes.data(), key);
+    huffman.decode(key_bytes.data(), key);
 
     size_t vtv_cnt;
     vli.deserialize(ptr, vtv_cnt);
@@ -179,11 +180,11 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip,
     vector<linpipe::kbelik::TypedValue> vtv;
 
     for (size_t j = 0; j < vtv_cnt; ++j) {
-      linpipe::kbelik::TypedValue tv;
-      TypedValue().deserialize(ptr, tv, bsds);
-      ptr += TypedValue().length(ptr);
+      linpipe::kbelik::TypedValue tv_result;
+      tv.deserialize(ptr, tv_result);
+      ptr += tv.length(ptr);
 
-      vtv.push_back(tv);
+      vtv.push_back(tv_result);
     }
 
     optionals[key] = vtv;
@@ -191,12 +192,12 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip,
   aeip.optionals = optionals;
 }
 
-void AgnosticEntityInfoH::encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded) {
+void AgnosticEntityInfoH::encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded) const {
   auto ne_as_bits = NamedEntityConverter::ne_to_bools(value);
   bits.serialize(ne_as_bits, encoded);
 }
 
-void AgnosticEntityInfoH::decodeNE(const byte* ptr, vector<NamedEntity>& ne) {
+void AgnosticEntityInfoH::decodeNE(const byte* ptr, vector<NamedEntity>& ne) const {
   vector<bool> ne_as_bits;
   bits.deserialize(ptr, ne_as_bits);
   ne = NamedEntityConverter::bools_to_ne(ne_as_bits);

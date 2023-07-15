@@ -10,18 +10,18 @@
 
 namespace linpipe::kbelik::map_values {
 
-size_t TypedValue::length(const byte* ptr) {
+size_t TypedValue::length(const byte* ptr) const {
   return bytes_vli.length(ptr);
 }
 
-size_t TypedValue::length(const Type& value, ByteSerializerDeserializers* bsds) {
+size_t TypedValue::length(const Type& value) const {
   vector<byte> encoded_st, encoded_val;
-  encode(value, bsds, encoded_st, encoded_val);
+  encode(value, encoded_st, encoded_val);
 
   return bytes_vli.length(encoded_st) + bytes_vli.length(encoded_val);
 }
 
-void TypedValue::deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds) {
+void TypedValue::deserialize(const byte* ptr, Type& value) const {
   vector<byte> encoded_st, encoded_val, encoded;
 
   bytes_vli.deserialize(ptr, encoded);
@@ -31,12 +31,12 @@ void TypedValue::deserialize(const byte* ptr, Type& value, ByteSerializerDeseria
 
   bytes_vli.deserialize(encoded.data(), encoded_st);
 
-  decode(encoded_st, encoded_val, bsds, value);
+  decode(encoded_st, encoded_val, value);
 }
 
-void TypedValue::serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds) {
+void TypedValue::serialize(const Type& value, vector<byte>& data) const {
   vector<byte> encoded_st, encoded_val;
-  encode(value, bsds, encoded_st, encoded_val);
+  encode(value, encoded_st, encoded_val);
 
   vector<byte> encoded;
   // Encodes subtype so that encoded is: subtype bytes count | subtype bytes
@@ -49,19 +49,19 @@ void TypedValue::serialize(const Type& value, vector<byte>& data, ByteSerializer
   bytes_vli.serialize(encoded, data);
 }
 
-void TypedValue::encode(const Type& value, ByteSerializerDeserializers* bsds, vector<byte>& encoded_st, vector<byte>& encoded_val){
+void TypedValue::encode(const Type& value, vector<byte>& encoded_st, vector<byte>& encoded_val) const{
   string st =value.get_type_string();
   string val = value.get_string();
 
-  bsds->huffman.encode(st, encoded_st);
-  bsds->huffman.encode(val, encoded_val);
+  huffman.encode(st, encoded_st);
+  huffman.encode(val, encoded_val);
 }
 
-void TypedValue::decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers* bsds, Type& value){
+void TypedValue::decode(vector<byte>& encoded_st, vector<byte>& encoded_val, Type& value) const{
   string st, val;
 
-  bsds->huffman.decode(encoded_st.data(), st);
-  bsds->huffman.decode(encoded_val.data(), val);
+  huffman.decode(encoded_st.data(), st);
+  huffman.decode(encoded_val.data(), val);
 
   value = Type(st, val);
 }

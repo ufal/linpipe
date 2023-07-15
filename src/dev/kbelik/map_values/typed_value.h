@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
+#include "dev/kbelik/huffman.h"
 
 #include "dev/kbelik/map_values/bytes_vli.h"
 
@@ -14,16 +14,21 @@ class TypedValue {
  public:
   using Type = linpipe::kbelik::TypedValue;
 
-  size_t length(const byte* ptr);
-  size_t length(const Type& value, ByteSerializerDeserializers* bsds);
+  TypedValue() = delete;
+  TypedValue(HuffmanTree& huffman) : huffman(huffman) {};
+
+  size_t length(const byte* ptr) const;
+  size_t length(const Type& value) const;
    
-  void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds);
-  void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds);
+  void deserialize(const byte* ptr, Type& value) const;
+  void serialize(const Type& value, vector<byte>& data) const;
  private:
+  HuffmanTree& huffman;
+
   BytesVLI bytes_vli;
 
-  void encode(const Type& value, ByteSerializerDeserializers* bsds, vector<byte>& encoded_st, vector<byte>& encoded_val);
-  void decode(vector<byte>& encoded_st, vector<byte>& encoded_val, ByteSerializerDeserializers* bsds, Type& value);
+  void encode(const Type& value, vector<byte>& encoded_st, vector<byte>& encoded_val) const;
+  void decode(vector<byte>& encoded_st, vector<byte>& encoded_val, Type& value) const;
 };
 
 } // namespace linpipe::kbelik::map_values

@@ -14,10 +14,10 @@ namespace linpipe::kbelik::map_values {
 class Bits {
  public:
   using Type = vector<bool>;
-  size_t length(const byte* ptr);
-  size_t length(const Type& val, ByteSerializerDeserializers* bsds=nullptr);
-  void deserialize(const byte* ptr, Type& value, ByteSerializerDeserializers* bsds=nullptr);
-  void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds=nullptr);
+  size_t length(const byte* ptr) const;
+  size_t length(const Type& val) const;
+  void deserialize(const byte* ptr, Type& value) const;
+  void serialize(const Type& value, vector<byte>& data) const;
  private:
   BytesVLI bytes_vli;
 };

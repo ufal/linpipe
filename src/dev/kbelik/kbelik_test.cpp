@@ -289,10 +289,10 @@ TEST_CASE("Persistent map") {
     ByteSerializerDeserializers bsds;
     bsds.huffman = huff;
 
-    auto mv = map_values::AgnosticEntityInfoH();
+    auto mv = map_values::AgnosticEntityInfoH(bsds.huffman);
     auto mk = map_values::ID();
 
-    auto dm = DynamicMap<map_values::ID, map_values::AgnosticEntityInfoH>(mk, mv, &bsds);
+    auto dm = DynamicMap<map_values::ID, map_values::AgnosticEntityInfoH>(mk, mv);
     for (auto line : {raw1, raw2, raw3, raw4, raw5}) {
       auto js = Json::parse(line);
       string q_str = js["qid"];
@@ -306,8 +306,8 @@ TEST_CASE("Persistent map") {
     ofs.close();
 
     filesystem::path fp("temp/test_map.bin");
-    auto mv2 = map_values::AgnosticEntityInfoH();
-    auto pm = PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1, &bsds);
+    auto mv2 = map_values::AgnosticEntityInfoH(bsds.huffman);
+    auto pm = PersistentMap<map_values::ID, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1);
     SUBCASE("find") {
       auto aei = AgnosticEntityInfo();
       pm.find(ID("Q66638937"), aei);
@@ -371,7 +371,6 @@ TEST_CASE("Agnostic kbelik") {
     }
   }
 }
-
 
 TEST_CASE("Specific kbelik") {
   string raw1 = R"del({"qid": "Q7365597", "lang": "cs", "label": "Ronen", "aliases": ["רונן"], "description": "příjmení (רונן)"})del";
@@ -787,153 +786,152 @@ TEST_CASE("ID -- map value") {
 
 TEST_CASE("TypedValue -- map value") {
   vector<byte> data;
-  ByteSerializerDeserializers* bsds = new ByteSerializerDeserializers();
   string alpha = "abcdefghijklmnopqrstuvwxyz";
-  bsds->huffman.add(alpha);
+  HuffmanTree huffman;
+  huffman.add(alpha);
   transform(alpha.begin(), alpha.end(), alpha.begin(), ::toupper);
-  bsds->huffman.add(alpha);
-  bsds->huffman.add("1234567890 :,.;*+-/");
-  auto mv = TypedValue();
+  huffman.add(alpha);
+  huffman.add("1234567890 :,.;*+-/");
+
+  auto mv = TypedValue(huffman);
+
   SUBCASE("qid") {
     string qid = "Q1234567890987654";
-    bsds->huffman.build();
+    huffman.build();
     auto tv = linpipe::kbelik::TypedValue("id", qid);
-    mv.serialize(tv, data, bsds);
+    mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2);
     CHECK(qid == tv2.get_string());
   }
   SUBCASE("non qid") {
     string str = "This is some peculiar string";
-    bsds->huffman.build();
+    huffman.build();
     auto tv = linpipe::kbelik::TypedValue("string", str);
-    mv.serialize(tv, data, bsds);
+    mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2);
     CHECK(str == tv2.get_string());
   }
   SUBCASE("monolingualtext") {
     string str = "Řeřicha";
-    bsds->huffman.add("Řeřicha");
-    bsds->huffman.build();
+    huffman.add("Řeřicha");
+    huffman.build();
     auto tv = linpipe::kbelik::TypedValue("monolingualtext:cs", str);
-    mv.serialize(tv, data, bsds);
+    mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("time julian") {
     string str = "+1970+08-22";
-    bsds->huffman.build();
+    huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:julian", str);
-    mv.serialize(tv, data, bsds);
+    mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("time gregorian") {
     string str = "+1970+08-22";
-    bsds->huffman.build();
+    huffman.build();
     auto tv = linpipe::kbelik::TypedValue("time:gregorian", str);
-    mv.serialize(tv, data, bsds);
+    mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2, bsds);
+    mv.deserialize(data.data(), tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("quantity") {
     SUBCASE("with description string") {
       string str = "111129292929";
-      bsds->huffman.build();
+      huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1:desc string", str);
-      mv.serialize(tv, data, bsds);
+      mv.serialize(tv, data);
       linpipe::kbelik::TypedValue tv2;
-      mv.deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2);
       CHECK(tv == tv2);
     }
     SUBCASE("without description string") {
       string str = "111129292929";
-      bsds->huffman.build();
+      huffman.build();
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1", str);
-      mv.serialize(tv, data, bsds);
+      mv.serialize(tv, data);
       linpipe::kbelik::TypedValue tv2;
-      mv.deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2);
       CHECK(tv == tv2);
     }
   }
   SUBCASE("Real usecase") {
     string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["id", "Q183:Germany", {}]], "instance of": [["id", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["id", "Q1997469:Nord", {}]], "heritage designation": [["id", "Q811165:architectural heritage monument", {}]], "pof": [["id", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["id", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["id", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["id", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
     Json big = Json::parse(raw);
-    auto huff = &((*bsds).huffman);
-    huff->add(raw);
-    huff->build();
+    huffman.add(raw);
+    huffman.build();
     auto clms = big["claims"];
     for(auto& [key, val] : clms.items()) {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
       auto tv = linpipe::kbelik::TypedValue(sub_type, type_value);
-      mv.serialize(tv, data, bsds);
+      mv.serialize(tv, data);
       linpipe::kbelik:: TypedValue tv2;
-      mv.deserialize(data.data(), tv2, bsds);
+      mv.deserialize(data.data(), tv2);
       SUBCASE("equality") {
         CHECK(tv == tv2);
       }
       SUBCASE("length") {
-        CHECK(mv.length(data.data()) == mv.length(tv, bsds));
+        CHECK(mv.length(data.data()) == mv.length(tv));
       }
     }
   }
 }
 
 TEST_CASE("AgnosticEntityInfoHuffman -- map value") { 
-  ByteSerializerDeserializers bsds;
   //string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
   string raw = R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {"k": [["string", "x"], ["string", "y"]]}], ["string", "Wau", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del";
   Json big = Json::parse(raw);
-  auto huff = &bsds.huffman;
-  huff->add(raw);
-  huff->add("|$");
-  huff->build();
+  auto huff = HuffmanTree();
+  huff.add(raw);
+  huff.add("|$");
+  huff.build();
   vector<byte> data;
   auto ori = linpipe::kbelik::AgnosticEntityInfo(big);
   
-  auto mv = AgnosticEntityInfoH();
+  auto mv = AgnosticEntityInfoH(huff);
 
-  mv.serialize(ori, data, &bsds);
+  mv.serialize(ori, data);
   
   SUBCASE("Lengths") {
     size_t l1, l2;
-    l1 = mv.length(ori, &bsds);
+    l1 = mv.length(ori);
     l2 = mv.length(data.data());
     CHECK(l1 == l2);
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::AgnosticEntityInfo aei;
-    mv.deserialize(data.data(), aei, &bsds);
+    mv.deserialize(data.data(), aei);
     CHECK(aei.claims == ori.claims);
   }
 }
 
 TEST_CASE("SpecificEntityInfoH -- map value") {
-  ByteSerializerDeserializers bsds;
   string raw = R"del({"qid": "Q6723460", "label": "blabla", "lang": "cs", "description": "asteroid", "wiki": {"title": "Slunce", "text": "Slunce je jak znamo asteroid"}})del";
   Json big = Json::parse(raw);
-  auto huff = &bsds.huffman;
-  huff->add(raw);
-  huff->build();
+  auto huff = HuffmanTree();
+  huff.add(raw);
+  huff.build();
   vector<byte> data;
-  auto mv = SpecificEntityInfoH();
+  auto mv = SpecificEntityInfoH(huff);
   auto ori = linpipe::kbelik::SpecificEntityInfo(big);
-  mv.serialize(ori, data, &bsds);
+  mv.serialize(ori, data);
 
   SUBCASE("Lengths") {
     size_t l1, l2;
-    l1 = mv.length(ori, &bsds);
+    l1 = mv.length(ori);
     l2 = mv.length(data.data());
     CHECK(l1 == l2);
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::SpecificEntityInfo sp;
-    mv.deserialize(data.data(), sp, &bsds);
+    mv.deserialize(data.data(), sp);
   
     CHECK(sp == ori);
   }

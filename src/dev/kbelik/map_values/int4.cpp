@@ -9,19 +9,19 @@
 
 namespace linpipe::kbelik::map_values {
 
-size_t Int4::length(const byte* /*ptr*/) {
+size_t Int4::length(const byte* /*ptr*/) const {
   return 4;
 }
 
-size_t Int4::length(const Int4::Type& /*value*/, ByteSerializerDeserializers* /*bsds*/) {
+size_t Int4::length(const Int4::Type& /*value*/) const {
   return 4;
 }
 
-void Int4::deserialize(const byte* ptr, Int4::Type& value, ByteSerializerDeserializers* /*bsds*/) {
+void Int4::deserialize(const byte* ptr, Int4::Type& value) const {
   memcpy(&value, ptr, Int4::length(ptr));
 }
 
-void Int4::serialize(const Int4::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
+void Int4::serialize(const Int4::Type& value, vector<byte>& data) const {
   size_t bytes_cnt = Int4::length(value);
   data.resize(bytes_cnt);
   memcpy(data.data(), &value, bytes_cnt);

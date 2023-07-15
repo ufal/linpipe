@@ -24,8 +24,7 @@ namespace linpipe::kbelik {
 template<typename KeyMV, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, KeyMV& mk, Value& mv, size_t offset=0, int64_t length=-1, 
-    ByteSerializerDeserializers* bsds=nullptr) : mk(mk), mv(mv), bsds(bsds) {
+  PersistentMap(filesystem::path fp, KeyMV mk, Value mv, size_t offset=0, int64_t length=-1) : mk(mk), mv(mv) {
     load(fp, offset, length);
     init();
   }
@@ -38,10 +37,9 @@ class PersistentMap{
 
   MapType get_map_type() const;
 
+  KeyMV mk;
+  Value mv;
  private:
-  KeyMV& mk;
-  Value& mv;
-  ByteSerializerDeserializers* bsds;
   size_t length = 0; 
   MapType map_type;
 #ifdef _WIN_32
@@ -85,10 +83,10 @@ template<typename KeyMV, typename Value>
 bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value::Type& value) const {
   if (!opened())
     throw LinpipeError("The mmap is closed.");
-  uint32_t offset;
-  bool success = get_val_offset(key, offset);
+  uint32_t offset_in_map;
+  bool success = get_val_offset(key, offset_in_map);
   if (success)
-    mv.deserialize(static_cast<std::byte*>(index_start) + offset, value, bsds);
+    mv.deserialize(static_cast<std::byte*>(index_start) + offset_in_map, value);
   return success;
 }
 
@@ -233,7 +231,7 @@ bool PersistentMap<KeyMV, Value>::exponential_search(typename KeyMV::Type& key, 
 template<typename KeyMV, typename Value>
 void PersistentMap<KeyMV, Value>::read_ith_key(int i, typename KeyMV::Type &res) const {
   size_t shift = i * one_key;
-  mk.deserialize(index_start + shift, res, bsds);
+  mk.deserialize(index_start + shift, res);
   //memcpy(&res, index_start + shift , sizeof(KeyMV));
 }
 

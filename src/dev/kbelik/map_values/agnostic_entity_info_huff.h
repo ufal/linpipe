@@ -8,7 +8,7 @@
 
 #include "common.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
+#include "dev/kbelik/huffman.h"
 #include "dev/kbelik/map_values/bits.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 #include "dev/kbelik/map_values/typed_value.h"
@@ -25,21 +25,27 @@ class AgnosticEntityInfoH {
  public:
   using Type = linpipe::kbelik::AgnosticEntityInfo;
 
-  size_t length(const byte* ptr);
-  size_t length(const Type& value, ByteSerializerDeserializers* bsds);
+  AgnosticEntityInfoH() = delete;
+  AgnosticEntityInfoH(HuffmanTree& huffman) : huffman(huffman), tv(TypedValue(huffman)) { }
+
+  size_t length(const byte* ptr) const;
+  size_t length(const Type& value) const;
    
-  void serialize(const Type& value, vector<byte>& data, ByteSerializerDeserializers* bsds);
-  void deserialize(const byte* ptr_whole, Type& value, ByteSerializerDeserializers* bsds);
+  void serialize(const Type& value, vector<byte>& data) const;
+  void deserialize(const byte* ptr_whole, Type& value) const;
+  HuffmanTree& huffman;
  private:
-  VLI vli;
+
   Bits bits;
   BytesVLI bytes_vli;
+  TypedValue tv;
+  VLI vli;
 
-  void encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded, ByteSerializerDeserializers* bsds);
-  void decodeAEIP(const byte* ptr_whole, AEIProperties& aeip, ByteSerializerDeserializers* bsds);
+  void encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded) const;
+  void decodeAEIP(const byte* ptr_whole, AEIProperties& aeip) const;
 
-  void encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded);
-  void decodeNE(const byte* ptr, vector<NamedEntity>& ne);
+  void encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded) const;
+  void decodeNE(const byte* ptr, vector<NamedEntity>& ne) const;
 };
 
 } // namespace linpipe::kbelik::map_values

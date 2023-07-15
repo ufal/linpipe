@@ -78,11 +78,11 @@ void HuffmanTree::build_paths() {
 }
 
 void HuffmanTree::build() {
-  if (is_built) 
+  if (built) 
     throw LinpipeError("Tree is already built");
   build_tree();
   build_paths();
-  is_built = true;
+  built = true;
 }
 
 void HuffmanTree::encode(const string text, vector<byte>& out) {
@@ -118,6 +118,8 @@ void HuffmanTree::encode(const vector<byte>& data, vector<byte>& out) {
 }
 
 void HuffmanTree::decode(const byte* in, string& text) { 
+  if (!built) 
+    throw LinpipeError("Tree is not built so you cannot use decode on it.");
   vector<byte> decoded;
   decode(in, decoded);
   text = string(reinterpret_cast<const char*>(decoded.data()), decoded.size());
@@ -156,7 +158,7 @@ void HuffmanTree::prefix_serialize(shared_ptr<Node> n, vector<byte>& result) con
 }
 
 void HuffmanTree::serialize(vector<byte>& to) const {
-  if (!is_built) 
+  if (!built) 
     throw LinpipeError("Tree is not built and cannot be serialized.");
   to.resize(0);
   prefix_serialize(root, to);
@@ -181,7 +183,7 @@ Node HuffmanTree::prefix_construct(byte*& in) const {
 void HuffmanTree::deserialize(byte* in) {
   root = make_shared<Node>(prefix_construct(in));
   build_paths();
-  is_built = true;
+  built = true;
 }
 
 void HuffmanTree::deserialize(const vector<byte>& in) {

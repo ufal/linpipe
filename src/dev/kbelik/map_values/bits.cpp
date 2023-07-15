@@ -10,16 +10,16 @@
 
 namespace linpipe::kbelik::map_values {
 
-size_t Bits::length(const byte* ptr) {
+size_t Bits::length(const byte* ptr) const {
   return bytes_vli.length(ptr);
 }
 
-size_t Bits::length(const Bits::Type& value, ByteSerializerDeserializers* /*bsds*/) {
+size_t Bits::length(const Bits::Type& value) const {
   vector<byte> mock(ceil(value.size() / 8.0) + 1);
   return bytes_vli.length(mock);
 }
 
-void Bits::deserialize(const byte* ptr, Bits::Type& value, ByteSerializerDeserializers* /*bsds*/) {
+void Bits::deserialize(const byte* ptr, Bits::Type& value) const {
   vector<byte> bytes;
   bytes_vli.deserialize(ptr, bytes);
 
@@ -34,7 +34,7 @@ void Bits::deserialize(const byte* ptr, Bits::Type& value, ByteSerializerDeseria
   }
 }
 
-void Bits::serialize(const Bits::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
+void Bits::serialize(const Bits::Type& value, vector<byte>& data) const {
   vector<byte> bytes;
 
   byte over_eight = (byte)(value.size() - (value.size() / 8) * 8);

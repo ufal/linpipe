@@ -56,10 +56,12 @@ class HuffmanTree {
 
     inline byte end_symbol() const { return (byte)0b11111111; }
     inline byte end_serialize_symbol() const { return (byte)0b11111110; }
+
+    inline bool is_built() const { return built; }
   private:
 
     uint16_t creation_time = 0;
-    bool is_built = false;
+    bool built = false;
     unordered_map<byte, Node> before_build;
     unordered_map<byte, vector<byte>> paths;
     shared_ptr<Node> root;

@@ -13,7 +13,7 @@
 
 namespace linpipe::kbelik::map_values {
 
-size_t ID::length(const byte* ptr) {
+size_t ID::length(const byte* ptr) const {
   if ((int)*ptr & 1)  { 
     // The size is followed by the string representation
     size_t val;
@@ -24,7 +24,7 @@ size_t ID::length(const byte* ptr) {
   return 8;
 }
 
-size_t ID::length(const ID::Type& value, ByteSerializerDeserializers* /*bsds*/) {
+size_t ID::length(const ID::Type& value) const {
   if (value.is_qid())
     return 8;
   string text = value.str();
@@ -33,7 +33,7 @@ size_t ID::length(const ID::Type& value, ByteSerializerDeserializers* /*bsds*/) 
   return vli.length(sz) + bytes.size();
 }
 
-void ID::deserialize(const byte* ptr, ID::Type& value, ByteSerializerDeserializers* /*bsds*/) {
+void ID::deserialize(const byte* ptr, ID::Type& value) const {
   if ((int)*ptr & 1)  { 
     size_t bytes_sz;
     vli.deserialize(ptr, bytes_sz);
@@ -52,7 +52,7 @@ void ID::deserialize(const byte* ptr, ID::Type& value, ByteSerializerDeserialize
   }
 }
 
-void ID::serialize(const ID::Type& value, vector<byte>& data, ByteSerializerDeserializers* /*bsds*/) {
+void ID::serialize(const ID::Type& value, vector<byte>& data) const {
   if (value.is_qid()) {
     int64_t id_val = value.qid();
     int8.serialize(id_val << 1, data);

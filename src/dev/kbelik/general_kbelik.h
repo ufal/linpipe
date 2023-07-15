@@ -31,38 +31,36 @@ class GeneralKbelik {
   static inline void build(istream& jsons, ostream& result);
  private:
   filesystem::path kbelik_path;
-  ByteSerializerDeserializers bsds;
+  HuffmanTree huffman;
   PersistentMap<map_values::ID, ValueMV>* map = nullptr;
 
-  size_t load_bsds (size_t offset);
+  size_t load_huffman (size_t offset);
   void load_map (size_t offset, int64_t length);
 
-  static inline void build_bsds(istream& jsons, ByteSerializerDeserializers& bsds);
+  static inline void build_huffman(istream& jsons, HuffmanTree& huffman);
   static inline void build_map(istream& jsons, DynamicMap<map_values::ID, ValueMV>& dm);
 };
 
 template<typename ValueMV>
 void GeneralKbelik<ValueMV>::build(istream& jsons, ostream& result) {
-  ByteSerializerDeserializers bsds;
-  GeneralKbelik::build_bsds(jsons, bsds);
+  HuffmanTree huff = HuffmanTree();
+  GeneralKbelik::build_huffman(jsons, huff);
   
-  auto mv = ValueMV();
+  auto mv = ValueMV(huff);
   auto mk = map_values::ID();
 
-  auto dm = DynamicMap<map_values::ID, ValueMV>(mk, mv, &bsds);
+  auto dm = DynamicMap<map_values::ID, ValueMV>(mk, mv);
   GeneralKbelik::build_map(jsons, dm);
 
   vector<byte> huff_serialized;
-  bsds.huffman.serialize(huff_serialized);
+  huff.serialize(huff_serialized);
   result.write(reinterpret_cast<const char*>(huff_serialized.data()), huff_serialized.size());
 
   dm.save_map(result, test);
 }
 
 template<typename ValueMV>
-void GeneralKbelik<ValueMV>::build_bsds(istream& jsons, ByteSerializerDeserializers& bsds) {
-  auto huff = HuffmanTree();
-
+void GeneralKbelik<ValueMV>::build_huffman(istream& jsons, HuffmanTree& huff) {
   auto remember_pos = jsons.tellg();
 
   string line;
@@ -71,8 +69,6 @@ void GeneralKbelik<ValueMV>::build_bsds(istream& jsons, ByteSerializerDeserializ
   }
 
   huff.build();
-
-  bsds.huffman = huff;
 
   jsons.clear();
   jsons.seekg(remember_pos);
@@ -93,8 +89,8 @@ void GeneralKbelik<ValueMV>::build_map(istream& jsons, DynamicMap<map_values::ID
 template<typename ValueMV>
 GeneralKbelik<ValueMV>::GeneralKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
   this->kbelik_path = kbelik_path;
-  size_t bsds_bytes = load_bsds(offset);
-  load_map(offset + bsds_bytes, -1);
+  size_t huffman_bytes = load_huffman(offset);
+  load_map(offset + huffman_bytes, -1);
 }
 
 template<typename ValueMV>
@@ -113,13 +109,13 @@ bool GeneralKbelik<ValueMV>::opened() const {
 }
 
 template<typename ValueMV>
-size_t GeneralKbelik<ValueMV>::load_bsds(size_t offset) {
-  size_t bsds_size = 0;
+size_t GeneralKbelik<ValueMV>::load_huffman(size_t offset) {
+  size_t huffman_size = 0;
 
   std::ifstream ifs(kbelik_path, std::ios::binary | std::ios::in);
   byte b;
 
-  auto huff = HuffmanTree();
+  huffman = HuffmanTree();
   vector<byte> huff_bytes;
 
 
@@ -127,7 +123,7 @@ size_t GeneralKbelik<ValueMV>::load_bsds(size_t offset) {
     ifs.seekg(offset);
     while (ifs.read((char*)&b, sizeof(b))) {
       huff_bytes.push_back(b);
-      if(b == huff.end_serialize_symbol()) 
+      if(b == huffman.end_serialize_symbol()) 
         break;
     }
     ifs.close();
@@ -135,18 +131,17 @@ size_t GeneralKbelik<ValueMV>::load_bsds(size_t offset) {
   else {
     throw LinpipeError("Failed to open file for reading.\n");
   }
-  huff.deserialize(huff_bytes);
-  bsds.huffman = huff;
+  huffman.deserialize(huff_bytes);
 
-  bsds_size += huff_bytes.size();
-  return bsds_size;
+  huffman_size = huff_bytes.size();
+  return huffman_size;
 }
 
 template<typename ValueMV>
 void GeneralKbelik<ValueMV>::load_map(size_t offset, int64_t length) {
-  auto mv = ValueMV();
+  auto mv = ValueMV(huffman);
   auto mk = map_values::ID();
-  map = new PersistentMap<map_values::ID, ValueMV>(kbelik_path, mk, mv, offset, length, &bsds);
+  map = new PersistentMap<map_values::ID, ValueMV>(kbelik_path, mk, mv, offset=offset, length=length);
 }
 
 template<typename ValueMV>
