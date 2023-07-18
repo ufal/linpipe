@@ -30,6 +30,7 @@
 #include "dev/kbelik/map_values/bytes.h"
 #include "dev/kbelik/map_values/bytes_vli.h"
 //#include "dev/kbelik/map_values/chars.h"
+#include "dev/kbelik/map_values/fli.h"
 #include "dev/kbelik/map_values/id.h"
 #include "dev/kbelik/map_values/int4.h"
 #include "dev/kbelik/map_values/int8.h"
@@ -1120,6 +1121,30 @@ TEST_CASE("SimpleJson") {
     mv.deserialize(s.data(), out);
     CHECK(m["a"] == out["a"]);
     CHECK(m["xyz"] == out["xyz"]);
+  }
+}
+
+TEST_CASE("FLI") {
+  SUBCASE("length") {
+    for (int i = 1; i <= 8; ++i) {
+      auto mv = FLI(i);
+      vector<byte> data;
+      mv.serialize(1, data);
+      CHECK(mv.length(data.data()) == i);
+      CHECK(mv.length(2) == i);
+    }
+  }
+  SUBCASE("serialize/deserialize") {
+    SUBCASE("3 byte") {
+      auto mv = FLI(3);
+      for (uint64_t i = 0; i < 1000; i += 50) {
+        vector<byte> data;
+        mv.serialize(i, data);
+        uint64_t des;
+        mv.deserialize(data.data(), des);
+        CHECK(des == i);
+      }
+    }
   }
 }
 
