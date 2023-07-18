@@ -1,29 +1,14 @@
 #pragma once
 
-#include <filesystem>
 #include "common.h"
-#include "dev/kbelik/persistent_map.h"
 
-namespace linpipe {
-namespace kbelik {
-  class SpecificKbelik{
-    public:
-      SpecificKbelik(filesystem::path map_path);
-      ~SpecificKbelik();
+#include "dev/kbelik/general_kbelik.h"
 
-      static void build(istream json);
-      Value find(Key id);
-      void save();
+#include "dev/kbelik/map_values/specific_entity_info_huff.h"
+#include "dev/kbelik/map_keys/qid8.h"
 
-    private:
-      PersistentMap<Key, Value> ids_to_atts;
-      void load(string map_path);
-  };
-}
-}
+namespace linpipe::kbelik {
 
-// - Values jsou
-//   - label: str
-//   - aliases: list[str]
-//   - description: str
-//   - text: str (je ve "wiki"/"text", ale "wiki" tam nemusí být
+typedef GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH> SpecificKbelik;
+ 
+} // linpipe::kbelik

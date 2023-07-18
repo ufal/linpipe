@@ -23,6 +23,7 @@
 #include "dev/kbelik/huffman.h"
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/specific_entity_info.h"
+#include "dev/kbelik/specific_kbelik.h"
 
 #include "dev/kbelik/map_keys/int4.h"
 #include "dev/kbelik/map_keys/qid4.h"
@@ -388,7 +389,7 @@ TEST_CASE("Specific kbelik") {
   istringstream jsons = istringstream(raw);
 
   ofstream ofs("temp/test_sk.bin", ofstream::out | ofstream::binary);
-  GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH>::build(jsons, ofs);
+  SpecificKbelik::build(jsons, ofs);
   ofs.close();
   filesystem::path fp("temp/test_sk.bin");
 
@@ -401,7 +402,7 @@ TEST_CASE("Specific kbelik") {
   SUBCASE("Instance methods") {
     SUBCASE("Constructor") {
       SUBCASE("Basic") {
-        auto sk = GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH>(fp);
+        auto sk = SpecificKbelik(fp);
         auto sei = SpecificEntityInfo();
         bool flag = sk.find(ID("Q2417271"), sei);
         CHECK(!flag);
@@ -414,13 +415,13 @@ TEST_CASE("Specific kbelik") {
       }
     }
     SUBCASE("Find") {
-      auto sk = GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH>(fp);
+      auto sk = SpecificKbelik(fp);
       auto sei = SpecificEntityInfo();
       sk.find(ID("Q7365597"), sei);
       CHECK(sei.label == "Ronen");
     }
     SUBCASE("Close") {
-      auto sk = GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH>(fp);
+      auto sk = SpecificKbelik(fp);
       auto sei = SpecificEntityInfo();
       sk.close();
       CHECK_THROWS_AS(sk.find(ID("Q66638937"), sei), LinpipeError);
