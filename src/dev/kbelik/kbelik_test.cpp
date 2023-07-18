@@ -53,8 +53,8 @@ namespace kbelik {
 TEST_CASE("Dynamic map") {
   SUBCASE("Int4") {
     auto mv = map_values::Int4();
-    auto mk = map_keys::IntMapKey4();
-    auto dm = DynamicMap<map_keys::IntMapKey4, map_values::Int4>(mk, mv);
+    auto mk = map_keys::Int4();
+    auto dm = DynamicMap<map_keys::Int4, map_values::Int4>(mk, mv);
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -109,8 +109,8 @@ TEST_CASE("Dynamic map") {
   }
   SUBCASE("Bytes") {
     auto mv = map_values::Bytes<int8_t>();
-    auto mk = map_keys::IntMapKey4();
-    auto dm = DynamicMap<map_keys::IntMapKey4, map_values::Bytes<int8_t>>(mk, mv);
+    auto mk = map_keys::Int4();
+    auto dm = DynamicMap<map_keys::Int4, map_values::Bytes<int8_t>>(mk, mv);
     SUBCASE("Add, erase -- small") {
       REQUIRE(dm.length() == 0);
       dm.add(10, {(byte)1, (byte)2});
@@ -152,8 +152,8 @@ TEST_CASE("Dynamic map") {
   }
   SUBCASE("ID") {
     auto mv = map_values::Int4();
-    auto mk = map_keys::QIDMapKey8();
-    auto dm = DynamicMap<map_keys::QIDMapKey8, map_values::Int4>(mk, mv);
+    auto mk = map_keys::QID8();
+    auto dm = DynamicMap<map_keys::QID8, map_values::Int4>(mk, mv);
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -210,8 +210,8 @@ TEST_CASE("Dynamic map") {
 TEST_CASE("Persistent map") {
   SUBCASE("mock") {
     auto mv = map_values::Int4();
-    auto mk = map_keys::QIDMapKey8();
-    auto dm = DynamicMap<map_keys::QIDMapKey8, map_values::Int4>(mk, mv);
+    auto mk = map_keys::QID8();
+    auto dm = DynamicMap<map_keys::QID8, map_values::Int4>(mk, mv);
     int vals_cnt = 10;
     for (int i = 0; i < vals_cnt; ++i) 
       dm.add(ID("Q" + to_string(i)), i);
@@ -221,7 +221,7 @@ TEST_CASE("Persistent map") {
     ofs.close();
     filesystem::path fp("temp/test_map.bin");
     auto mv2 = map_values::Int4();
-    auto pm = PersistentMap<map_keys::QIDMapKey8, map_values::Int4>(fp, mk, mv2);
+    auto pm = PersistentMap<map_keys::QID8, map_values::Int4>(fp, mk, mv2);
     SUBCASE("close") {
       int res;
       pm.close();
@@ -252,7 +252,7 @@ TEST_CASE("Persistent map") {
       dm.save_map(ofs, test);
       ofs.close();
       filesystem::path fp_offset("temp/test_map_offset.bin");
-      auto pm_offset = PersistentMap<map_keys::QIDMapKey8, map_values::Int4>(fp_offset, mk, mv, 2);
+      auto pm_offset = PersistentMap<map_keys::QID8, map_values::Int4>(fp_offset, mk, mv, 2);
       int res;
       bool flag = pm_offset.find(ID("Q1"), res);
       CHECK(flag);
@@ -268,7 +268,7 @@ TEST_CASE("Persistent map") {
       ofs.write(data, 2);
       ofs.close();
       filesystem::path fp_length("temp/test_map_length.bin");
-      auto pm_length = PersistentMap<map_keys::QIDMapKey8, map_values::Int4>(fp_length, mk, mv, 0, len);
+      auto pm_length = PersistentMap<map_keys::QID8, map_values::Int4>(fp_length, mk, mv, 0, len);
       int res;
       bool flag = pm_length.find(ID("Q1"), res);
       CHECK(flag);
@@ -296,9 +296,9 @@ TEST_CASE("Persistent map") {
     bsds.huffman = huff;
 
     auto mv = map_values::AgnosticEntityInfoH(bsds.huffman);
-    auto mk = map_keys::QIDMapKey8();
+    auto mk = map_keys::QID8();
 
-    auto dm = DynamicMap<map_keys::QIDMapKey8, map_values::AgnosticEntityInfoH>(mk, mv);
+    auto dm = DynamicMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(mk, mv);
     for (auto line : {raw1, raw2, raw3, raw4, raw5}) {
       auto js = Json::parse(line);
       string q_str = js["qid"];
@@ -313,7 +313,7 @@ TEST_CASE("Persistent map") {
 
     filesystem::path fp("temp/test_map.bin");
     auto mv2 = map_values::AgnosticEntityInfoH(bsds.huffman);
-    auto pm = PersistentMap<map_keys::QIDMapKey8, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1);
+    auto pm = PersistentMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1);
     SUBCASE("find") {
       auto aei = AgnosticEntityInfo();
       pm.find(ID("Q66638937"), aei);
@@ -1175,14 +1175,14 @@ TEST_CASE("Chars") {
 } // namespace map_values
 
 namespace map_keys {
-  TEST_CASE("QIDMapKey4") {
-    auto mv = QIDMapKey4();
+  TEST_CASE("QID4") {
+    auto mv = QID4();
     CHECK(mv.length() == 4);
-    auto id = QIDMapKey4::Type("Q2417271");
+    auto id = QID4::Type("Q2417271");
     CHECK(mv.convert_to_uint(id) == 2417271);
   }
-  TEST_CASE("QIDMapKey8") {
-    auto mv = QIDMapKey8();
+  TEST_CASE("QID8") {
+    auto mv = QID8();
     CHECK(mv.length() == 8);
     auto id = linpipe::kbelik::ID("Q18446744073709551615");
     CHECK(mv.convert_to_uint(id) == 18446744073709551615ULL);

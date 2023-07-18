@@ -9,7 +9,7 @@
 
 namespace linpipe::kbelik::map_keys {
 
-class IntMapKey4 : public MapKey<int> {
+class Int4 : public MapKey<int> {
  public:
   constexpr int length() const { return 4; }
   uint64_t convert_to_uint(const int& id) const { return id; }

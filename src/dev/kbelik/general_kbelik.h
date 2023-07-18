@@ -33,13 +33,13 @@ class GeneralKbelik {
  private:
   filesystem::path kbelik_path;
   HuffmanTree huffman;
-  PersistentMap<map_keys::QIDMapKey8, ValueMV>* map = nullptr;
+  PersistentMap<map_keys::QID8, ValueMV>* map = nullptr;
 
   size_t load_huffman (size_t offset);
   void load_map (size_t offset, int64_t length);
 
   static inline void build_huffman(istream& jsons, HuffmanTree& huffman);
-  static inline void build_map(istream& jsons, DynamicMap<map_keys::QIDMapKey8, ValueMV>& dm);
+  static inline void build_map(istream& jsons, DynamicMap<map_keys::QID8, ValueMV>& dm);
 };
 
 template<typename ValueMV>
@@ -48,9 +48,9 @@ void GeneralKbelik<ValueMV>::build(istream& jsons, ostream& result) {
   GeneralKbelik::build_huffman(jsons, huff);
   
   auto mv = ValueMV(huff);
-  auto mk = map_keys::QIDMapKey8();
+  auto mk = map_keys::QID8();
 
-  auto dm = DynamicMap<map_keys::QIDMapKey8, ValueMV>(mk, mv);
+  auto dm = DynamicMap<map_keys::QID8, ValueMV>(mk, mv);
   GeneralKbelik::build_map(jsons, dm);
 
   vector<byte> huff_serialized;
@@ -76,7 +76,7 @@ void GeneralKbelik<ValueMV>::build_huffman(istream& jsons, HuffmanTree& huff) {
 }
 
 template<typename ValueMV>
-void GeneralKbelik<ValueMV>::build_map(istream& jsons, DynamicMap<map_keys::QIDMapKey8, ValueMV>& dm) {
+void GeneralKbelik<ValueMV>::build_map(istream& jsons, DynamicMap<map_keys::QID8, ValueMV>& dm) {
   string line;
   while (getline(jsons, line)) {
     auto js = Json::parse(line);
@@ -141,8 +141,8 @@ size_t GeneralKbelik<ValueMV>::load_huffman(size_t offset) {
 template<typename ValueMV>
 void GeneralKbelik<ValueMV>::load_map(size_t offset, int64_t length) {
   auto mv = ValueMV(huffman);
-  auto mk = map_keys::QIDMapKey8();
-  map = new PersistentMap<map_keys::QIDMapKey8, ValueMV>(kbelik_path, mk, mv, offset=offset, length=length);
+  auto mk = map_keys::QID8();
+  map = new PersistentMap<map_keys::QID8, ValueMV>(kbelik_path, mk, mv, offset=offset, length=length);
 }
 
 template<typename ValueMV>
