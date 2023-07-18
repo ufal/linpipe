@@ -336,7 +336,7 @@ TEST_CASE("Agnostic kbelik") {
   istringstream jsons = istringstream(raw);
 
   ofstream ofs("temp/test_ak.bin", ofstream::out | ofstream::binary);
-  GeneralKbelik<map_keys::QID8, map_values::AgnosticEntityInfoH>::build(jsons, ofs);
+  AgnosticKbelik::build(jsons, ofs);
   ofs.close();
   filesystem::path fp("temp/test_ak.bin");
 
@@ -349,7 +349,7 @@ TEST_CASE("Agnostic kbelik") {
   SUBCASE("Instance methods") {
     SUBCASE("Constructor") {
       SUBCASE("Basic") {
-        auto ak = GeneralKbelik<map_keys::QID8, map_values::AgnosticEntityInfoH>(fp);
+        auto ak = AgnosticKbelik(fp);
         auto aei = AgnosticEntityInfo();
         ak.find(ID("Q2417271"), aei);
         CHECK(aei.claims.size() > 0);
@@ -362,7 +362,7 @@ TEST_CASE("Agnostic kbelik") {
       }
     }
     SUBCASE("Find") {
-      auto ak = GeneralKbelik<map_keys::QID8, map_values::AgnosticEntityInfoH>(fp);
+      auto ak = AgnosticKbelik(fp);
       auto aei = AgnosticEntityInfo();
       ak.find(ID("Q66638937"), aei);
       CHECK(aei.claims.size() == 5);
@@ -370,7 +370,7 @@ TEST_CASE("Agnostic kbelik") {
       CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
     }
     SUBCASE("Close") {
-      auto ak = GeneralKbelik<map_keys::QID8, map_values::AgnosticEntityInfoH>(fp);
+      auto ak = AgnosticKbelik(fp);
       auto aei = AgnosticEntityInfo();
       ak.close();
       CHECK_THROWS_AS(ak.find(ID("Q66638937"), aei), LinpipeError);
