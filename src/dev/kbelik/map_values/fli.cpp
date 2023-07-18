@@ -16,13 +16,13 @@ size_t FLI::length(const FLI::Type& /*value*/) const {
 }
 
 void FLI::deserialize(const byte* ptr, Type& value) {
-  linpipe::kbelik::utils::load_n_byte_int(ptr, value, _length);
+  linpipe::kbelik::utils::load_n_byte_uint(ptr, value, _length);
 }
 
 void FLI::serialize(const Type& value, vector<byte>& data) {
   size_t oldSize = data.size();
   data.resize(oldSize + _length);
-  linpipe::kbelik::utils::write_n_byte_int(value, data.data(), _length);
+  linpipe::kbelik::utils::write_n_byte_uint(value, data.data(), _length);
 }
 
 } // namespace linpipe::kbelik::map_keys
