@@ -24,6 +24,9 @@
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/specific_entity_info.h"
 
+#include "dev/kbelik/map_keys/qid4.h"
+#include "dev/kbelik/map_keys/qid8.h"
+
 //#include "dev/kbelik/map_values/agnostic_entity_info.h"
 #include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
 #include "dev/kbelik/map_values/bits.h"
@@ -1168,6 +1171,21 @@ TEST_CASE("Chars") {
 */
 
 } // namespace map_values
+
+namespace map_keys {
+  TEST_CASE("QIDMapKey4") {
+    auto mv = QIDMapKey4();
+    CHECK(mv.length() == 4);
+    auto id = linpipe::kbelik::ID("Q2417271");
+    CHECK(mv.convert_to_uint(id) == 2417271);
+  }
+  TEST_CASE("QIDMapKey8") {
+    auto mv = QIDMapKey8();
+    CHECK(mv.length() == 8);
+    auto id = linpipe::kbelik::ID("Q18446744073709551615");
+    CHECK(mv.convert_to_uint(id) == 18446744073709551615ULL);
+  }
+} // namespace map_keys
   
 TEST_CASE("HuffmanTree") {
   SUBCASE("Encode and decode short") {
