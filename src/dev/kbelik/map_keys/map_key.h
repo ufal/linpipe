@@ -7,8 +7,9 @@ namespace linpipe::kbelik::map_keys {
 template<class T>
 class MapKey {
  public:
-  constexpr int length();
-  uint64_t convert_to_uint(const T& id);
+  using Type = T;
+  constexpr int length() const;
+  uint64_t convert_to_uint(const T& id) const;
 };
   
 } // linpipe::kbelik::map_keys

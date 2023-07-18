@@ -19,25 +19,27 @@
 
 #include "dev/kbelik/map_type.h"
 
+#include "dev/kbelik/utils/memcpy.h"
+
 namespace linpipe::kbelik {
 
-template<typename KeyMV, typename Value>
+template<typename MapKey, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, KeyMV mk, Value mv, size_t offset=0, int64_t length=-1) : mk(mk), mv(mv) {
+  PersistentMap(filesystem::path fp, MapKey mk, Value mv, size_t offset=0, int64_t length=-1) : mk(mk), mv(mv) {
     load(fp, offset, length);
     init();
   }
   ~PersistentMap();
 
-  bool find(typename KeyMV::Type key, typename Value::Type& value) const;
+  bool find(typename MapKey::Type key, typename Value::Type& value) const;
   void close(); // Should end mmap.
                 
   bool opened() const;
 
   MapType get_map_type() const;
 
-  KeyMV mk;
+  MapKey mk;
   Value mv;
  private:
   size_t length = 0; 
@@ -59,45 +61,44 @@ class PersistentMap{
   void init_index_ptr();
   void set_map_type();
 
-  bool get_val_offset(typename KeyMV::Type& key, uint32_t& offset) const;
+  bool get_val_offset(uint64_t key, uint32_t& offset) const;
 
-  bool exponential_search(typename KeyMV::Type& key, size_t elements_cnt, uint32_t &result) const;
-  bool binary_search(typename KeyMV::Type& key, size_t l, size_t r, uint32_t &result) const;
+  bool exponential_search(uint64_t key, size_t elements_cnt, uint32_t &result) const;
+  bool binary_search(uint64_t key, size_t l, size_t r, uint32_t &result) const;
 
-  void read_ith_key(int i, typename KeyMV::Type &res) const;
+  void read_ith_key(int i, uint64_t &res) const;
   void read_ith_offset(int i, uint32_t &res) const;
-
-  const int key_size = 8;
 
 };
 
 /*
-template<typename KeyMV, typename Value>
-PersistentMap<KeyMV, Value>::PersistentMap(filesystem::path fp, Value& mv, size_t offset, int64_t length, ByteSerializerDeserializers* bsds) {
+template<typename MapKey, typename Value>
+PersistentMap<MapKey, Value>::PersistentMap(filesystem::path fp, Value& mv, size_t offset, int64_t length, ByteSerializerDeserializers* bsds) {
   this->mv = mv;
   this->bsds = bsds;
   load(fp, offset, length);
 }*/
 
-template<typename KeyMV, typename Value>
-bool PersistentMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value::Type& value) const {
+template<typename MapKey, typename Value>
+bool PersistentMap<MapKey, Value>::find(typename MapKey::Type key, typename Value::Type& value) const {
   if (!opened())
     throw LinpipeError("The mmap is closed.");
   uint32_t offset_in_map;
-  bool success = get_val_offset(key, offset_in_map);
+  uint64_t key_as_uint = mk.convert_to_uint(key);
+  bool success = get_val_offset(key_as_uint, offset_in_map);
   if (success)
     mv.deserialize(static_cast<std::byte*>(index_start) + offset_in_map, value);
   return success;
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::close() {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::close() {
   munmap(mmap_addr, length);
   ::close(fd);
 }
 
-template<typename KeyMV, typename Value>
-bool PersistentMap<KeyMV, Value>::opened() const {
+template<typename MapKey, typename Value>
+bool PersistentMap<MapKey, Value>::opened() const {
 #ifdef _WIN_32
   return fd != INVALID_HANDLE_VALUE;
 #else
@@ -106,13 +107,13 @@ bool PersistentMap<KeyMV, Value>::opened() const {
 #endif
 }
 
-template<typename KeyMV, typename Value>
-MapType PersistentMap<KeyMV, Value>::get_map_type() const {
+template<typename MapKey, typename Value>
+MapType PersistentMap<MapKey, Value>::get_map_type() const {
   return map_type;
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64_t length) {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::load(filesystem::path fp, size_t offset, int64_t length) {
 
   size_t pagesize;
 #ifdef _WIN_32
@@ -159,37 +160,37 @@ void PersistentMap<KeyMV, Value>::load(filesystem::path fp, size_t offset, int64
 #endif
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::init() {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::init() {
   init_index_ptr();
   set_map_type();
   if (map_type == test) {
-    one_key = 4 + 8;
+    one_key = 4 + mk.length();
     jump_exponential = 8;
   }
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::init_index_ptr() {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::init_index_ptr() {
   index_start = (std::byte*)(mmap_addr) + sizeof(size_t) + sizeof(MapType);
   memcpy(&index_size, (std::byte*)(mmap_addr) + sizeof(MapType), sizeof(size_t));
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::set_map_type() {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::set_map_type() {
   memcpy(&map_type, (std::byte*)mmap_addr, sizeof(MapType));
 }
 
-template<typename KeyMV, typename Value>
-bool PersistentMap<KeyMV, Value>::get_val_offset(typename KeyMV::Type& key, uint32_t& offset) const {
+template<typename MapKey, typename Value>
+bool PersistentMap<MapKey, Value>::get_val_offset(uint64_t key, uint32_t& offset) const {
   return exponential_search(key, index_size / one_key, offset);
 }
 
-template<typename KeyMV, typename Value>
-bool PersistentMap<KeyMV, Value>::binary_search(typename KeyMV::Type& key, size_t l, size_t r, uint32_t &result) const {
+template<typename MapKey, typename Value>
+bool PersistentMap<MapKey, Value>::binary_search(uint64_t key, size_t l, size_t r, uint32_t &result) const {
   while(l <= r) {
     size_t m = (l + r) / 2;
-    typename KeyMV::Type from_index;
+    uint64_t from_index;
     read_ith_key(m, from_index);
     if (from_index < key) 
       l = m + 1;
@@ -206,12 +207,12 @@ bool PersistentMap<KeyMV, Value>::binary_search(typename KeyMV::Type& key, size_
   return false;
 }
 
-template<typename KeyMV, typename Value>
-bool PersistentMap<KeyMV, Value>::exponential_search(typename KeyMV::Type& key, size_t elements_cnt, 
+template<typename MapKey, typename Value>
+bool PersistentMap<MapKey, Value>::exponential_search(uint64_t key, size_t elements_cnt, 
                                                    uint32_t &result) const {
   size_t r = 1;
   while (r < elements_cnt) {
-    typename KeyMV::Type from_index;
+    uint64_t from_index;
     read_ith_key(r, from_index);
     if (from_index < key)
       r *= jump_exponential;
@@ -228,22 +229,23 @@ bool PersistentMap<KeyMV, Value>::exponential_search(typename KeyMV::Type& key, 
   return binary_search(key, l, min(elements_cnt - 1, r), result);
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::read_ith_key(int i, typename KeyMV::Type &res) const {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::read_ith_key(int i, uint64_t &res) const {
   size_t shift = i * one_key;
-  mk.deserialize(index_start + shift, res);
-  //memcpy(&res, index_start + shift , sizeof(KeyMV));
+  // mk.deserialize(index_start + shift, res);
+  utils::load_n_byte_uint(index_start + shift, res, mk.length());
+  //memcpy(&res, index_start + shift , sizeof(MapKey));
 }
 
-template<typename KeyMV, typename Value>
-void PersistentMap<KeyMV, Value>::read_ith_offset(int i, uint32_t &res) const {
+template<typename MapKey, typename Value>
+void PersistentMap<MapKey, Value>::read_ith_offset(int i, uint32_t &res) const {
   size_t shift = i * one_key;
-  memcpy(&res, index_start + shift + key_size, sizeof(uint32_t));
+  memcpy(&res, index_start + shift + mk.length(), sizeof(uint32_t));
   res += shift;
 }
 
-template<typename KeyMV, typename Value>
-PersistentMap<KeyMV, Value>::~PersistentMap() {
+template<typename MapKey, typename Value>
+PersistentMap<MapKey, Value>::~PersistentMap() {
   if (opened())
     close();
 }

@@ -10,8 +10,8 @@ namespace linpipe::kbelik::map_keys {
 
 class QIDMapKey8 : public MapKey<ID> {
  public:
-  constexpr int length() { return 8; }
-  uint64_t convert_to_uint(const ID& id) { return id.qid(); }
+  constexpr int length() const { return 8; }
+  uint64_t convert_to_uint(const ID& id) const { return id.qid(); }
 };
 
   

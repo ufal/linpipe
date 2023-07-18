@@ -26,6 +26,7 @@ LINPIPE_TESTS += dev/kbelik/utils
 LINPIPE_TESTS += dev/kbelik/map_values/agnostic_entity_info_huff
 LINPIPE_TESTS += dev/kbelik/map_values/bits
 LINPIPE_TESTS += dev/kbelik/map_values/bytes_vli
+LINPIPE_TESTS += dev/kbelik/map_values/fli
 LINPIPE_TESTS += dev/kbelik/map_values/id
 LINPIPE_TESTS += dev/kbelik/map_values/int4
 LINPIPE_TESTS += dev/kbelik/map_values/int8
@@ -33,5 +34,7 @@ LINPIPE_TESTS += dev/kbelik/map_values/simple_json
 LINPIPE_TESTS += dev/kbelik/map_values/specific_entity_info_huff
 LINPIPE_TESTS += dev/kbelik/map_values/typed_value
 LINPIPE_TESTS += dev/kbelik/map_values/vli
+
+LINPIPE_TESTS += dev/kbelik/utils/memcpy
 
 LINPIPE_TESTS += dev/kbelik/kbelik_test

@@ -11,26 +11,26 @@
 
 namespace linpipe::kbelik {
 
-template<typename KeyMV, typename Value>
+template<typename MapKey, typename Value>
 class DynamicMap{
  public:
-  DynamicMap(KeyMV& mk, Value& mv) : mk(mk), mv(mv) {}
+  DynamicMap(MapKey& mk, Value& mv) : mk(mk), mv(mv) {}
 
-  bool find(typename KeyMV::Type key, typename Value::Type& value) const;
-  void add(typename KeyMV::Type key, const typename Value::Type& value);
-  void erase(typename KeyMV::Type key);
-  void insert(DynamicMap<KeyMV, Value> m2);
+  bool find(typename MapKey::Type key, typename Value::Type& value) const;
+  void add(typename MapKey::Type key, const typename Value::Type& value);
+  void erase(typename MapKey::Type key);
+  void insert(DynamicMap<MapKey, Value> m2);
 
-  map<typename KeyMV::Type, typename Value::Type> get_values() const;
+  map<typename MapKey::Type, typename Value::Type> get_values() const;
 
   size_t length() const;
 
   void save_map(ostream& os, MapType type);
 
-  map<typename KeyMV::Type, typename Value::Type> values;
+  map<typename MapKey::Type, typename Value::Type> values;
 
  private:
-  KeyMV& mk;
+  MapKey& mk;
   Value& mv;
 
   void write_type(ostream& os, MapType type);
@@ -42,8 +42,8 @@ class DynamicMap{
   int const key_size = 8;
 };
 
-template<typename KeyMV, typename Value>
-bool DynamicMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value::Type& value) const {
+template<typename MapKey, typename Value>
+bool DynamicMap<MapKey, Value>::find(typename MapKey::Type key, typename Value::Type& value) const {
   auto search =  values.find(key);
   if (search == values.end())
     return false;
@@ -51,45 +51,45 @@ bool DynamicMap<KeyMV, Value>::find(typename KeyMV::Type key, typename Value::Ty
   return true;
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::add(typename KeyMV::Type key, const typename Value::Type& value) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::add(typename MapKey::Type key, const typename Value::Type& value) {
   values.insert({key, value});
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::erase(typename KeyMV::Type key) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::erase(typename MapKey::Type key) {
   values.erase(key);
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::insert(DynamicMap<KeyMV, Value> m2) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::insert(DynamicMap<MapKey, Value> m2) {
   auto vals = m2.get_values();
   values.insert(vals.begin(), vals.end());
 }
 
-template<typename KeyMV, typename Value>
-map<typename KeyMV::Type, typename Value::Type> DynamicMap<KeyMV, Value>::get_values() const {
+template<typename MapKey, typename Value>
+map<typename MapKey::Type, typename Value::Type> DynamicMap<MapKey, Value>::get_values() const {
   return values;
 }
 
-template<typename KeyMV, typename Value>
-size_t DynamicMap<KeyMV, Value>::length() const {
+template<typename MapKey, typename Value>
+size_t DynamicMap<MapKey, Value>::length() const {
   return values.size();
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::save_map(ostream& os, MapType type) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::save_map(ostream& os, MapType type) {
   write_type(os, type);
   write_keys_and_values(os);
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::write_type(ostream& os, MapType type) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::write_type(ostream& os, MapType type) {
   os.write((char*)&type, sizeof(type));
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
   auto size_sums = value_prefix_sums();
   using address_type = uint32_t;
   size_t address_size = sizeof(address_type);
@@ -109,10 +109,11 @@ void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
     address_type offset = size_sums[idx] + index_size - key_address_size * idx;
 
     vector<byte> serialized_key;
-    mk.serialize(p.first, serialized_key);
-    memcpy_two(data.data(), serialized_key.data(), 
+    //mk.serialize(p.first, serialized_key);
+    uint64_t key_as_uint = mk.convert_to_uint(p.first);
+    memcpy_two(data.data(), (byte*)&key_as_uint, 
                (byte*)&offset,
-               mk.length(p.first), address_size);
+               mk.length(), address_size);
 
     // data -> to_stream
     memcpy(to_stream_ptr + idx * key_address_size, 
@@ -129,8 +130,8 @@ void DynamicMap<KeyMV, Value>::write_keys_and_values(ostream& os) {
   os.write((char*)to_stream.data(), to_stream.size());
 }
 
-template<typename KeyMV, typename Value>
-void DynamicMap<KeyMV, Value>::memcpy_two(byte* dest, const byte* first, 
+template<typename MapKey, typename Value>
+void DynamicMap<MapKey, Value>::memcpy_two(byte* dest, const byte* first, 
                                          const byte* second, 
                                          size_t first_count, 
                                          size_t second_count) {
@@ -142,8 +143,8 @@ void DynamicMap<KeyMV, Value>::memcpy_two(byte* dest, const byte* first,
            second_count);
 }
 
-template<typename KeyMV, typename Value>
-vector<size_t> DynamicMap<KeyMV, Value>::value_prefix_sums() {
+template<typename MapKey, typename Value>
+vector<size_t> DynamicMap<MapKey, Value>::value_prefix_sums() {
   vector<size_t> ps(values.size() + 1, 0);
   int idx = 1;
   for (auto p: values) {
