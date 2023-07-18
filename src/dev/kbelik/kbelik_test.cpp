@@ -24,6 +24,7 @@
 #include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/specific_entity_info.h"
 
+#include "dev/kbelik/map_keys/int4.h"
 #include "dev/kbelik/map_keys/qid4.h"
 #include "dev/kbelik/map_keys/qid8.h"
 
@@ -50,11 +51,10 @@ namespace linpipe {
 namespace kbelik {
 
 TEST_CASE("Dynamic map") {
-    /*
   SUBCASE("Int4") {
     auto mv = map_values::Int4();
-    auto mk = map_keys::QIDMapKey4();
-    auto dm = DynamicMap<map_keys::QIDMapKey4, map_values::Int4>(mk, mv);
+    auto mk = map_keys::IntMapKey4();
+    auto dm = DynamicMap<map_keys::IntMapKey4, map_values::Int4>(mk, mv);
     SUBCASE("Add, erase -- big") {
       REQUIRE(dm.length() == 0);
       int to_add = 200;
@@ -109,8 +109,8 @@ TEST_CASE("Dynamic map") {
   }
   SUBCASE("Bytes") {
     auto mv = map_values::Bytes<int8_t>();
-    auto mk = map_values::Int4();
-    auto dm = DynamicMap<map_values::Int4, map_values::Bytes<int8_t>>(mk, mv);
+    auto mk = map_keys::IntMapKey4();
+    auto dm = DynamicMap<map_keys::IntMapKey4, map_values::Bytes<int8_t>>(mk, mv);
     SUBCASE("Add, erase -- small") {
       REQUIRE(dm.length() == 0);
       dm.add(10, {(byte)1, (byte)2});
@@ -150,7 +150,6 @@ TEST_CASE("Dynamic map") {
       CHECK(dm.length() == 0);
     }
   }
-    */
   SUBCASE("ID") {
     auto mv = map_values::Int4();
     auto mk = map_keys::QIDMapKey8();
