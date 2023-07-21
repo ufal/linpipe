@@ -5,7 +5,7 @@
 #include "dev/kbelik/general_kbelik.h"
 
 #include "dev/kbelik/map_values/specific_entity_info_huff.h"
-#include "dev/kbelik/map_keys/qid8.h"
+#include "dev/kbelik/map_keys/qid4.h"
 
 namespace linpipe::kbelik {
 
