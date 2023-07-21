@@ -15,7 +15,7 @@ size_t Bits::length(const byte* ptr) const {
 }
 
 size_t Bits::length(const Bits::Type& value) const {
-  vector<byte> mock(ceil(value.size() / 8.0) + 1);
+  vector<byte> mock((int)ceil(value.size() / 8.0) + 1);
   return bytes_vli.length(mock);
 }
 
