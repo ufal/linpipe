@@ -11,6 +11,8 @@
 #include <cstring>
 #include <fstream>
 
+#include <sstream>
+
 #include "common.h"
 #include "lib/doctest.h"
 #include "lib/json.h"
