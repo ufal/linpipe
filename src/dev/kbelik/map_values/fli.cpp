@@ -16,6 +16,7 @@ size_t FLI::length(const FLI::Type& /*value*/) const {
 }
 
 void FLI::deserialize(const byte* ptr, Type& value) {
+  value = 0;
   linpipe::kbelik::utils::load_n_byte_uint(ptr, value, _length);
 }
 
