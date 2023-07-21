@@ -3,21 +3,12 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
-#ifdef _WIN32
-  #include <Windows.h>
-  #include <memoryapi.h>
-  #include <winbase.h>
-  #include <fileapi.h>
-#else
-  #include <sys/mman.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <unistd.h>
-#endif
+
 
 #include "common.h"
 
 #include "dev/kbelik/map_type.h"
+#include "dev/kbelik/mmap.h"
 
 #include "dev/kbelik/utils/memcpy.h"
 
@@ -26,8 +17,8 @@ namespace linpipe::kbelik {
 template<typename MapKey, typename Value>
 class PersistentMap{
  public:
-  PersistentMap(filesystem::path fp, MapKey mk, Value mv, size_t offset=0, int64_t length=-1) : mk(mk), mv(mv) {
-    load(fp, offset, length);
+  PersistentMap(filesystem::path fp, MapKey mk, Value mv, size_t offset=0, int64_t length=-1) : 
+  mk(mk), mv(mv), mf(MMappedFile(fp, offset, length)) {
     init();
   }
   ~PersistentMap();
@@ -42,14 +33,8 @@ class PersistentMap{
   MapKey mk;
   Value mv;
  private:
-  size_t length = 0; 
   MapType map_type;
-#ifdef _WIN_32
-  HANDLE fd;
-#else
-  int fd = -1;
-#endif
-  void* mmap_addr = NULL;
+  MMappedFile mf;
   std::byte* index_start;
   size_t index_size;
 
@@ -93,18 +78,12 @@ bool PersistentMap<MapKey, Value>::find(typename MapKey::Type key, typename Valu
 
 template<typename MapKey, typename Value>
 void PersistentMap<MapKey, Value>::close() {
-  munmap(mmap_addr, length);
-  ::close(fd);
+  mf.close();
 }
 
 template<typename MapKey, typename Value>
 bool PersistentMap<MapKey, Value>::opened() const {
-#ifdef _WIN_32
-  return fd != INVALID_HANDLE_VALUE;
-#else
-  struct stat file_stat;
-  return fstat(fd, &file_stat) == 0;
-#endif
+  return mf.opened();
 }
 
 template<typename MapKey, typename Value>
@@ -112,6 +91,7 @@ MapType PersistentMap<MapKey, Value>::get_map_type() const {
   return map_type;
 }
 
+/*
 template<typename MapKey, typename Value>
 void PersistentMap<MapKey, Value>::load(filesystem::path fp, size_t offset, int64_t length) {
 
@@ -159,6 +139,7 @@ void PersistentMap<MapKey, Value>::load(filesystem::path fp, size_t offset, int6
     LinpipeError("map");
 #endif
 }
+*/
 
 template<typename MapKey, typename Value>
 void PersistentMap<MapKey, Value>::init() {
@@ -172,13 +153,13 @@ void PersistentMap<MapKey, Value>::init() {
 
 template<typename MapKey, typename Value>
 void PersistentMap<MapKey, Value>::init_index_ptr() {
-  index_start = (std::byte*)(mmap_addr) + sizeof(size_t) + sizeof(MapType);
-  memcpy(&index_size, (std::byte*)(mmap_addr) + sizeof(MapType), sizeof(size_t));
+  index_start = (std::byte*)(mf.mmap_addr()) + sizeof(size_t) + sizeof(MapType);
+  memcpy(&index_size, (std::byte*)(mf.mmap_addr()) + sizeof(MapType), sizeof(size_t));
 }
 
 template<typename MapKey, typename Value>
 void PersistentMap<MapKey, Value>::set_map_type() {
-  memcpy(&map_type, (std::byte*)mmap_addr, sizeof(MapType));
+  memcpy(&map_type, (std::byte*)mf.mmap_addr(), sizeof(MapType));
 }
 
 template<typename MapKey, typename Value>
@@ -246,7 +227,7 @@ void PersistentMap<MapKey, Value>::read_ith_offset(int i, uint32_t &res) const {
 
 template<typename MapKey, typename Value>
 PersistentMap<MapKey, Value>::~PersistentMap() {
-  if (opened())
+  if(opened())
     close();
 }
 

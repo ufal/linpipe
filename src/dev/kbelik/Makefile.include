@@ -22,6 +22,7 @@ LINPIPE_TESTS += dev/kbelik/id
 LINPIPE_TESTS += dev/kbelik/specific_entity_info
 LINPIPE_TESTS += dev/kbelik/typed_value
 LINPIPE_TESTS += dev/kbelik/utils
+LINPIPE_TESTS += dev/kbelik/mmap
 
 LINPIPE_TESTS += dev/kbelik/map_values/agnostic_entity_info_huff
 LINPIPE_TESTS += dev/kbelik/map_values/bits
