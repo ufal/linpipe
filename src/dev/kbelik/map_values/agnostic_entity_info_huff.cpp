@@ -75,7 +75,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value) const 
 
   byte* ptr = result.data();
 
-  size_t claims_cnt;
+  uint64_t claims_cnt;
   vli.deserialize(ptr, claims_cnt);
   ptr += vli.length(ptr);
 
@@ -89,7 +89,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value) const 
     huffman.decode(key_bytes.data(), key);
     ptr += bytes_vli.length(ptr);
 
-    size_t aeip_cnt;
+    uint64_t aeip_cnt;
     vli.deserialize(ptr, aeip_cnt);
     ptr += vli.length(ptr);
 
@@ -109,7 +109,7 @@ void AgnosticEntityInfoH::deserialize(const byte* ptr_whole, Type& value) const 
   decodeNE(ptr, ne);
   ptr += bits.length(ptr);
 
-  size_t fictional_as_num;
+  uint64_t fictional_as_num;
   vli.deserialize(ptr, fictional_as_num);
   Ternary fictional = static_cast<Ternary>(fictional_as_num);
 
@@ -123,7 +123,7 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& en
   vector<byte> tv_encoded;
   tv.serialize(aeip.tv, tv_encoded);
 
-  size_t optionals_cnt = aeip.optionals.size();
+  uint64_t optionals_cnt = aeip.optionals.size();
   vector<byte> cnt_encoded;
   vli.serialize(optionals_cnt, cnt_encoded);
 
@@ -140,7 +140,7 @@ void AgnosticEntityInfoH::encodeAEIP(const AEIProperties& aeip, vector<byte>& en
     result.insert(result.end(), key_encoded.begin(), key_encoded.end());
 
     vector<byte> vtv_cnt_encoded;
-    vli.serialize(vtv.size(), vtv_cnt_encoded);
+    vli.serialize((uint64_t)vtv.size(), vtv_cnt_encoded);
     result.insert(result.end(), vtv_cnt_encoded.begin(), vtv_cnt_encoded.end());
 
     for (auto &val : vtv) {
@@ -161,7 +161,7 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip)
   tv.deserialize(ptr, aeip.tv);
   ptr += tv.length(ptr);
 
-  size_t optionals_cnt;
+  uint64_t optionals_cnt;
   vli.deserialize(ptr, optionals_cnt);
   ptr += vli.length(ptr);
 
@@ -173,7 +173,7 @@ void AgnosticEntityInfoH::decodeAEIP(const byte* ptr_whole, AEIProperties& aeip)
     ptr += bytes_vli.length(ptr);
     huffman.decode(key_bytes.data(), key);
 
-    size_t vtv_cnt;
+    uint64_t vtv_cnt;
     vli.deserialize(ptr, vtv_cnt);
     ptr += vli.length(ptr);
 

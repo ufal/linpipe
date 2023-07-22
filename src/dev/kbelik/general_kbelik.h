@@ -142,7 +142,7 @@ template<typename MapKey, typename ValueMV>
 void GeneralKbelik<MapKey, ValueMV>::load_map(size_t offset, int64_t length) {
   auto mv = ValueMV(huffman);
   auto mk = MapKey();
-  map = new PersistentMap<MapKey, ValueMV>(kbelik_path, mk, mv, offset=offset, length=length);
+  map = new PersistentMap<MapKey, ValueMV>(kbelik_path, mk, mv, offset, length);
 }
 
 template<typename MapKey, typename ValueMV>

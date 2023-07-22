@@ -27,7 +27,7 @@ size_t VLI::length(const VLI::Type& value) const {
   }
   if (msb != 0)
     res++;
-  return max((Type)1, res);
+  return max((size_t)1, res);
 }
 
 void VLI::deserialize(const byte* ptr, VLI::Type& value) const {
