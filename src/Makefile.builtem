@@ -7,7 +7,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-BUILTEM_VERSION := 2.0.0
+BUILTEM_VERSION := 2.0.1
 
 ############
 # PLATFORM #
@@ -239,7 +239,7 @@ else ifneq ($(filter macos-clang-%,$(PLATFORM)),)
   DYN_LD_FLAGS += -dynamiclib
 
   ifneq ($(filter %-64,$(PLATFORM)),)
-    C_FLAGS += -target x86_64-apple-macos$(if $(filter c++11 c++14,$(CPP_STANDARD)),10.9,10.14)
+    C_FLAGS += -target x86_64-apple-macos$(if $(filter c++11 c++14,$(CPP_STANDARD)),10.9,10.15)
   else ifneq ($(filter %-arm64,$(PLATFORM)),)
     C_FLAGS += -target arm64-apple-macos11
   endif
