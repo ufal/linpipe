@@ -8,10 +8,10 @@ class ID {
  public:
   ID();
   ID(string id);
-  ID(int64_t id);
+  ID(uint64_t id);
 
   bool is_qid() const;
-  int64_t qid() const; // Maybe can return -1 on a not-a-qid?
+  uint64_t qid() const; // Returns 0 for a not-a-qid
   string str() const;
 
  private:

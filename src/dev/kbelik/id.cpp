@@ -1,3 +1,5 @@
+#include <charconv>
+
 #include "dev/kbelik/id.h"
 
 namespace linpipe::kbelik {
@@ -13,10 +15,13 @@ bool ID::is_qid() const {
   return _is_qid;
 }
 
-int64_t ID::qid() const {
-  if (!is_qid())
-    return -1;
-  return stoll(_id.substr(1));
+uint64_t ID::qid() const {
+  if (_id[0] != 'Q')
+    return false;
+
+  uint64_t qid;
+  auto result = from_chars(_id.data() + 1, _id.data() + _id.length(), qid);
+  return result.ec == errc() ? qid : 0;
 }
 
 string ID::str() const {
@@ -27,16 +32,9 @@ bool ID::_is_qid_parsable(string& id) {
   if (id[0] != 'Q')
     return false;
 
-  try {
-    // this is really ugly but I don't know who to do it differently.
-    auto tmp = stoll(id.substr(1));
-    tmp++;
-  } catch (const invalid_argument& /*e*/) {
-    return false;
-  } catch (const out_of_range& /*e*/) {
-    return false;
-  }
-  return true;
+  uint64_t qid;
+  auto result = from_chars(id.data() + 1, id.data() + id.length(), qid);
+  return result.ec == errc();
 }
 
 } // linpipe::kbelik

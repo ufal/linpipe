@@ -631,7 +631,7 @@ TEST_CASE("ID") {
   }
   SUBCASE("'qid' field") {
     CHECK(1234 == q.qid());
-    CHECK(-1 == nq.qid());
+    CHECK(0 == nq.qid());
   }
   SUBCASE("string representation") {
     CHECK("STR123" == nq.str());
