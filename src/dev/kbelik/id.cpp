@@ -28,7 +28,9 @@ bool ID::_is_qid_parsable(string& id) {
     return false;
 
   try {
-    stoll(id.substr(1));
+    // this is really ugly but I don't know who to do it differently.
+    auto tmp = stoll(id.substr(1));
+    tmp++;
   } catch (const invalid_argument& /*e*/) {
     return false;
   } catch (const out_of_range& /*e*/) {
