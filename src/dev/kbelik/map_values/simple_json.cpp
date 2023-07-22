@@ -11,9 +11,9 @@
 namespace linpipe::kbelik::map_values {
 
 size_t SimpleJson::length(const byte* ptr) const {
-  size_t json_length;
+  uint64_t json_length;
   vli.deserialize(ptr, json_length);
-  return json_length;
+  return (size_t)json_length;
 }
 
 size_t SimpleJson::length(const SimpleJson::Type& value) const {
