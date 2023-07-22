@@ -24,7 +24,7 @@ size_t SimpleJson::length(const SimpleJson::Type& value) const {
 }
 
 void SimpleJson::deserialize(const byte* ptr, SimpleJson::Type& value) const {
-  size_t total_length;
+  uint64_t total_length;
   size_t vli_length;
   vli.deserialize(ptr, total_length);
   vli_length = vli.length(ptr);  

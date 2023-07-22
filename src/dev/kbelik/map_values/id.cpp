@@ -35,7 +35,7 @@ size_t ID::length(const ID::Type& value) const {
 
 void ID::deserialize(const byte* ptr, ID::Type& value) const {
   if ((int)*ptr & 1)  { 
-    size_t bytes_sz;
+    uint64_t bytes_sz;
     vli.deserialize(ptr, bytes_sz);
     bytes_sz >>= 1;
     ptr += vli.length(ptr);

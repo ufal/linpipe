@@ -98,7 +98,7 @@ void SpecificEntityInfoH::encode_aliases(const unordered_set<string>& aliases, v
 void SpecificEntityInfoH::decode_aliases(const byte* ptr, unordered_set<string>& aliases) const {
   aliases.clear();
 
-  size_t cnt;
+  uint64_t cnt;
   vli.deserialize(ptr, cnt);
   ptr += vli.length(cnt);
 
