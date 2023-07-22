@@ -16,7 +16,7 @@ namespace linpipe::kbelik::map_values {
 size_t ID::length(const byte* ptr) const {
   if ((int)*ptr & 1)  { 
     // The size is followed by the string representation
-    size_t val;
+    uint64_t val;
     vli.deserialize(ptr, val);
     return (val >> 1) + vli.length(ptr);
   }
@@ -33,12 +33,11 @@ size_t ID::length(const ID::Type& value) const {
   return vli.length(sz) + bytes.size();
 }
 
-void ID::deserialize(const byte* ptr, ID::Type& value) const {
+void ID::deserialize(const byte*& ptr, ID::Type& value) const {
   if ((int)*ptr & 1)  { 
     uint64_t bytes_sz;
     vli.deserialize(ptr, bytes_sz);
     bytes_sz >>= 1;
-    ptr += vli.length(ptr);
     vector<byte> bytes;
     bytes.resize(bytes_sz);
     memcpy(bytes.data(), ptr, bytes_sz);
@@ -60,12 +59,11 @@ void ID::serialize(const ID::Type& value, vector<byte>& data) const {
   else {
     string text = value.str();
     vector<byte> bytes(reinterpret_cast<const byte*>(text.data()), reinterpret_cast<const byte*>(text.data() + text.size()));
-    size_t sz = (bytes.size() << 1) + 1;
+    uint64_t sz = (bytes.size() << 1) + 1;
     vli.serialize(sz, data);
-    vector<byte> temp;
-    temp.resize(bytes.size());
-    memcpy(temp.data(), bytes.data(), bytes.size());
-    data.insert(data.end(), temp.begin(), temp.end());
+    size_t old_size = data.size();
+    data.resize(old_size + bytes.size());
+    memcpy(data.data() + old_size, bytes.data(), bytes.size());
   }
 }
 

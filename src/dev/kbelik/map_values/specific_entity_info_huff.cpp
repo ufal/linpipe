@@ -27,62 +27,52 @@ size_t SpecificEntityInfoH::length(const Type& value) const {
 
 void SpecificEntityInfoH::serialize(const Type& value, vector<byte>& data) const {
   vector<byte> result;
-  vector<byte> temp;
 
   // label
   vector<byte> encoded_label;
   huffman.encode(value.label, encoded_label);
-  bytes_vli.serialize(encoded_label, temp);
-  result.insert(result.end(), temp.begin(), temp.end());
+  bytes_vli.serialize(encoded_label, result);
 
   // text
   vector<byte> encoded_text;
   huffman.encode(value.text, encoded_text);
-  bytes_vli.serialize(encoded_text, temp);
-  result.insert(result.end(), temp.begin(), temp.end());
+  bytes_vli.serialize(encoded_text, result);
 
   // description
   vector<byte> encoded_desc;
   huffman.encode(value.description, encoded_desc);
-  bytes_vli.serialize(encoded_desc, temp);
-  result.insert(result.end(), temp.begin(), temp.end());
+  bytes_vli.serialize(encoded_desc, result);
 
-  encode_aliases(value.aliases, temp);
-  result.insert(result.end(), temp.begin(), temp.end());
+  encode_aliases(value.aliases, result);
 
   bytes_vli.serialize(result, data);  
 }
 
-void SpecificEntityInfoH::deserialize(const byte* ptr_whole, Type& value) const {
+void SpecificEntityInfoH::deserialize(const byte*& ptr_whole, Type& value) const {
   vector<byte> result;
   bytes_vli.deserialize(ptr_whole, result);
 
-  auto ptr = result.data();
+  const byte* ptr = result.data();
 
   // label
   vector<byte> decoded_label;
   bytes_vli.deserialize(ptr, decoded_label);
-  ptr += bytes_vli.length(ptr);
   huffman.decode(decoded_label.data(), value.label);
 
   // text
   vector<byte> decoded_text;
   bytes_vli.deserialize(ptr, decoded_text);
-  ptr += bytes_vli.length(ptr);
   huffman.decode(decoded_text.data(), value.text);
 
   // description
   vector<byte> decoded_desc;
   bytes_vli.deserialize(ptr, decoded_desc);
-  ptr += bytes_vli.length(ptr);
   huffman.decode(decoded_desc.data(), value.description);
 
   decode_aliases(ptr, value.aliases);
 }
   
 void SpecificEntityInfoH::encode_aliases(const unordered_set<string>& aliases, vector<byte>& encoded) const {
-  encoded.clear();
-
   size_t cnt = aliases.size();
   vli.serialize(cnt, encoded);
 
@@ -100,14 +90,12 @@ void SpecificEntityInfoH::decode_aliases(const byte* ptr, unordered_set<string>&
 
   uint64_t cnt;
   vli.deserialize(ptr, cnt);
-  ptr += vli.length(cnt);
 
   for (size_t i = 0; i < cnt; ++i) {
     string al;
     vector<byte> bytes;
     bytes_vli.deserialize(ptr, bytes);
     huffman.decode(bytes.data(), al);
-    ptr += bytes_vli.length(ptr);
     aliases.insert(al);
   }
 }

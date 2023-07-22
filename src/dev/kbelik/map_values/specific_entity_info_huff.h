@@ -23,7 +23,7 @@ class SpecificEntityInfoH {
   size_t length(const Type& value) const;
    
   void serialize(const Type& value, vector<byte>& data) const;
-  void deserialize(const byte* ptr_whole, Type& value) const;
+  void deserialize(const byte*& ptr_whole, Type& value) const;
 
   HuffmanTree& huffman;
  private:

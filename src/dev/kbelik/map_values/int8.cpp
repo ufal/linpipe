@@ -15,14 +15,16 @@ size_t Int8::length(const Int8::Type& /*value*/) const {
   return 8;
 }
 
-void Int8::deserialize(const byte* ptr, Int8::Type& value) const {
+void Int8::deserialize(const byte*& ptr, Int8::Type& value) const {
   memcpy(&value, ptr, Int8::length(ptr));
+  ptr += 8;
 }
 
 void Int8::serialize(const Int8::Type& value, vector<byte>& data) const {
   size_t bytes_cnt = Int8::length(value);
-  data.resize(bytes_cnt);
-  memcpy(data.data(), &value, bytes_cnt);
+  size_t old_size = data.size();
+  data.resize(data.size() + bytes_cnt);
+  memcpy(data.data() + old_size, &value, bytes_cnt);
 }
 
 } // namespace linpipe::kbelik::map_values

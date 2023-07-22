@@ -21,7 +21,7 @@ size_t TypedValue::length(const Type& value) const {
   return bytes_vli.length(encoded_st) + bytes_vli.length(encoded_val);
 }
 
-void TypedValue::deserialize(const byte* ptr, Type& value) const {
+void TypedValue::deserialize(const byte*& ptr, Type& value) const {
   vector<byte> encoded_st, encoded_val, encoded;
 
   bytes_vli.deserialize(ptr, encoded);
@@ -29,7 +29,8 @@ void TypedValue::deserialize(const byte* ptr, Type& value) const {
   size_t st_encoded_length = bytes_vli.length(encoded.data());
   encoded_val = vector<byte>(encoded.begin() + st_encoded_length, encoded.end());
 
-  bytes_vli.deserialize(encoded.data(), encoded_st);
+  const byte* encoded_ptr = encoded.data();
+  bytes_vli.deserialize(encoded_ptr, encoded_st);
 
   decode(encoded_st, encoded_val, value);
 }

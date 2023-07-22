@@ -20,7 +20,7 @@ class TypedValue {
   size_t length(const byte* ptr) const;
   size_t length(const Type& value) const;
    
-  void deserialize(const byte* ptr, Type& value) const;
+  void deserialize(const byte*& ptr, Type& value) const;
   void serialize(const Type& value, vector<byte>& data) const;
  private:
   HuffmanTree& huffman;

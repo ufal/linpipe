@@ -19,7 +19,7 @@ size_t Bits::length(const Bits::Type& value) const {
   return bytes_vli.length(mock);
 }
 
-void Bits::deserialize(const byte* ptr, Bits::Type& value) const {
+void Bits::deserialize(const byte*& ptr, Bits::Type& value) const {
   vector<byte> bytes;
   bytes_vli.deserialize(ptr, bytes);
 

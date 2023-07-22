@@ -662,7 +662,8 @@ TEST_CASE("Bits") {
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      mv.deserialize(data.data(), v2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, v2);
       CHECK(v2 == v);
     }
   }
@@ -677,7 +678,8 @@ TEST_CASE("Bits") {
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      mv.deserialize(data.data(), v2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, v2);
       CHECK(v2 == v);
     }
   }
@@ -692,14 +694,15 @@ TEST_CASE("Bits") {
     }
     SUBCASE("serialization and deserialization") {
       vector<bool> v2;
-      mv.deserialize(data.data(), v2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, v2);
       CHECK(v2 == v);
     }
   }
 }
 
 TEST_CASE("Int4") {
-  byte* data = new byte[4];
+  vector<byte> data = vector<byte>(4);
   data[0] = (byte)2;
   data[1] = (byte)1;
   data[2] = (byte)2;
@@ -712,14 +715,15 @@ TEST_CASE("Int4") {
     expected |= (int)data[i] << (8 * i);
 
   SUBCASE("Correct length, serialized") {
-    CHECK(4 == mv.length(data));
+    CHECK(4 == mv.length(data.data()));
   }
   SUBCASE("Correct length, deserialized") {
     CHECK(4 == mv.length(42));
   }
   SUBCASE("Correct deserialization") {
     int res;
-    mv.deserialize(data, res);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, res);
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
@@ -728,10 +732,9 @@ TEST_CASE("Int4") {
     for (int i = 0; i < 4; ++i) 
       CHECK(res[i] == data[i]);
   }
-  delete[] data;
 }
 TEST_CASE("Int8") {
-  byte* data = new byte[8];
+  vector<byte> data = vector<byte>(8);
   data[0] = (byte)2;
   data[1] = (byte)1;
   data[2] = (byte)2;
@@ -748,14 +751,15 @@ TEST_CASE("Int8") {
     expected |= (int64_t)data[i] << (8 * i);
 
   SUBCASE("Correct length, serialized") {
-    CHECK(8 == mv.length(data));
+    CHECK(8 == mv.length(data.data()));
   }
   SUBCASE("Correct length, deserialized") {
     CHECK(8 == mv.length(42));
   }
   SUBCASE("Correct deserialization") {
     int64_t res;
-    mv.deserialize(data, res);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, res);
     CHECK(expected == res);
   }
   SUBCASE("Correct serialization") {
@@ -764,7 +768,6 @@ TEST_CASE("Int8") {
     for (int i = 0; i < 4; ++i) 
       CHECK(res[i] == data[i]);
   }
-  delete[] data;
 }
 
 TEST_CASE("ID -- map value") {
@@ -783,11 +786,13 @@ TEST_CASE("ID -- map value") {
   SUBCASE("Serialization and deserialization") {
     linpipe::kbelik::ID id;
     SUBCASE("QID") {
-      mv.deserialize(data_q.data(), id);
+      const byte* ptr = data_q.data();
+      mv.deserialize(ptr, id);
       CHECK(id == qid);
     }
     SUBCASE("NO-QID") {
-      mv.deserialize(data_n.data(), id);
+      const byte* ptr = data_n.data();
+      mv.deserialize(ptr, id);
       CHECK(id == no_qid);
     }
   }
@@ -810,7 +815,8 @@ TEST_CASE("TypedValue -- map value") {
     auto tv = linpipe::kbelik::TypedValue("id", qid);
     mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, tv2);
     CHECK(qid == tv2.get_string());
   }
   SUBCASE("non qid") {
@@ -819,7 +825,8 @@ TEST_CASE("TypedValue -- map value") {
     auto tv = linpipe::kbelik::TypedValue("string", str);
     mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, tv2);
     CHECK(str == tv2.get_string());
   }
   SUBCASE("monolingualtext") {
@@ -829,7 +836,8 @@ TEST_CASE("TypedValue -- map value") {
     auto tv = linpipe::kbelik::TypedValue("monolingualtext:cs", str);
     mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("time julian") {
@@ -838,7 +846,8 @@ TEST_CASE("TypedValue -- map value") {
     auto tv = linpipe::kbelik::TypedValue("time:julian", str);
     mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("time gregorian") {
@@ -847,7 +856,8 @@ TEST_CASE("TypedValue -- map value") {
     auto tv = linpipe::kbelik::TypedValue("time:gregorian", str);
     mv.serialize(tv, data);
     linpipe::kbelik::TypedValue tv2;
-    mv.deserialize(data.data(), tv2);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, tv2);
     CHECK(tv == tv2);
   }
   SUBCASE("quantity") {
@@ -857,7 +867,8 @@ TEST_CASE("TypedValue -- map value") {
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1:desc string", str);
       mv.serialize(tv, data);
       linpipe::kbelik::TypedValue tv2;
-      mv.deserialize(data.data(), tv2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, tv2);
       CHECK(tv == tv2);
     }
     SUBCASE("without description string") {
@@ -866,7 +877,8 @@ TEST_CASE("TypedValue -- map value") {
       auto tv = linpipe::kbelik::TypedValue("quantity:Q1", str);
       mv.serialize(tv, data);
       linpipe::kbelik::TypedValue tv2;
-      mv.deserialize(data.data(), tv2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, tv2);
       CHECK(tv == tv2);
     }
   }
@@ -880,9 +892,11 @@ TEST_CASE("TypedValue -- map value") {
       string sub_type = val.at(0).at(0);
       string type_value = val.at(0).at(1);
       auto tv = linpipe::kbelik::TypedValue(sub_type, type_value);
+      data.clear();
       mv.serialize(tv, data);
       linpipe::kbelik:: TypedValue tv2;
-      mv.deserialize(data.data(), tv2);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, tv2);
       SUBCASE("equality") {
         CHECK(tv == tv2);
       }
@@ -916,7 +930,8 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::AgnosticEntityInfo aei;
-    mv.deserialize(data.data(), aei);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, aei);
     CHECK(aei.claims == ori.claims);
   }
 }
@@ -940,7 +955,8 @@ TEST_CASE("SpecificEntityInfoH -- map value") {
   }
   SUBCASE("Serialization/Desirizalization") {
     linpipe::kbelik::SpecificEntityInfo sp;
-    mv.deserialize(data.data(), sp);
+    const byte* ptr = data.data();
+    mv.deserialize(ptr, sp);
   
     CHECK(sp == ori);
   }
@@ -998,7 +1014,8 @@ void test_bytes(const char* name) {
     }
     SUBCASE("Correct deserialization") {
       vector<byte> res;
-      mv.deserialize(data, res);
+      const byte* ptr = data;
+      mv.deserialize(ptr, res);
       for (int i = 0; i < 3; ++i)
         CHECK(expected[i] == res[i]);
     }
@@ -1028,7 +1045,8 @@ TEST_CASE("BytesVLI") {
     }
     SUBCASE("Correct de/serialization") {
       vector<byte> data3;
-      mv.deserialize(data2.data(), data3);
+      const byte* ptr = data2.data();
+      mv.deserialize(ptr, data3);
       CHECK(data3 == data);
     }
   };
@@ -1067,7 +1085,8 @@ TEST_CASE("VLI") {
     }
     SUBCASE("Serialization/deserialization works.") {
       uint64_t des;
-      mv.deserialize(data.data(), des);
+      const byte* ptr = data.data();
+      mv.deserialize(ptr, des);
       CHECK(des == i);
     }
   }
@@ -1099,7 +1118,8 @@ TEST_CASE("SimpleJson") {
     mv.serialize(j, s);
 
     Json des;
-    mv.deserialize(s.data(), des);
+    const byte* ptr = s.data();
+    mv.deserialize(ptr, des);
     CHECK(des.dump() == j.dump());
   };
 
@@ -1126,7 +1146,8 @@ TEST_CASE("SimpleJson") {
     Json out;
 
     mv.serialize(m, s);
-    mv.deserialize(s.data(), out);
+    const byte* ptr = s.data();
+    mv.deserialize(ptr, out);
     CHECK(m["a"] == out["a"]);
     CHECK(m["xyz"] == out["xyz"]);
   }
@@ -1149,7 +1170,8 @@ TEST_CASE("FLI") {
         vector<byte> data;
         mv.serialize(i, data);
         uint64_t des;
-        mv.deserialize(data.data(), des);
+        const byte* ptr = data.data();
+        mv.deserialize(ptr, des);
         CHECK(des == i);
       }
     }

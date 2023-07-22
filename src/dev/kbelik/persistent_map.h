@@ -71,8 +71,10 @@ bool PersistentMap<MapKey, Value>::find(typename MapKey::Type key, typename Valu
   uint32_t offset_in_map;
   uint64_t key_as_uint = mk.convert_to_uint(key);
   bool success = get_val_offset(key_as_uint, offset_in_map);
-  if (success)
-    mv.deserialize(static_cast<std::byte*>(index_start) + offset_in_map, value);
+  if (success) {
+    const byte* ptr = static_cast<std::byte*>(index_start) + offset_in_map;
+    mv.deserialize(ptr, value);
+  }
   return success;
 }
 

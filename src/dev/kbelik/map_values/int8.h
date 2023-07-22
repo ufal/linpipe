@@ -11,7 +11,7 @@ class Int8 {
   using Type = int64_t;
   size_t length(const byte* ptr) const;
   size_t length(const Type& val) const;
-  void deserialize(const byte* ptr, Type& value) const;
+  void deserialize(const byte*& ptr, Type& value) const;
   void serialize(const Type& value, vector<byte>& data) const;
 };
 

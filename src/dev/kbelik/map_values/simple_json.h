@@ -17,7 +17,7 @@ class SimpleJson {
   using Type = Json;
   size_t length(const byte* ptr) const;
   size_t length(const Type& val) const;
-  void deserialize(const byte* ptr, Type& value) const;
+  void deserialize(const byte*& ptr, Type& value) const;
   void serialize(const Type& value, vector<byte>& data) const;
   // Can serialize maps:
   // The deserialization is not implemented because not all Jsons can be
