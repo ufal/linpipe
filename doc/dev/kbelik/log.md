@@ -1,5 +1,68 @@
 # Log of KBELik Progress
 
+### July 11, 2023
+- General kbelik is fine but agnostic and specific should be aliased
+
+- Passing bsds to map is not good so make all map values instances and pass them
+  to the map
+
+- Using map_value::ID when working with keys is too heavy. All keys have the
+  same size so map_value::ID is complicated when it doesn't have to be.
+  Generality of ID also decreases performance. Because of that, create
+  map_key::ID that solves these issues.
+
+- fictional shouldn't be Ternary but only true/false
+
+- rewrite TypeValue so it's simpler and supports more type specific methods
+
+- There are mistakes in the format of AgnosticEntityInfo, rewrite it.
+
+### June 26, 2023
+- Enum of named entities should be serialized into the map file. It should be
+  preferably represented as an object that contains string (named entities) <-> int
+  mapping and having two methods that can convert between the types of the
+  mapping.
+
+- It is fine to have utility functions but it's better to have them in files
+  with descriptive names than one log utils file.
+
+- fictional can remain Ternary
+
+- The id is going to have the following format
+    - for QID: 1st bit set on 0 indicating Q and 31 bits for the ID
+    - non QID (ASCII ID): 1st bit set 1, 7 bits for the ASCII char, 24 bits for
+      the ID
+
+- The previous ID layout is not the most general but it seems to be general
+  enough for our usecase and isn't overcomplicated as other more general ideas
+  that were discussed.
+
+- Specific map doesn't need the reversed value->key map. The value type is specified in the
+  header.
+
+- Change map value serialization/deserialization so that vectors are being augmented
+  and pointers remain at the position to which they are moved.
+
+### June 19, 2023
+- Specific kbelik: qid -> triplet(label, aliases, description)
+
+- Agnostic kbelik also needs named entities as bit array
+
+- Add types for qid, quantity and monolingual text (union).
+
+- Change persistent map vals from templates to instances.
+
+### May 18, 2023
+- Discussion of json compression and optimizing the search in persistent map.
+    - for now the search is fast enough but we should find better constants 
+    for it.
+
+- [x] MVP with external json compression 
+
+- [x] implement custom json compression (stretch goal)
+
+- [x] Calculate number of keys and their types in wikidata claims.
+
 ### May 4, 2023
 - Reviewing of source files of both maps and all `map_values` and discussion of their further
   improvements.
@@ -20,18 +83,18 @@
 	- Use the fact that key gives us information about the structure of the
 	  underlying value
 
-- [ ] Implement header for variable length integers (only unsigned)
+- [x] Implement header for variable length integers (only unsigned)
 
-- [ ] serialization type (id) doesn't need to be given to a constructor of `dynamic_map`. It is only
+- [x] serialization type (id) doesn't need to be given to a constructor of `dynamic_map`. It is only
   important for the saving of `persistent_map`. Also don't use integer to define
   serialization type but prefer enum.
 
-- [ ] Write better algorithm for the index searching and try to mock the real
+- [x] Write better algorithm for the index searching and try to mock the real
   use case.
 
 - [ ] Calculate number of keys and their types in wikidata.
 
-- [ ] `persistant_map` doesn't need indicator to know if the map is already
+- [x] `persistant_map` doesn't need indicator to know if the map is already
   mapped. This functionality can be provided by the file descriptor.
 
 
