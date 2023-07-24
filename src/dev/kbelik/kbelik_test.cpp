@@ -363,7 +363,18 @@ TEST_CASE("Agnostic kbelik") {
         CHECK(aei.claims.size() > 0);
       }
       SUBCASE("offset") {
-        // TODO
+        filesystem::path fp_offset("temp/test_kbelik_offset.bin");
+        ofs.open("temp/test_kbelik_offset.bin", ofstream::out | ofstream::binary);
+        char data[5] = {(char)1, (char)2, (char)10, (char)1, (char)1};
+        ofs.write(data, 5);
+        jsons = istringstream(raw);
+        AgnosticKbelik::build(jsons, ofs);
+        ofs.close();
+
+        auto ak = AgnosticKbelik(fp_offset, 5);
+        auto aei = AgnosticEntityInfo();
+        ak.find(ID("Q2417271"), aei);
+        CHECK(aei.claims.size() > 0);
       }
       SUBCASE("length") {
         // TODO
@@ -415,7 +426,18 @@ TEST_CASE("Specific kbelik") {
         CHECK(!flag);
       }
       SUBCASE("offset") {
-        // TODO
+        filesystem::path fp_offset("temp/test_kbelik_offset.bin");
+        ofs.open("temp/test_kbelik_offset.bin", ofstream::out | ofstream::binary);
+        char data[3] = {(char)1, (char)2, (char)10};
+        ofs.write(data, 3);
+        jsons = istringstream(raw);
+        SpecificKbelik::build(jsons, ofs);
+        ofs.close();
+
+        auto sk = SpecificKbelik(fp_offset, 3);
+        auto sei = SpecificEntityInfo();
+        bool flag = sk.find(ID("Q2417271"), sei);
+        CHECK(!flag);
       }
       SUBCASE("length") {
         // TODO

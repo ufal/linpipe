@@ -107,7 +107,6 @@ void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
     // key  offset -> data
     data.resize(key_address_size);
     address_type offset = size_sums[idx] + index_size - key_address_size * idx;
-
     vector<byte> serialized_key;
     //mk.serialize(p.first, serialized_key);
     uint64_t key_as_uint = mk.convert_to_uint(p.first);

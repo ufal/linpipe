@@ -54,7 +54,6 @@ void SpecificKbelik::build_map(istream& jsons, DynamicMap<map_keys::QID8, map_va
   }
 }
 
-
 void SpecificKbelik::load_map(size_t offset, int64_t length) {
   auto mv = map_values::SpecificEntityInfoH(huffman);
   auto mk = map_keys::QID8();
