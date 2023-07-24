@@ -9,26 +9,28 @@
 
 namespace linpipe::kbelik {
 
-class SpecificKbelik : public GeneralKbelik<map_keys::QID8, map_values::SpecificEntityInfoH> {
+template<typename MapKey>
+class SpecificKbelik : public GeneralKbelik<MapKey, map_values::SpecificEntityInfoH> {
  public:
   SpecificKbelik(filesystem::path map_path, size_t offset=0, int64_t length=-1);
   static inline void build(istream& jsons, ostream& result);
 
  private:
-  static inline void build_map(istream& jsons, DynamicMap<map_keys::QID8, map_values::SpecificEntityInfoH>& dm);
+  static inline void build_map(istream& jsons, DynamicMap<MapKey, map_values::SpecificEntityInfoH>& dm);
   virtual void load_map (size_t offset, int64_t length) override;
 };
 
-void SpecificKbelik::build(istream& jsons, ostream& result) {
+template<typename MapKey>
+void SpecificKbelik<MapKey>::build(istream& jsons, ostream& result) {
   HuffmanTree huff = HuffmanTree();
-  GeneralKbelik::build_huffman(jsons, huff);
+  GeneralKbelik<MapKey, map_values::SpecificEntityInfoH>::build_huffman(jsons, huff);
 
   auto mv = map_values::SpecificEntityInfoH(huff);
 
-  auto mk = map_keys::QID8();
+  auto mk = MapKey();
 
-  auto dm = DynamicMap<map_keys::QID8, map_values::SpecificEntityInfoH>(mk, mv);
-  SpecificKbelik::build_map(jsons, dm);
+  auto dm = DynamicMap<MapKey, map_values::SpecificEntityInfoH>(mk, mv);
+  SpecificKbelik<MapKey>::build_map(jsons, dm);
 
   vector<byte> huff_serialized;
   huff.serialize(huff_serialized);
@@ -37,13 +39,15 @@ void SpecificKbelik::build(istream& jsons, ostream& result) {
   dm.save_map(result, test);
 }
 
-SpecificKbelik::SpecificKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
+template<typename MapKey>
+SpecificKbelik<MapKey>::SpecificKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
   this->kbelik_path = kbelik_path;
-  size_t huffman_bytes = load_huffman(offset);
+  size_t huffman_bytes = this->load_huffman(offset);
   load_map(offset + huffman_bytes, -1);
 }
 
-void SpecificKbelik::build_map(istream& jsons, DynamicMap<map_keys::QID8, map_values::SpecificEntityInfoH>& dm) {
+template<typename MapKey>
+void SpecificKbelik<MapKey>::build_map(istream& jsons, DynamicMap<MapKey, map_values::SpecificEntityInfoH>& dm) {
   string line;
   while (getline(jsons, line)) {
     auto js = Json::parse(line);
@@ -54,10 +58,11 @@ void SpecificKbelik::build_map(istream& jsons, DynamicMap<map_keys::QID8, map_va
   }
 }
 
-void SpecificKbelik::load_map(size_t offset, int64_t length) {
-  auto mv = map_values::SpecificEntityInfoH(huffman);
-  auto mk = map_keys::QID8();
-  map = new PersistentMap<map_keys::QID8, map_values::SpecificEntityInfoH>(kbelik_path, mk, mv, offset, length);
+template<typename MapKey>
+void SpecificKbelik<MapKey>::load_map(size_t offset, int64_t length) {
+  auto mv = map_values::SpecificEntityInfoH(this->huffman);
+  auto mk = MapKey();
+  this->map = new PersistentMap<MapKey, map_values::SpecificEntityInfoH>(this->kbelik_path, mk, mv, offset, length);
 }
  
 } // linpipe::kbelik
