@@ -15,7 +15,7 @@
 #include "dev/kbelik/map_values/vli.h"
 
 #include "dev/kbelik/agnostic_entity_info.h"
-#include "dev/kbelik/named_entity.h"
+#include "dev/kbelik/named_entity_mapper.h"
 #include "dev/kbelik/typed_value.h"
 #include "dev/kbelik/utils.h"
 
@@ -26,7 +26,7 @@ class AgnosticEntityInfoH {
   using Type = linpipe::kbelik::AgnosticEntityInfo;
 
   AgnosticEntityInfoH() = delete;
-  AgnosticEntityInfoH(HuffmanTree& huffman) : huffman(huffman), tv(TypedValue(huffman)) { }
+  AgnosticEntityInfoH(HuffmanTree& huffman, NamedEntityMapper& nem) : huffman(huffman), nem(nem), tv(TypedValue(huffman)) { }
 
   size_t length(const byte* ptr) const;
   size_t length(const Type& value) const;
@@ -34,6 +34,8 @@ class AgnosticEntityInfoH {
   void serialize(const Type& value, vector<byte>& data) const;
   void deserialize(const byte*& ptr_whole, Type& value) const;
   HuffmanTree& huffman;
+  NamedEntityMapper& nem;
+
  private:
 
   Bits bits;
@@ -44,8 +46,8 @@ class AgnosticEntityInfoH {
   void encodeAEIP(const AEIProperties& aeip, vector<byte>& encoded) const;
   void decodeAEIP(const byte*& ptr_whole, AEIProperties& aeip) const;
 
-  void encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded) const;
-  void decodeNE(const byte*& ptr, vector<NamedEntity>& ne) const;
+  void encodeNE(const vector<string>& value, vector<byte>& encoded) const;
+  void decodeNE(const byte*& ptr, vector<string>& ne) const;
 };
 
 } // namespace linpipe::kbelik::map_values

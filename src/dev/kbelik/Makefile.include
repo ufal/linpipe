@@ -19,6 +19,7 @@ EXECUTABLES += dev/kbelik/kbelik
 LINPIPE_TESTS += dev/kbelik/agnostic_entity_info
 LINPIPE_TESTS += dev/kbelik/huffman
 LINPIPE_TESTS += dev/kbelik/id
+LINPIPE_TESTS += dev/kbelik/named_entity_mapper
 LINPIPE_TESTS += dev/kbelik/specific_entity_info
 LINPIPE_TESTS += dev/kbelik/typed_value
 LINPIPE_TESTS += dev/kbelik/utils

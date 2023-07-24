@@ -23,7 +23,7 @@
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/general_kbelik.h"
 #include "dev/kbelik/huffman.h"
-#include "dev/kbelik/named_entity.h"
+#include "dev/kbelik/named_entity_mapper.h"
 #include "dev/kbelik/specific_entity_info.h"
 #include "dev/kbelik/specific_kbelik.h"
 
@@ -295,10 +295,15 @@ TEST_CASE("Persistent map") {
     huff.add(raw5);
     huff.build();
 
-    ByteSerializerDeserializers bsds;
-    bsds.huffman = huff;
+    NamedEntityMapper nem;
+    for (auto line : {raw1, raw2, raw3, raw4, raw5}) {
+      auto js = Json::parse(line);
+      nem.add_entities_from_json(js);
+    }
+    
+    nem.sort();
 
-    auto mv = map_values::AgnosticEntityInfoH(bsds.huffman);
+    auto mv = map_values::AgnosticEntityInfoH(huff, nem);
     auto mk = map_keys::QID8();
 
     auto dm = DynamicMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(mk, mv);
@@ -315,14 +320,14 @@ TEST_CASE("Persistent map") {
     ofs.close();
 
     filesystem::path fp("temp/test_map.bin");
-    auto mv2 = map_values::AgnosticEntityInfoH(bsds.huffman);
+    auto mv2 = map_values::AgnosticEntityInfoH(huff, nem);
     auto pm = PersistentMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(fp, mk, mv2, 0, -1);
     SUBCASE("find") {
       auto aei = AgnosticEntityInfo();
       pm.find(ID("Q66638937"), aei);
       CHECK(aei.claims.size() == 5);
-      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
-      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), "ORG") != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), "LOC") != aei.named_entities.end());
     }
   }
 }
@@ -369,8 +374,8 @@ TEST_CASE("Agnostic kbelik") {
       auto aei = AgnosticEntityInfo();
       ak.find(ID("Q66638937"), aei);
       CHECK(aei.claims.size() == 5);
-      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::ORG) != aei.named_entities.end());
-      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), NamedEntity::LOC) != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), "ORG") != aei.named_entities.end());
+      CHECK(find(aei.named_entities.begin(), aei.named_entities.end(), "LOC") != aei.named_entities.end());
     }
     SUBCASE("Close") {
       auto ak = AgnosticKbelik(fp);
@@ -555,6 +560,72 @@ TEST_CASE("TypedValue") {
 
 }
 
+TEST_CASE("NamedEntityMapper") {
+
+SUBCASE("get_entity and add_entity") {
+  NamedEntityMapper nem;
+  nem.add_entity("Entity1");
+  CHECK(nem.get_entity(0) == "Entity1");
+}
+
+SUBCASE("get_entity_index") {
+  NamedEntityMapper nem;
+  nem.add_entity("Entity1");
+  CHECK(nem.get_entity_index("Entity1") == 0);
+}
+
+SUBCASE("sort") {
+  NamedEntityMapper nem;
+  nem.add_entity("Entity2");
+  nem.add_entity("Entity2");
+  nem.add_entity("Entity2");
+  nem.add_entity("Entity1");
+  nem.sort();
+  CHECK(nem.get_entity_index("Entity2") == 0);
+  CHECK(nem.get_entity_index("Entity1") == 1);
+}
+
+SUBCASE("ne_to_bools") {
+  NamedEntityMapper nem;
+  nem.add_entity("Entity1");
+  vector<string> entities = { "Entity1" };
+  vector<bool> bools = nem.ne_to_bools(entities);
+  CHECK(bools[0]);
+}
+
+SUBCASE("bools_to_ne") {
+  NamedEntityMapper nem;
+  nem.add_entity("Entity1");
+  nem.add_entity("Entity2");
+  vector<bool> bools = { false, true };
+  vector<string> entities = nem.bools_to_ne(bools);
+  CHECK(entities[0] == "Entity2");
+}
+
+SUBCASE("serialize and deserialize") {
+  NamedEntityMapper nem1;
+  nem1.add_entity("Entity1");
+  nem1.add_entity("Entity2");
+  nem1.add_entity("Entity3");
+  nem1.add_entity("Entity3");
+  nem1.add_entity("Entity3");
+  nem1.sort();
+
+  vector<byte> data;
+  nem1.serialize(data);
+
+  NamedEntityMapper nem2;
+  nem2.deserialize(data);
+
+  for (int i = 0; i < 3; ++i) 
+    CHECK(nem1.get_entity(i) == nem2.get_entity(i));
+
+  CHECK(nem1.get_entity(1) != nem2.get_entity(2));
+
+  CHECK(nem2.get_entity_index("Entity3") == 0);
+}
+}
+
 TEST_CASE("AgnosticEntityInfo") {
   SUBCASE("Basic functionality") {
     Json big = Json::parse(R"del({"qid": "Q2417271", "claims": {"Commons category": [["string", "Theodor-Lessing-Haus (Hannover)", {}], ["string", "Wau", {}]], "coordinate location": [["globe-coordinate", "52.3834 9.71923", {}]], "country": [["qid", "Q183:Germany", {}]], "instance of": [["qid", "Q811979:architectural structure", {}]], "image": [["commonsMedia", "Theodor-Lessing-Haus Hannover Schriftzug über dem Haupteingang I.jpg", {}]], "located in the administrative territorial entity": [["qid", "Q1997469:Nord", {}]], "heritage designation": [["qid", "Q811165:architectural heritage monument", {}]], "pof": [["qid", "Q678982:Leibniz University Hannover", {}]], "Google Knowledge Graph ID": [["external-id", "/g/1hb_dzzdq", {}]], "located on street": [["qid", "Q105835889:Welfengarten", {"house number": [["string", "2c"]]}]], "named after": [["qid", "Q61446:Theodor Lessing", {}]], "image of interior": [["commonsMedia", "Theodor-Lessing-Haus Hannover Blick von der umlaufenden Empore zur Auskunft Information.jpg", {}]], "located in the statistical territorial entity": [["qid", "Q97762617:Nordstadt", {}]]}, "named_entities": {"type": ["LOC"]}})del");
@@ -606,6 +677,7 @@ TEST_CASE("AgnosticEntityInfo") {
   }
 }
 
+/*
 TEST_CASE("Named entity converter") {
   SUBCASE("named entity to bool") {
     vector<NamedEntity> ne = {static_cast<NamedEntity>(5)};
@@ -621,6 +693,7 @@ TEST_CASE("Named entity converter") {
     CHECK(expected == NamedEntityConverter::bools_to_ne(vb));
   }
 }
+*/
 
 TEST_CASE("ID") {
   ID nq = ID("STR123");
@@ -917,8 +990,12 @@ TEST_CASE("AgnosticEntityInfoHuffman -- map value") {
   huff.build();
   vector<byte> data;
   auto ori = linpipe::kbelik::AgnosticEntityInfo(big);
+
+  NamedEntityMapper nem;
+  for (string& entity: ori.named_entities)
+    nem.add_entity(entity);
   
-  auto mv = AgnosticEntityInfoH(huff);
+  auto mv = AgnosticEntityInfoH(huff, nem);
 
   mv.serialize(ori, data);
   

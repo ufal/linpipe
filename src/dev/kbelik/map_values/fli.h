@@ -15,8 +15,8 @@ class FLI {
   size_t length(const byte* ptr) const;
   size_t length(const Type& value) const;
 
-  void deserialize(const byte*& ptr, Type& value);
-  void serialize(const Type& value, vector<byte>& data);
+  void deserialize(const byte*& ptr, Type& value) const;
+  void serialize(const Type& value, vector<byte>& data) const;
  private:
   size_t _length;
 };

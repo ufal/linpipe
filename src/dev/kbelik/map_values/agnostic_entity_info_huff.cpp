@@ -12,7 +12,7 @@
 #include "dev/kbelik/map_values/vli.h"
 
 #include "dev/kbelik/agnostic_entity_info.h"
-#include "dev/kbelik/named_entity.h"
+#include "dev/kbelik/named_entity_mapper.h"
 #include "dev/kbelik/typed_value.h"
 #include "dev/kbelik/utils.h"
 
@@ -97,7 +97,7 @@ void AgnosticEntityInfoH::deserialize(const byte*& ptr_whole, Type& value) const
     claims[key] = vaeip;
   }
 
-  vector<NamedEntity> ne;
+  vector<string> ne;
   decodeNE(ptr, ne);
 
   uint64_t fictional_as_num;
@@ -178,15 +178,15 @@ void AgnosticEntityInfoH::decodeAEIP(const byte*& ptr_whole, AEIProperties& aeip
   aeip.optionals = optionals;
 }
 
-void AgnosticEntityInfoH::encodeNE(const vector<NamedEntity>& value, vector<byte>& encoded) const {
-  auto ne_as_bits = NamedEntityConverter::ne_to_bools(value);
+void AgnosticEntityInfoH::encodeNE(const vector<string>& value, vector<byte>& encoded) const {
+  auto ne_as_bits = nem.ne_to_bools(value);
   bits.serialize(ne_as_bits, encoded);
 }
 
-void AgnosticEntityInfoH::decodeNE(const byte*& ptr, vector<NamedEntity>& ne) const {
+void AgnosticEntityInfoH::decodeNE(const byte*& ptr, vector<string>& ne) const {
   vector<bool> ne_as_bits;
   bits.deserialize(ptr, ne_as_bits);
-  ne = NamedEntityConverter::bools_to_ne(ne_as_bits);
+  ne = nem.bools_to_ne(ne_as_bits);
 }
 
 } // namespace linpipe::kbelik::map_values

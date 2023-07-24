@@ -42,7 +42,7 @@ void AgnosticEntityInfo::fictional_from_wikidata_json(Json& ne) {
 
 void AgnosticEntityInfo::ne_from_wikidata_json(Json& ne) {
   for (auto val : ne["type"])
-    named_entities.push_back(named_entity_from_string(val));
+    named_entities.push_back(val);
 }
 
 unordered_map<string, vector<TypedValue>> AgnosticEntityInfo::create_optionals(Json& js) {
@@ -59,15 +59,4 @@ unordered_map<string, vector<TypedValue>> AgnosticEntityInfo::create_optionals(J
   return optionals;
 }
   
-NamedEntity AgnosticEntityInfo::named_entity_from_string(const string& str) {
-  if (str == "PER") return NamedEntity::PER;
-  else if (str == "ORG") return NamedEntity::ORG;
-  else if (str == "LOC") return NamedEntity::LOC;
-  else if (str == "EVENT") return NamedEntity::EVENT;
-  else if (str == "BRAND") return NamedEntity::BRAND;
-  else if (str == "WORK_OF_ART") return NamedEntity::WORK_OF_ART;
-  else if (str == "MANUFACTURED") return NamedEntity::MANUFACTURED;
-  else throw LinpipeError("Invalid string value for NamedEntity");
-}
-
 } // namespace linpipe::kbelik

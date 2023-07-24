@@ -4,8 +4,8 @@
 
 #include <unordered_map>
 
+//#include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/typed_value.h"
-#include "dev/kbelik/named_entity.h"
 #include "dev/kbelik/utils.h"
 
 namespace linpipe::kbelik {
@@ -30,7 +30,7 @@ class AgnosticEntityInfo {
   unordered_map<string, vector<AEIProperties>> claims;
   //unordered_map<string, AEIProperties> claims;
   // Might be better to use un_set:
-  vector<NamedEntity> named_entities;
+  vector<string> named_entities;
   Ternary fictional;
 
   AgnosticEntityInfo();
@@ -40,8 +40,6 @@ class AgnosticEntityInfo {
   void claims_from_wikidata_json(Json& clms);
   void fictional_from_wikidata_json(Json& ne);
   void ne_from_wikidata_json(Json& ne);
-
-  static inline NamedEntity named_entity_from_string(const string& str);
 
   unordered_map<string, vector<TypedValue>> create_optionals(Json& js);
 };
