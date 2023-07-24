@@ -9,7 +9,8 @@
 
 namespace linpipe::kbelik {
 
-class AgnosticKbelik : public GeneralKbelik<map_keys::QID8, map_values::AgnosticEntityInfoH> {
+template<typename MapKey>
+class AgnosticKbelik : public GeneralKbelik<MapKey, map_values::AgnosticEntityInfoH> {
  public:
   AgnosticKbelik(filesystem::path map_path, size_t offset=0, int64_t length=-1);
   static inline void build(istream& jsons, ostream& result);
@@ -18,23 +19,24 @@ class AgnosticKbelik : public GeneralKbelik<map_keys::QID8, map_values::Agnostic
 
 
   static inline void build_nem(istream& jsons, NamedEntityMapper& nem);
-  static inline void build_map(istream& jsons, DynamicMap<map_keys::QID8, map_values::AgnosticEntityInfoH>& dm);
+  static inline void build_map(istream& jsons, DynamicMap<MapKey, map_values::AgnosticEntityInfoH>& dm);
 
   size_t load_nem (size_t offset);
   virtual void load_map (size_t offset, int64_t length) override;
 };
 
-void AgnosticKbelik::build(istream& jsons, ostream& result) {
+template<typename MapKey>
+void AgnosticKbelik<MapKey>::build(istream& jsons, ostream& result) {
   HuffmanTree huff = HuffmanTree();
-  GeneralKbelik::build_huffman(jsons, huff);
+  GeneralKbelik<MapKey, map_values::AgnosticEntityInfoH>::build_huffman(jsons, huff);
 
   auto nem = NamedEntityMapper();
   AgnosticKbelik::build_nem(jsons, nem);
   auto mv = map_values::AgnosticEntityInfoH(huff, nem);
 
-  auto mk = map_keys::QID8();
+  auto mk = MapKey();
 
-  auto dm = DynamicMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(mk, mv);
+  auto dm = DynamicMap<MapKey, map_values::AgnosticEntityInfoH>(mk, mv);
   AgnosticKbelik::build_map(jsons, dm);
 
   vector<byte> huff_serialized;
@@ -48,7 +50,8 @@ void AgnosticKbelik::build(istream& jsons, ostream& result) {
   dm.save_map(result, test);
 }
 
-void AgnosticKbelik::build_map(istream& jsons, DynamicMap<map_keys::QID8, map_values::AgnosticEntityInfoH>& dm) {
+template<typename MapKey>
+void AgnosticKbelik<MapKey>::build_map(istream& jsons, DynamicMap<MapKey, map_values::AgnosticEntityInfoH>& dm) {
   string line;
   while (getline(jsons, line)) {
     auto js = Json::parse(line);
@@ -59,7 +62,8 @@ void AgnosticKbelik::build_map(istream& jsons, DynamicMap<map_keys::QID8, map_va
   }
 }
 
-void AgnosticKbelik::build_nem(istream& jsons, NamedEntityMapper& nem) {
+template<typename MapKey>
+void AgnosticKbelik<MapKey>::build_nem(istream& jsons, NamedEntityMapper& nem) {
   auto remember_pos = jsons.tellg();
 
   string line;
@@ -74,17 +78,19 @@ void AgnosticKbelik::build_nem(istream& jsons, NamedEntityMapper& nem) {
   jsons.seekg(remember_pos);
 }
 
-AgnosticKbelik::AgnosticKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
+template<typename MapKey>
+AgnosticKbelik<MapKey>::AgnosticKbelik(filesystem::path kbelik_path, size_t offset, int64_t /*length*/) {
   this->kbelik_path = kbelik_path;
-  size_t huffman_bytes = load_huffman(offset);
+  size_t huffman_bytes = this->load_huffman(offset);
   size_t nem_bytes = load_nem(offset + huffman_bytes);
   load_map(offset + huffman_bytes + nem_bytes, -1);
 }
 
-size_t AgnosticKbelik::load_nem(size_t offset) {
+template<typename MapKey>
+size_t AgnosticKbelik<MapKey>::load_nem(size_t offset) {
   size_t nem_size = 0;
 
-  std::ifstream ifs(kbelik_path, std::ios::binary | std::ios::in);
+  std::ifstream ifs(this->kbelik_path, std::ios::binary | std::ios::in);
 
   nem = NamedEntityMapper();
 
@@ -100,10 +106,11 @@ size_t AgnosticKbelik::load_nem(size_t offset) {
   return nem_size;
 }
 
-void AgnosticKbelik::load_map(size_t offset, int64_t length) {
-  auto mv = map_values::AgnosticEntityInfoH(huffman, nem);
-  auto mk = map_keys::QID8();
-  map = new PersistentMap<map_keys::QID8, map_values::AgnosticEntityInfoH>(kbelik_path, mk, mv, offset, length);
+template<typename MapKey>
+void AgnosticKbelik<MapKey>::load_map(size_t offset, int64_t length) {
+  auto mv = map_values::AgnosticEntityInfoH(this->huffman, nem);
+  auto mk = MapKey();
+  this->map = new PersistentMap<MapKey, map_values::AgnosticEntityInfoH>(this->kbelik_path, mk, mv, offset, length);
 }
 
 } // namespace linpipe::kbelik
