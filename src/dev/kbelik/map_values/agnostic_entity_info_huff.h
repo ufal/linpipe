@@ -26,15 +26,16 @@ class AgnosticEntityInfoH {
   using Type = linpipe::kbelik::AgnosticEntityInfo;
 
   AgnosticEntityInfoH() = delete;
-  AgnosticEntityInfoH(HuffmanTree& huffman, NamedEntityMapper& nem) : huffman(huffman), nem(nem), tv(TypedValue(huffman)) { }
+  AgnosticEntityInfoH(linpipe::kbelik::HuffmanTree& huffman, linpipe::kbelik::NamedEntityMapper& nem) : 
+    huffman(huffman), nem(nem), tv(TypedValue(huffman)) { }
 
   size_t length(const byte* ptr) const;
   size_t length(const Type& value) const;
    
   void serialize(const Type& value, vector<byte>& data) const;
   void deserialize(const byte*& ptr_whole, Type& value) const;
-  HuffmanTree& huffman;
-  NamedEntityMapper& nem;
+  linpipe::kbelik::HuffmanTree& huffman;
+  linpipe::kbelik::NamedEntityMapper& nem;
 
  private:
 
