@@ -21,21 +21,21 @@
 
 namespace linpipe::kbelik {
 
-template<typename MapKey, typename ValueMV>
+template<typename MapKey, typename MapValue>
 class GeneralKbelik {
  public:
   // Rovnou map_path
   //GeneralKbelik(filesystem::path map_path, size_t offset=0, int64_t length=-1);
   ~GeneralKbelik();
 
-  bool find(ID id, typename ValueMV::Type& value) const { return map->find(id, value); }
+  bool find(ID id, typename MapValue::Type& value) const { return map->find(id, value); }
   void close() { map->close(); }
 
   bool opened() const { return map->close(); }
  protected:
   filesystem::path kbelik_path;
   HuffmanTree huffman;
-  PersistentMap<MapKey, ValueMV>* map = nullptr;
+  PersistentMap<MapKey, MapValue>* map = nullptr;
 
   size_t load_huffman (size_t offset);
 
@@ -45,8 +45,8 @@ class GeneralKbelik {
 };
 
 
-template<typename MapKey, typename ValueMV>
-void GeneralKbelik<MapKey, ValueMV>::build_huffman(istream& jsons, HuffmanTree& huff) {
+template<typename MapKey, typename MapValue>
+void GeneralKbelik<MapKey, MapValue>::build_huffman(istream& jsons, HuffmanTree& huff) {
   auto remember_pos = jsons.tellg();
 
   string line;
@@ -60,8 +60,8 @@ void GeneralKbelik<MapKey, ValueMV>::build_huffman(istream& jsons, HuffmanTree& 
   jsons.seekg(remember_pos);
 }
 
-template<typename MapKey, typename ValueMV>
-size_t GeneralKbelik<MapKey, ValueMV>::load_huffman(size_t offset) {
+template<typename MapKey, typename MapValue>
+size_t GeneralKbelik<MapKey, MapValue>::load_huffman(size_t offset) {
   size_t huffman_size = 0;
 
   std::ifstream ifs(kbelik_path, std::ios::binary | std::ios::in);
@@ -89,8 +89,8 @@ size_t GeneralKbelik<MapKey, ValueMV>::load_huffman(size_t offset) {
   return huffman_size;
 }
 
-template<typename MapKey, typename ValueMV>
-GeneralKbelik<MapKey, ValueMV>::~GeneralKbelik() {
+template<typename MapKey, typename MapValue>
+GeneralKbelik<MapKey, MapValue>::~GeneralKbelik() {
   close();
   delete map;
 }
