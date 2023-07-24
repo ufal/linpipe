@@ -699,24 +699,6 @@ TEST_CASE("AgnosticEntityInfo") {
   }
 }
 
-/*
-TEST_CASE("Named entity converter") {
-  SUBCASE("named entity to bool") {
-    vector<NamedEntity> ne = {static_cast<NamedEntity>(5)};
-    vector<bool> expected = {false, false, false, false, false, true};
-    CHECK(expected == NamedEntityConverter::ne_to_bools(ne));
-  }
-  SUBCASE("Bool to named entity") {
-    vector<bool> vb = {true, false, false, true};
-    vector<NamedEntity> expected = {
-      static_cast<NamedEntity>(0),
-      static_cast<NamedEntity>(3)
-      };
-    CHECK(expected == NamedEntityConverter::bools_to_ne(vb));
-  }
-}
-*/
-
 TEST_CASE("ID") {
   ID nq = ID("STR123");
   ID q = ID("Q1234");
