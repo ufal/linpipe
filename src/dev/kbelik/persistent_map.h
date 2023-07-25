@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 
-
 #include "common.h"
 
 #include "dev/kbelik/map_type.h"

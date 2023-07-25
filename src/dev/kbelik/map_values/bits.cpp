@@ -4,8 +4,6 @@
 
 #include "dev/kbelik/map_values/bits.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
-
 namespace linpipe::kbelik::map_values {
 
 size_t Bits::length(const byte* ptr) const {

@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/map_type.h"
 
 namespace linpipe::kbelik {

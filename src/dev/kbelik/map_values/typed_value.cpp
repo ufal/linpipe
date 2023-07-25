@@ -1,7 +1,7 @@
 #include <cstring>
 #include <filesystem>
 
-#include "common.h"
+#include "dev/kbelik/map_values/typed_value.h"
 
 namespace linpipe::kbelik::map_values {
 

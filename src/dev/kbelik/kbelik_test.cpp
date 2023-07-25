@@ -19,7 +19,6 @@
 
 #include "dev/kbelik/agnostic_kbelik.h"
 #include "dev/kbelik/agnostic_entity_info.h"
-#include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/general_kbelik.h"
 #include "dev/kbelik/huffman.h"

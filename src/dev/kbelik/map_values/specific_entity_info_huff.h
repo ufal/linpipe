@@ -7,6 +7,8 @@
 #include "dev/kbelik/map_values/bytes_vli.h"
 #include "dev/kbelik/map_values/vli.h"
 
+#include "dev/kbelik/huffman.h"
+
 #include "dev/kbelik/specific_entity_info.h"
 
 namespace linpipe::kbelik::map_values {

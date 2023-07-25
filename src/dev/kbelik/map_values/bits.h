@@ -7,8 +7,6 @@
 
 #include "dev/kbelik/map_values/bytes_vli.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
-
 namespace linpipe::kbelik::map_values {
 
 class Bits {

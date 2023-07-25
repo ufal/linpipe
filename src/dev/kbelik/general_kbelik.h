@@ -7,7 +7,6 @@
 
 #include "common.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
 #include "dev/kbelik/dynamic_map.h"
 #include "dev/kbelik/id.h"
 #include "dev/kbelik/named_entity_mapper.h"
