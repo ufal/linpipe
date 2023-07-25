@@ -1,6 +1,4 @@
 // Fixed length integer
-#include "common.h"
-
 #include "dev/kbelik/map_values/fli.h"
 
 #include "dev/kbelik/utils/memcpy.h"

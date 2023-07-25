@@ -3,11 +3,6 @@
 
 #include "common.h"
 
-#include "dev/kbelik/map_values/typed_value.h"
-
-#include "dev/kbelik/byte_serializer_deserializer.h"
-#include "dev/kbelik/map_values/bytes_vli.h"
-
 namespace linpipe::kbelik::map_values {
 
 size_t TypedValue::length(const byte* ptr) const {

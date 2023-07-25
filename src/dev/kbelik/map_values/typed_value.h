@@ -3,9 +3,7 @@
 #include "common.h"
 
 #include "dev/kbelik/huffman.h"
-
 #include "dev/kbelik/map_values/bytes_vli.h"
-
 #include "dev/kbelik/typed_value.h"
 
 namespace linpipe::kbelik::map_values {

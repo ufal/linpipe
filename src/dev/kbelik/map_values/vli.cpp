@@ -1,8 +1,6 @@
 #include <cstring>
 #include <filesystem>
 
-#include "common.h"
-
 #include "dev/kbelik/map_values/vli.h"
 
 namespace linpipe::kbelik::map_values {

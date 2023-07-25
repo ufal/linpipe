@@ -5,8 +5,6 @@
 
 #include "dev/kbelik/map_values/int4.h"
 
-#include "dev/kbelik/byte_serializer_deserializer.h"
-
 namespace linpipe::kbelik::map_values {
 
 size_t Int4::length(const byte* /*ptr*/) const {

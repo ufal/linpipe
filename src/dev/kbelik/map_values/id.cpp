@@ -3,13 +3,9 @@
 
 #include "common.h"
 
-#include "dev/kbelik/id.h"
 #include "dev/kbelik/map_values/id.h"
 
-#include "dev/kbelik/map_values/vli.h"
-#include "dev/kbelik/map_values/int8.h"
-
-#include "dev/kbelik/byte_serializer_deserializer.h"
+#include "dev/kbelik/id.h"
 
 namespace linpipe::kbelik::map_values {
 

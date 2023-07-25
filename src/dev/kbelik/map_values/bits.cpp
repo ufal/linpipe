@@ -2,8 +2,6 @@
 #include <filesystem>
 #include <cmath>
 
-#include "common.h"
-
 #include "dev/kbelik/map_values/bits.h"
 
 #include "dev/kbelik/byte_serializer_deserializer.h"
