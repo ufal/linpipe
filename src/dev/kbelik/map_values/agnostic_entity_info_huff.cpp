@@ -179,14 +179,14 @@ void AgnosticEntityInfoH::decodeAEIP(const byte*& ptr_whole, AEIProperties& aeip
 }
 
 void AgnosticEntityInfoH::encodeNE(const vector<string>& value, vector<byte>& encoded) const {
-  auto ne_as_bits = nem.ne_to_bools(value);
+  auto ne_as_bits = this->nem.ne_to_bools(value);
   bits.serialize(ne_as_bits, encoded);
 }
 
 void AgnosticEntityInfoH::decodeNE(const byte*& ptr, vector<string>& ne) const {
   vector<bool> ne_as_bits;
   bits.deserialize(ptr, ne_as_bits);
-  ne = nem.bools_to_ne(ne_as_bits);
+  ne = this->nem.bools_to_ne(ne_as_bits);
 }
 
 } // namespace linpipe::kbelik::map_values
