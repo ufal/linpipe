@@ -34,10 +34,10 @@ class AgnosticEntityInfoH {
    
   void serialize(const Type& value, vector<byte>& data) const;
   void deserialize(const byte*& ptr_whole, Type& value) const;
-  linpipe::kbelik::HuffmanTree& huffman;
-  linpipe::kbelik::NamedEntityMapper& nem;
 
  private:
+  linpipe::kbelik::HuffmanTree& huffman;
+  linpipe::kbelik::NamedEntityMapper& nem;
 
   Bits bits;
   BytesVLI bytes_vli;
