@@ -66,12 +66,12 @@ void NamedEntityMapper::serialize(vector<byte>& to) const {
   for (uint16_t i = 0; i < _int_to_ne.size(); ++i) 
     serialize_entity(i, temp);
   uint64_t sz = temp.size();
-  _fli.serialize(sz, to);
+  _vli.serialize(sz, to);
   to.insert(to.end(), temp.begin(), temp.end());
 }
 
 void NamedEntityMapper::deserialize(const byte*& from) {
-  from += _fli_size;
+  from += _vli.length(from);
   _deserialize(from);
 }
 
@@ -81,19 +81,16 @@ void NamedEntityMapper::deserialize(const vector<byte>& from) {
 }
 
 size_t NamedEntityMapper::deserialize(ifstream& ifs) {
-  vector<byte> size_of_rest_encoded;
-  byte b;
-  while (size_of_rest_encoded.size() < _fli_size && ifs.read((char*)&b, sizeof(b))) 
-    size_of_rest_encoded.push_back(b);
-  const byte* ptr = size_of_rest_encoded.data();
   uint64_t size_of_rest;
-  _fli.deserialize(ptr, size_of_rest);
+  _vli.deserialize(ifs, size_of_rest);
+  size_t vli_size = _vli.length(size_of_rest);
   vector<byte> encoded_nem;
+  byte b;
   for (uint64_t i = 0; i < size_of_rest && ifs.read((char*)&b, sizeof(b)); ++i) 
     encoded_nem.push_back(b);
-  ptr = encoded_nem.data();
+  const byte* ptr = encoded_nem.data();
   _deserialize(ptr);
-  return _fli_size + (ptr - encoded_nem.data());
+  return vli_size + (ptr - encoded_nem.data());
 }
 
 void NamedEntityMapper::serialize_entity(uint16_t idx, vector<byte>& to) const {
