@@ -4,6 +4,9 @@
 // Once the tree is loaded/built it cannot be changed.
 // end_symbol should never be present in the inputed text.
 
+// Huffman deserialization should be improved similarly to nem
+// It should use VLI instead of the end_serialize_symbol
+
 #pragma once
 
 #include <unordered_map>
