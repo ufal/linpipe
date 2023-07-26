@@ -1169,6 +1169,16 @@ TEST_CASE("VLI") {
       mv.deserialize(ptr, des);
       CHECK(des == i);
     }
+    SUBCASE("stream") {
+      ofstream ofs("temp/test_vli.bin", ofstream::out | ofstream::binary);
+      ofs.write((char*)data.data(), data.size());
+      ofs.close();
+      ifstream ifs("temp/test_vli.bin", ifstream::binary);
+      uint64_t des;
+      mv.deserialize(ifs, des);
+      ifs.close();
+      CHECK(des == i);
+    }
   }
 }
 TEST_CASE("SimpleJson") {
@@ -1202,8 +1212,6 @@ TEST_CASE("SimpleJson") {
     mv.deserialize(ptr, des);
     CHECK(des.dump() == j.dump());
   };
-
-
 
   SUBCASE("Equal lengths small") {
     length(small);

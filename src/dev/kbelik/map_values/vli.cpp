@@ -1,5 +1,6 @@
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 
 #include "dev/kbelik/map_values/vli.h"
 
@@ -39,6 +40,21 @@ void VLI::deserialize(const byte*& ptr, VLI::Type& value) const {
   }
 }
 
+void VLI::deserialize(ifstream& ifs, VLI::Type& value) {
+  value = 0;
+  int i = 0;
+  byte b = get_byte(ifs);
+  while (true){
+    Type casted = (Type)b;
+    casted &= 0x7F;
+    value |= casted << (7 * i);
+    if (!(((b >> 7)&(byte)1) == (byte)1))
+      break;
+    i++;
+    b = get_byte(ifs);
+  }
+}
+
 void VLI::serialize(const VLI::Type& value, vector<byte>& data) const {
   size_t bytes_cnt = VLI::length(value);
   //data.resize(bytes_cnt);
@@ -56,6 +72,12 @@ void VLI::serialize(const VLI::Type& value, vector<byte>& data) const {
 byte VLI::get_byte(const byte* ptr) const {
   byte res;
   memcpy(&res, ptr, 1);
+  return res;
+}
+
+byte VLI::get_byte(ifstream& ifs) {
+  byte res;
+  ifs.read((char*)&res, sizeof(res));
   return res;
 }
 
