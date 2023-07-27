@@ -51,6 +51,8 @@ unordered_map<string, vector<TypedValue>> AgnosticEntityInfo::create_optionals(J
     vector<TypedValue> optional;
     for (auto& item : val) {
       string sub_type = item[0];
+      if (sub_type == "qid")
+        sub_type = "id";
       string type_value = item[1];
       optional.push_back(TypedValue(sub_type, type_value));
     }
