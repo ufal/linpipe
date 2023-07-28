@@ -5,8 +5,6 @@
 #include "dev/kbelik/map_values/agnostic_entity_info_huff.h"
 #include "dev/kbelik/map_values/specific_entity_info_huff.h"
 
-#define USE(x) asm volatile ("" : : "rm" (x))
-
 using namespace linpipe;
 using namespace linpipe::kbelik;
 
@@ -43,7 +41,7 @@ int main() {
   for (int i = 0; i < n_of_finds; ++i) {
     auto tseek1 = high_resolution_clock::now();
     //cout << qid << '\n';
-    USE(ak.find(ID(i+35000), res));
+    ak.find(ID(i+35000), res);
     //cout << su << '\n';
     auto tseek2 = high_resolution_clock::now();
     if (duration_cast<nanoseconds>(tseek2 - tseek1).count() > (100 * 100)) {
