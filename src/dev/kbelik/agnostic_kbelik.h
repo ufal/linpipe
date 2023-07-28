@@ -102,7 +102,7 @@ size_t AgnosticKbelik<MapKey>::load_nem(size_t offset) {
   else {
     throw LinpipeError("Failed to open file for reading.\n");
   }
-
+  cout << "nem_size " << nem_size << endl;
   return nem_size;
 }
 

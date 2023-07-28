@@ -38,7 +38,6 @@ class DynamicMap{
                   size_t first_count, size_t second_count);
 
   vector<size_t> value_prefix_sums();
-  int const key_size = 8;
 };
 
 template<typename MapKey, typename Value>
@@ -92,7 +91,7 @@ void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
   auto size_sums = value_prefix_sums();
   using address_type = uint32_t;
   size_t address_size = sizeof(address_type);
-  size_t key_address_size = key_size + address_size;
+  size_t key_address_size = mk.length() + address_size;
   size_t index_size = values.size() *  key_address_size;
   vector<byte> to_stream(size_sums.back() + index_size + sizeof(size_t), (byte)0);
   byte* to_stream_ptr = to_stream.data();
@@ -102,16 +101,20 @@ void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
   memcpy(to_stream_ptr, (byte*)&index_size, sizeof(size_t));
   to_stream_ptr += sizeof(size_t);
 
+  uint64_t tot =0;
+  uint64_t cnt =0;
+
   for (auto& p: values) {
     // key  offset -> data
     data.resize(key_address_size);
     address_type offset = size_sums[idx] + index_size - key_address_size * idx;
     vector<byte> serialized_key;
-    //mk.serialize(p.first, serialized_key);
     uint64_t key_as_uint = mk.convert_to_uint(p.first);
     memcpy_two(data.data(), (byte*)&key_as_uint, 
                (byte*)&offset,
                mk.length(), address_size);
+    tot += mk.length();
+    tot += address_size;
 
     // data -> to_stream
     memcpy(to_stream_ptr + idx * key_address_size, 
@@ -124,7 +127,10 @@ void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
     memcpy(to_stream_ptr + index_size + size_sums[idx++], 
            data.data(), 
            data.size());
+    tot += data.size();
+    cnt++;
   }
+  cout << "AVERAGE" << tot / cnt << endl;
   os.write((char*)to_stream.data(), to_stream.size());
 }
 
