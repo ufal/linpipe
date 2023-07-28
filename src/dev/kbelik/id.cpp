@@ -11,6 +11,11 @@ ID::ID(string id) {
   _is_qid = _is_qid_parsable(id);
 }
 
+ID::ID(uint64_t id) {
+  _id = "Q" + to_string(id);
+  _is_qid = _is_qid_parsable(_id);
+}
+
 bool ID::is_qid() const {
   return _is_qid;
 }
