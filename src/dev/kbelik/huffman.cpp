@@ -23,7 +23,7 @@ void HuffmanTree::add_symbol(byte symbol) {
 }
 
 Node HuffmanTree::merge(Node& l, Node& r) {
-  uint64_t tot_w = l.w + l.w;
+  uint64_t tot_w = l.w + r.w;
   return {make_shared<Node>(l), make_shared<Node>(r), (byte)0, tot_w, creation_time++};
 }
 
@@ -189,6 +189,10 @@ void HuffmanTree::deserialize(byte* in) {
 void HuffmanTree::deserialize(const vector<byte>& in) {
   byte* in_ptr = const_cast<byte*>(in.data());
   deserialize(in_ptr);
+}
+
+void HuffmanTree::print() {
+  root->dfs_print();
 }
   
 } // linpipe::kbelik

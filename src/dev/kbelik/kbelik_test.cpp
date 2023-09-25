@@ -1307,10 +1307,17 @@ TEST_CASE("HuffmanTree") {
     vector<byte> data;
     string t1, t2;
     auto huff = HuffmanTree();
-    huff.add("abcdefgh");
+    huff.add("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcdefgh");
     huff.build();
+    cout << "huff print:\n";
+    //huff.print();
     t1 = "abcdefgh";
     huff.encode(t1, data);
+    //for (auto b: data) {
+    //  cout << (int)b << ' ';
+    //}
+    //cout << '\n';
+
     huff.decode(data.data(),t2);
     CHECK(t1 == t2);
     t1 = "";
@@ -1323,6 +1330,8 @@ TEST_CASE("HuffmanTree") {
     CHECK(t1 == t2);
     t1 = "aaaaaaaaaaaaaababababab";
     huff.encode(t1, data);
+    CHECK(data.size() < t1.size());
+    //cout << "data size" << data.size() << '\n';
     huff.decode(data.data(),t2);
     CHECK(t1 == t2);
   }

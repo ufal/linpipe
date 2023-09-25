@@ -37,6 +37,16 @@ struct Node {
   void print() {
     cout <<(int)val << ' '<< w << ' ' << creation_time << endl;
   }
+
+  // Pre-order traversal of the subtree corresponding to the node
+  void dfs_print(int offset=0) {
+    cout << string(offset, ' ');
+    print();
+    if (left != nullptr)
+      left->dfs_print(offset + 4);
+    if (right != nullptr)
+      right->dfs_print(offset + 4);
+  }
 };
 
 class HuffmanTree {
@@ -61,6 +71,8 @@ class HuffmanTree {
     inline byte end_serialize_symbol() const { return (byte)0b11111110; }
 
     inline bool is_built() const { return built; }
+
+    void print();
   private:
 
     uint16_t creation_time = 0;

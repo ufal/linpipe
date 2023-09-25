@@ -85,7 +85,6 @@ size_t GeneralKbelik<MapKey, MapValue>::load_huffman(size_t offset) {
   huffman.deserialize(huff_bytes);
 
   huffman_size = huff_bytes.size();
-  cout << "HUffman size" << huffman_size << endl;
   return huffman_size;
 }
 

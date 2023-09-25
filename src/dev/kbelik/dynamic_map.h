@@ -130,7 +130,6 @@ void DynamicMap<MapKey, Value>::write_keys_and_values(ostream& os) {
     tot += data.size();
     cnt++;
   }
-  cout << "AVERAGE" << tot / cnt << endl;
   os.write((char*)to_stream.data(), to_stream.size());
 }
 
