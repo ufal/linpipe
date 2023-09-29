@@ -9,7 +9,6 @@
 
 CPP_STANDARD = c++17
 include Makefile.builtem
-include Makefile.include
 
 # Targets
 .PHONY: default lib test_compile test all
@@ -24,13 +23,10 @@ all: default lib test_compile
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
 
-# Add rudimental support for compiling C sources
-$(call obj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
-	$(filter-out -std=% /std:%,$(call compile,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
-ifneq ($(call dynobj,%),$(call obj,%))
-$(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
-	$(filter-out -std=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
-endif
+# Collect all Makefile.include files
+LINPIPE_OBJECTS =
+LINPIPE_TESTS =
+include $(wildcard Makefile.include */Makefile.include */*/Makefile.include)
 
 # Main rules
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
@@ -40,7 +36,16 @@ $(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_T
 $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
 
+# Add rudimental support for compiling C sources
+$(call obj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
+	$(filter-out -std=% /std:%,$(call compile,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
+ifneq ($(call dynobj,%),$(call obj,%))
+$(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
+	$(filter-out -std=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
+endif
+
 # Cleaning
 .PHONY: clean
 clean:
 	@$(call rm,.build $(call all_exe,linpipe linpipe_test $(EXECUTABLES)) $(call all_lib,liblinpipe))
+

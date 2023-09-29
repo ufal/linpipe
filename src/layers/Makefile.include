@@ -1,0 +1,18 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+LINPIPE_OBJECTS += layers/layer
+LINPIPE_OBJECTS += layers/lemmas
+LINPIPE_OBJECTS += layers/spans
+LINPIPE_OBJECTS += layers/text
+LINPIPE_OBJECTS += layers/tokens
+
+LINPIPE_TESTS += layers/layer_test
+
+LINPIPE_TESTS += layers/text_test
