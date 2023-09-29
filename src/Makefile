@@ -20,14 +20,17 @@ test: test_compile
 	$(call platform_name,./$(call exe,linpipe_test))
 all: default lib test_compile
 
-# Include dev Makefiles
-.PHONY: dev
-include dev/*/Makefile.include
-all: dev
-
 # Compilation flags
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
+
+# Add rudimental support for compiling C sources
+$(call obj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
+	$(filter-out -std=% /std:%,$(call compile,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
+ifneq ($(call dynobj,%),$(call obj,%))
+$(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
+	$(filter-out -std=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
+endif
 
 # Main rules
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
