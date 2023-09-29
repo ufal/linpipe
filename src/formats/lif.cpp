@@ -28,7 +28,7 @@ unique_ptr<Document> Lif::load(istream& input, const string source_path) {
     string type = json_get_string("Lif::load", layer_json, "type");
     unique_ptr<Layer> layer = Layer::create(type);
     layer->from_json(layer_json);
-    document->add_layer(move(layer));
+    document->add_layer(std::move(layer));
   }
 
   document->set_source_path(source_path);

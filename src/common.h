@@ -28,7 +28,6 @@
 namespace linpipe {
 
 using namespace std;
-using std::move; // Avoid the warning about using std::move unqualitied
 
 // Configuration of JSON for Modern C++
 using Json = nlohmann::json;

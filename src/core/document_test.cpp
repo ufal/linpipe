@@ -27,9 +27,9 @@ TEST_CASE("Document::get_layer") {
   }
 
   unique_ptr<Layer> layer = Layer::create("text");
-  doc.add_layer(move(layer));
+  doc.add_layer(std::move(layer));
   unique_ptr<Layer> layer2 = Layer::create("text");
-  doc.add_layer(move(layer2));
+  doc.add_layer(std::move(layer2));
 
   SUBCASE("returns last layer if no type or name given") {
     CHECK_NOTHROW(doc.get_layer());
@@ -59,9 +59,9 @@ TEST_CASE("Document::get_layer<T>") {
   }
 
   unique_ptr<Layer> layer = Layer::create("text");
-  doc.add_layer(move(layer));
+  doc.add_layer(std::move(layer));
   unique_ptr<Layer> layer2 = Layer::create("text");
-  doc.add_layer(move(layer2));
+  doc.add_layer(std::move(layer2));
 
   SUBCASE("returns last layer of the requested type if no name given") {
     CHECK_NOTHROW(doc.get_layer<layers::Text>());
@@ -107,7 +107,7 @@ TEST_CASE("Document::del_layer") {
   }
 
   unique_ptr<Layer> layer = Layer::create("text");
-  doc.add_layer(move(layer));
+  doc.add_layer(std::move(layer));
 
   SUBCASE("throws exception when attempting to erase non-existent layer") {
     CHECK_THROWS_AS(doc.del_layer("bad_name"), LinpipeError);

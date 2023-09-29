@@ -25,7 +25,7 @@ unique_ptr<Document> Text::load(istream& input, const string source_path) {
   layer->text.append(block, input.gcount());
 
   auto document = make_unique<Document>();
-  document->add_layer(move(layer));
+  document->add_layer(std::move(layer));
   document->set_source_path(source_path);
 
   return document;

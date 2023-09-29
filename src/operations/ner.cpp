@@ -41,7 +41,7 @@ void NER::execute(Corpus& corpus, PipelineState& state) {
 
     _ne_recognizer->recognize(state.model_manager, source.tokens, target->spans);
 
-    doc->add_layer(move(target));
+    doc->add_layer(std::move(target));
   }
 }
 

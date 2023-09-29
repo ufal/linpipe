@@ -41,7 +41,7 @@ void Tokenize::execute(Corpus& corpus, PipelineState& state) {
 
     _tokenizer->tokenize(state.model_manager, source.text, target->tokens);
 
-    doc->add_layer(move(target));
+    doc->add_layer(std::move(target));
   }
 }
 

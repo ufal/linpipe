@@ -40,7 +40,7 @@ Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplic
   }
 
   _names.insert(layer->_name);
-  _layers.push_back(move(layer));
+  _layers.push_back(std::move(layer));
 
   return *_layers.back().get();
 }
