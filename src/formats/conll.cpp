@@ -69,7 +69,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
 
   // Read content.
   string line;
-  size_t ntokens = 0;
+  unsigned ntokens = 0;
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
       for (size_t i = 0; i < _types.size(); i++) {
