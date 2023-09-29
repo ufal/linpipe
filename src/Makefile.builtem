@@ -1,13 +1,13 @@
 # This file is part of C++-Builtem <http://github.com/ufal/cpp_builtem/>.
 #
-# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# Copyright 2014-2023 Institute of Formal and Applied Linguistics, Faculty
 # of Mathematics and Physics, Charles University in Prague, Czech Republic.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-BUILTEM_VERSION := 2.0.1
+BUILTEM_VERSION := 2.1.0
 
 ############
 # PLATFORM #
@@ -216,7 +216,7 @@ else ifneq ($(filter win-vs-%,$(PLATFORM)),)
   ifneq ($(filter undefined default,$(origin CXX)),)
     CXX = cl
   endif
-  C_FLAGS += /nologo $(if $(filter c++11,$(CPP_STANDARD)),,/std:$(CPP_STANDARD)) /W 2 /D WIN32 /D UNICODE /D _UNICODE /D _WIN32_WINNT=0x0601 /EHsc /utf-8
+  C_FLAGS += /nologo $(if $(filter c++11,$(CPP_STANDARD)),,/std:$(CPP_STANDARD)) /W2 /D WIN32 /D UNICODE /D _UNICODE /D _WIN32_WINNT=0x0601 /EHsc /utf-8
   LD_FLAGS += /MANIFEST:EMBED /MACHINE:$(if $(filter %-64,$(PLATFORM)),X64,X86)
 
   ifeq ($(MODE),normal)
@@ -298,12 +298,16 @@ ifneq ($(filter win-vs-%,$(PLATFORM)),)
   define_macro = /D $(1)$(if $(2),=$(2))
   disable_assert = /D NDEBUG
   treat_warnings_as_errors = /WX
+  default_warnings = /W2
+  disable_all_warnings = /w
 else
   include_dir = $(1:%=-I%)
   use_library = $(1:%=-l%)
   define_macro = -D$(1)$(if $(2),=$(2))
   disable_assert = -DNDEBUG
   treat_warnings_as_errors = -Werror
+  default_warnings = -W -Wall
+  disable_all_warnings = -w
 endif
 
 ifneq ($(filter linux-%,$(PLATFORM)),)
@@ -341,7 +345,7 @@ ifneq ($(filter win-vs-%,$(PLATFORM)),)
 COMPILE_DEPS += .build/cl_deps.exe
 .build/cl_deps.exe: .build/cl_deps.cpp
 	@$(info Compiling cl_deps.exe)
-	@$(CXX) /Fe$@ /Fo$@.obj /nologo /W 2 /O1 /D WIN32 /D UNICODE /D _UNICODE /D _WIN32_WINNT=0x0601 /EHsc /utf-8 /MT $< /link /MANIFEST:EMBED /SUBSYSTEM:console,6
+	@$(CXX) /Fe$@ /Fo$@.obj /nologo /W2 /O1 /D WIN32 /D UNICODE /D _UNICODE /D _WIN32_WINNT=0x0601 /EHsc /utf-8 /MT $< /link /MANIFEST:EMBED /SUBSYSTEM:console,6
 .build/cl_deps.cpp: | .build
 	@$(info Generating cl_deps.cpp)
 	@$(call echo,>$@,#include <ctype.h>)
