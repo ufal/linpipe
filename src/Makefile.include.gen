@@ -22,6 +22,6 @@ done >>"$1"/Makefile.include
 for f in "$1"/*_test.cpp; do
   [ -f "$f" ] || continue
   [ -n "$add_newline" ] && echo
-  add_newline=0
+  add_newline=
   echo LINPIPE_TESTS += "${f%.cpp}"
 done >>"$1"/Makefile.include

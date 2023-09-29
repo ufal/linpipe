@@ -14,5 +14,4 @@ LINPIPE_OBJECTS += layers/text
 LINPIPE_OBJECTS += layers/tokens
 
 LINPIPE_TESTS += layers/layer_test
-
 LINPIPE_TESTS += layers/text_test

@@ -13,5 +13,4 @@ LINPIPE_OBJECTS += utils/string_helper
 LINPIPE_OBJECTS += utils/win_wmain_utf8
 
 LINPIPE_TESTS += utils/arguments_test
-
 LINPIPE_TESTS += utils/string_helper_test

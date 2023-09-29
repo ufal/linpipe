@@ -12,5 +12,4 @@ LINPIPE_OBJECTS += core/pipeline
 LINPIPE_OBJECTS += core/pipeline_state
 
 LINPIPE_TESTS += core/document_test
-
 LINPIPE_TESTS += core/pipeline_test
