@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
-#include "ner_toy.h"
+#include "models/ner_toy.h"
 
 namespace linpipe::models {
 

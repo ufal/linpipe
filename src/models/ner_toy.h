@@ -10,7 +10,7 @@
 #pragma once
 
 #include "common.h"
-#include "model.h"
+#include "models/model.h"
 
 namespace linpipe::models {
 
