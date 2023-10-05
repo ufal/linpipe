@@ -19,12 +19,12 @@ Composite::Composite(const string description) {
   args.parse_operations(descriptions, description);
 
   for (string d : descriptions) {
-    _operations.push_back(Operation::create(d));
+    operations_.push_back(Operation::create(d));
   }
 }
 
 void Composite::execute(Corpus& corpus, PipelineState& state) {
-  for (auto& operation : _operations)
+  for (auto& operation : operations_)
     operation->execute(corpus, state);
 };
 

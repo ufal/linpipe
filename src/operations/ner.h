@@ -19,7 +19,7 @@ class NER : public Operation {
   NER(const string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
  private:
-  unique_ptr<NERecognizer> _ne_recognizer;
+  unique_ptr<NERecognizer> ne_recognizer_;
 };
 
 } // namespace linpipe::operations

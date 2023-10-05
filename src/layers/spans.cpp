@@ -22,8 +22,8 @@ SpanEncoding SpanEncoding::create(const string& type) {
 void Spans::from_json(const Json& json) {
   json_assert_object("Spans::from_json", json);
 
-  json_get_string("Spans::from_json", json, "type", _type);
-  json_get_string("Spans::from_json", json, "name", _name);
+  json_get_string("Spans::from_json", json, "type", type_);
+  json_get_string("Spans::from_json", json, "name", name_);
 
   json_get_string("Spans::from_json", json, "token_layer", token_layer);
   json_get_unsigned_pair_vector("Spans::from_json", json, "spans", spans);
@@ -36,8 +36,8 @@ void Spans::from_json(const Json& json) {
 
 Json Spans::to_json() {
   return {
-    {"type", _type},
-    {"name", _name},
+    {"type", type_},
+    {"name", name_},
     {"token_layer", token_layer},
     {"spans", spans},
     {"tags", tags},

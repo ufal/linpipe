@@ -25,16 +25,16 @@ class Layer {
   virtual Json to_json() = 0;
   virtual string to_html() = 0;
 
-  const string& name() { return _name; }
-  const string& type() { return _type; }
+  const string& name() { return name_; }
+  const string& type() { return type_; }
 
   // TODO: add more structured metadata info
 
  protected:
-  Layer(const string type, const string name) : _type(type), _name(name) {};
+  Layer(const string type, const string name) : type_(type), name_(name) {};
 
-  string _type;
-  string _name;
+  string type_;
+  string name_;
   friend class Document;
 };
 

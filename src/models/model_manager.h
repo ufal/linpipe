@@ -29,14 +29,14 @@ class ModelManager {
 
  private:
   // Model reservations
-  vector<string> _reserved_models;  // model names FIFO
-  unordered_map<string, unsigned> _reservations;  // model reservations counts
+  vector<string> reserved_models_;  // model names FIFO
+  unordered_map<string, unsigned> reservations_;  // model reservations counts
 
   // Models currently held in memory
-  unordered_map<string, unique_ptr<Model>> _models;
+  unordered_map<string, unique_ptr<Model>> models_;
 
   // Maximum capacity of models held in memory. 0 means infinity.
-  unsigned _capacity = 0;
+  unsigned capacity_ = 0;
 
   // Load on reserve? If true, load immediately.
   bool load_on_reserve = true;

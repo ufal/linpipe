@@ -21,7 +21,7 @@ class Arguments {
   void parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description);
   void parse_format(unordered_map<string, string>& args, const string description);
  private:
-  size_t _find_next_operation(const string description, size_t offset);
+  size_t find_next_operation_(const string description, size_t offset);
 };
 
 } // namespace linpipe

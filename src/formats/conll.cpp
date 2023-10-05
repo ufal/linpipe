@@ -20,31 +20,31 @@ namespace linpipe::formats {
 
 Conll::Conll(const string description) {
   Arguments args;
-  args.parse_format(_args, description);
+  args.parse_format(args_, description);
 
   int i = 1;
   while(true) { // see how many columns requested
-    unordered_map<string, string>::const_iterator it = _args.find(to_string(i));
-    if (it == _args.end()) break; // no more columns
+    unordered_map<string, string>::const_iterator it = args_.find(to_string(i));
+    if (it == args_.end()) break; // no more columns
 
     // split column description into name and type
     if (size_t index = it->second.find(':'); index != string::npos) {
-      _names.emplace_back(it->second, 0, index);
-      _types.emplace_back(it->second, index + 1);
+      names_.emplace_back(it->second, 0, index);
+      types_.emplace_back(it->second, index + 1);
     }
     else { // if without ':', assume the description is a type
-      _names.emplace_back();
-      _types.emplace_back(it->second);
+      names_.emplace_back();
+      types_.emplace_back(it->second);
     }
 
     i++;
   }
 
-  _encodings.resize(_names.size());
-  for (size_t i = 0; i < _encodings.size(); i++) {
-    unordered_map<string, string>::const_iterator it = _args.find(to_string(i+1) + "_encoding");
-    if (it != _args.end()) {
-      _encodings[i] = it->second;
+  encodings_.resize(names_.size());
+  for (size_t i = 0; i < encodings_.size(); i++) {
+    unordered_map<string, string>::const_iterator it = args_.find(to_string(i+1) + "_encoding");
+    if (it != args_.end()) {
+      encodings_[i] = it->second;
     }
   }
 
@@ -57,10 +57,10 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
   auto document = make_unique<Document>();
 
   // Create layers.
-  for (size_t i = 0; i < _types.size(); i++) {
-    document->add_layer(Layer::create(_types[i], _names[i]));
+  for (size_t i = 0; i < types_.size(); i++) {
+    document->add_layer(Layer::create(types_[i], names_[i]));
     // Document may have changed the name of the added layer to unique name.
-    _names[i] = document->get_layer().name();
+    names_[i] = document->get_layer().name();
   }
 
   // Read content.
@@ -68,28 +68,28 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
   unsigned ntokens = 0;
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
-      for (size_t i = 0; i < _types.size(); i++) {
-        if (_types[i] == "tokens") {
-          document->get_layer<layers::Tokens>(_names[i]).sentences.push_back(ntokens);
+      for (size_t i = 0; i < types_.size(); i++) {
+        if (types_[i] == "tokens") {
+          document->get_layer<layers::Tokens>(names_[i]).sentences.push_back(ntokens);
         }
       }
     }
     else { // line with cols
       vector<string_view> cols;
-      if (split(line, '\t', cols) != _types.size())
+      if (split(line, '\t', cols) != types_.size())
         throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
 
-      for (size_t i = 0; i < _types.size(); i++) {
-        if (_types[i] == "lemmas") {
-          document->get_layer<layers::Lemmas>(_names[i]).lemmas.emplace_back(cols[i]);
+      for (size_t i = 0; i < types_.size(); i++) {
+        if (types_[i] == "lemmas") {
+          document->get_layer<layers::Lemmas>(names_[i]).lemmas.emplace_back(cols[i]);
         }
-        if (_types[i] == "spans") {
-          document->get_layer<layers::Spans>(_names[i]).decode(cols[i],
+        if (types_[i] == "spans") {
+          document->get_layer<layers::Spans>(names_[i]).decode(cols[i],
                                                                ntokens,
-                                                               linpipe::layers::SpanEncoding::create(_encodings[i]));
+                                                               linpipe::layers::SpanEncoding::create(encodings_[i]));
         }
-        if (_types[i] == "tokens") {
-          document->get_layer<layers::Tokens>(_names[i]).tokens.emplace_back(cols[i]);
+        if (types_[i] == "tokens") {
+          document->get_layer<layers::Tokens>(names_[i]).tokens.emplace_back(cols[i]);
         }
       }
       ntokens += 1;
@@ -115,10 +115,10 @@ void Conll::save(Document& document, ostream& output) {
   // e.g. encoding named entities.
   vector<vector<string>> encoded_columns(layers.size());
   for (size_t i = 0; i < encoded_columns.size(); i++) {
-    if (_types[i] == "spans") { // encode spans
+    if (types_[i] == "spans") { // encode spans
       encoded_columns[i].resize(n);
-      document.get_layer<layers::Spans>(_names[i]).encode(encoded_columns[i],
-                                                          linpipe::layers::SpanEncoding::create(_encodings[i]));
+      document.get_layer<layers::Spans>(names_[i]).encode(encoded_columns[i],
+                                                          linpipe::layers::SpanEncoding::create(encodings_[i]));
     }
   }
 
@@ -126,14 +126,14 @@ void Conll::save(Document& document, ostream& output) {
   size_t sentence_index = 0;
   for (size_t i = 0; i < n; i++) {  // token lines
     bool sentence_printed = false;
-    for (size_t j = 0; j < _types.size(); j++) {  // columns
-      if (_types[j] == "lemmas") {
-        auto& layer = document.get_layer<layers::Lemmas>(_names[j]);
+    for (size_t j = 0; j < types_.size(); j++) {  // columns
+      if (types_[j] == "lemmas") {
+        auto& layer = document.get_layer<layers::Lemmas>(names_[j]);
         output << layer.lemmas[i];
       }
 
-      if (_types[j] == "tokens") {
-        auto& layer = document.get_layer<layers::Tokens>(_names[j]);
+      if (types_[j] == "tokens") {
+        auto& layer = document.get_layer<layers::Tokens>(names_[j]);
 
         // Print end of sentence.
         if (layer.sentences[sentence_index] == i && !sentence_printed) {
@@ -146,7 +146,7 @@ void Conll::save(Document& document, ostream& output) {
         output << layer.tokens[i];
       }
 
-      if (_types[j] == "spans") {
+      if (types_[j] == "spans") {
         output << encoded_columns[j][i];
       }
 

@@ -24,29 +24,29 @@ Load::Load(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  _format = Format::create(args["format"]);
-  _source_paths = kwargs;
+  format_ = Format::create(args["format"]);
+  source_paths_ = kwargs;
 }
 
 void Load::execute(Corpus& corpus, PipelineState& state) {
-  if (_source_paths.empty()) {  // default input
-    _read_from_handle(corpus, *state.default_input, "");
+  if (source_paths_.empty()) {  // default input
+    read_from_handle_(corpus, *state.default_input, "");
   }
   else {  // file inputs
-    for (string source_path : _source_paths) {
+    for (string source_path : source_paths_) {
       ifstream input_file;
       input_file.open(string(source_path));
       if (!input_file) {
         throw LinpipeError{"Load::execute: Could not open source path '", source_path, "' for reading"};
       }
-      _read_from_handle(corpus, input_file, source_path);
+      read_from_handle_(corpus, input_file, source_path);
     }
   }
 }
 
-void Load::_read_from_handle(Corpus& corpus, istream& input, const string source_path) {
+void Load::read_from_handle_(Corpus& corpus, istream& input, const string source_path) {
   unique_ptr<Document> doc;
-  while ((doc = _format->load(input, source_path)))
+  while ((doc = format_->load(input, source_path)))
     corpus.documents.push_back(std::move(doc));
 }
 

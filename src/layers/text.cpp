@@ -16,8 +16,8 @@ namespace linpipe::layers {
 void Text::from_json(const Json& json) {
   json_assert_object("Text::from_json", json);
 
-  json_get_string("Text::from_json", json, "type", _type);
-  json_get_string("Text::from_json", json, "name", _name);
+  json_get_string("Text::from_json", json, "type", type_);
+  json_get_string("Text::from_json", json, "name", name_);
 
   json_get_string("Text::from_json", json, "text", text);
 }
@@ -25,8 +25,8 @@ void Text::from_json(const Json& json) {
 Json Text::to_json() {
   return {
     {"text", text},
-    {"name", _name},
-    {"type", _type},
+    {"name", name_},
+    {"type", type_},
   };
 }
 

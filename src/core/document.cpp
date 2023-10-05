@@ -28,43 +28,43 @@ Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplic
     reference to the recently added layer in collection
   */
 
-  if (layer->_name.empty()) {
-    layer->_name = "layer";
+  if (layer->name_.empty()) {
+    layer->name_ = "layer";
   }
 
   // If name already exists, add numbers until unique.
-  if (unique_name_if_duplicate && _names.find(layer->_name) != _names.end()) {
+  if (unique_name_if_duplicate && names_.find(layer->name_) != names_.end()) {
     int i = 2;
-    while (_names.find(layer->_name + "_" + to_string(i)) != _names.end()) i++;
-    layer->_name += "_" + to_string(i);
+    while (names_.find(layer->name_ + "_" + to_string(i)) != names_.end()) i++;
+    layer->name_ += "_" + to_string(i);
   }
 
-  _names.insert(layer->_name);
-  _layers.push_back(std::move(layer));
+  names_.insert(layer->name_);
+  layers_.push_back(std::move(layer));
 
-  return *_layers.back().get();
+  return *layers_.back().get();
 }
 
 void Document::del_layer(const string_view name) {
-  auto it = find_if(_layers.begin(), _layers.end(), [&](const unique_ptr<Layer>& l) { return l->name() == name; });
+  auto it = find_if(layers_.begin(), layers_.end(), [&](const unique_ptr<Layer>& l) { return l->name() == name; });
 
-  if (it == _layers.end()) {
+  if (it == layers_.end()) {
     throw LinpipeError{"Document::del_layer: Layer '", name, "' was not found in document."};
   }
 
-  _layers.erase(it);
+  layers_.erase(it);
 }
 
 const vector<unique_ptr<Layer>>& Document::layers() {
-  return _layers;
+  return layers_;
 }
 
 const string& Document::source_path() {
-  return _source_path;
+  return source_path_;
 }
 
 void Document::set_source_path(const string_view source_path) {
-  _source_path = source_path;
+  source_path_ = source_path;
 }
 
 

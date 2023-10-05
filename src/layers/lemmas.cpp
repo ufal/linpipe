@@ -18,8 +18,8 @@ void Lemmas::from_json(const Json& /*json*/) {
 
 Json Lemmas::to_json() {
   return {
-    {"type", _type},
-    {"name", _name},
+    {"type", type_},
+    {"name", name_},
     {"lemmas", lemmas},
     {"token_layer", token_layer},
   };

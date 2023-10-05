@@ -12,11 +12,11 @@
 namespace linpipe::operations {
 
 vector<string>& Implementation::model_names() {
-  return _model_names;
+  return model_names_;
 }
 
 string& Implementation::type() {
-  return _type;
+  return type_;
 }
 
 } // namespace linpipe::operations

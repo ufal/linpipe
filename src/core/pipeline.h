@@ -25,7 +25,7 @@ class Pipeline {
  private:
   Pipeline();
 
-  unique_ptr<Operation> _operation;
+  unique_ptr<Operation> operation_;
 };
 
 } // namespace linpipe

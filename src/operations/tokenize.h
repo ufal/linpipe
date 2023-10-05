@@ -19,7 +19,7 @@ class Tokenize : public Operation {
   Tokenize(const string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
  private:
-  unique_ptr<Tokenizer> _tokenizer;
+  unique_ptr<Tokenizer> tokenizer_;
 };
 
 } // namespace linpipe::operations

@@ -20,10 +20,10 @@ class Load : public Operation {
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 
  private:
-  void _read_from_handle(Corpus& corpus, istream& input_file, const string source_path);
+  void read_from_handle_(Corpus& corpus, istream& input_file, const string source_path);
 
-  unique_ptr<Format> _format;
-  vector<string> _source_paths;
+  unique_ptr<Format> format_;
+  vector<string> source_paths_;
 };
 
 } // namespace linpipe::operations

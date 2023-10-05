@@ -30,10 +30,10 @@ class Document {
   void set_source_path(const string_view source_path);
 
  private:
-  vector<unique_ptr<Layer>> _layers;
-  set<string> _names;
+  vector<unique_ptr<Layer>> layers_;
+  set<string> names_;
 
-  string _source_path;
+  string source_path_;
 };
 
 // Definitions
@@ -54,13 +54,13 @@ template<> inline Layer& Document::get_layer(const string_view name) {
   */
 
   if (name.empty()) {
-    if (_layers.empty()) {
+    if (layers_.empty()) {
       throw LinpipeError{"Document::get_layer: Last layer of document requested but document has no layers."};
     }
-    return *_layers[_layers.size()-1].get();
+    return *layers_[layers_.size()-1].get();
   }
 
-  for (auto& it : _layers)
+  for (auto& it : layers_)
     if (it->name() == name)
       return *it;
 
@@ -85,7 +85,7 @@ template<typename T> T& Document::get_layer(const string_view name) {
   */
 
   if (name.empty()) {
-    for (auto it = _layers.rbegin(); it != _layers.rend(); ++it) {
+    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it) {
       T* layer = dynamic_cast<T*>(it->get());
       if (layer) {  // layer of type T found
         return *layer;
@@ -94,7 +94,7 @@ template<typename T> T& Document::get_layer(const string_view name) {
     throw LinpipeError{"Document::get_layer: Layer of requested type '", T().type(), "' was not found in document."};
   }
 
-  for (auto& it : _layers)
+  for (auto& it : layers_)
     if (it->name() == name) {
       T* layer = dynamic_cast<T*>(it.get());
       if (!layer)

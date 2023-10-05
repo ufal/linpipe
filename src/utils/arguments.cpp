@@ -17,14 +17,14 @@ void Arguments::parse_operations(vector<string>& descriptions, const string desc
 
   while (start < description.length()) {
     // At this position, operation name should be found
-    size_t op = _find_next_operation(description, start);
+    size_t op = find_next_operation_(description, start);
 
     if (op != start) {
       throw LinpipeError{"Arguments::parse_operations: Operation name expected in description at position '", description.substr(start), "'"};
     }
 
     // Find next operation
-    size_t next = _find_next_operation(description, op+2);
+    size_t next = find_next_operation_(description, op+2);
     descriptions.push_back(description.substr(op, next-op));
 
     start = next;
@@ -96,7 +96,7 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
   }
 }
 
-size_t Arguments::_find_next_operation(const string description, size_t offset) {
+size_t Arguments::find_next_operation_(const string description, size_t offset) {
 
   while (offset < description.length()) {
     size_t op = description.find(" -", offset);

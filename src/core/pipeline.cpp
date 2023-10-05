@@ -15,14 +15,14 @@ Pipeline::Pipeline(const string description) {
   if (description.empty()) {
     throw LinpipeError{"Pipeline::create: Invalid description '", description, "'"};
   }
-  _operation = Operation::create(description);
+  operation_ = Operation::create(description);
 }
 
 bool Pipeline::execute(Corpus& corpus) {
   // TODO: Initialize state
 
-  _operation->reserve_models(state);
-  _operation->execute(corpus, state);
+  operation_->reserve_models(state);
+  operation_->execute(corpus, state);
 
   // TODO: Correctly return true/false
   return true;

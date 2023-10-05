@@ -20,8 +20,8 @@ class Save : public Operation {
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 
  private:
-  unique_ptr<Format> _format;
-  vector<string> _target_paths;
+  unique_ptr<Format> format_;
+  vector<string> target_paths_;
 };
 
 } // namespace linpipe::operations

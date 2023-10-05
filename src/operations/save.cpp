@@ -24,12 +24,12 @@ Save::Save(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  _format = Format::create(args["format"]);
-  _target_paths = kwargs;
+  format_ = Format::create(args["format"]);
+  target_paths_ = kwargs;
 }
 
 void Save::execute(Corpus& corpus, PipelineState& state) {
-  vector<string> target_paths = _target_paths;
+  vector<string> target_paths = target_paths_;
 
   // If user requested custom target paths for documents in format kwargs,
   // check that the number of target paths matches the number of documents.
@@ -61,7 +61,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       // finish writing into previous handle
       if (i > 0) {
         if (target_paths[i] != target_paths[i-1]) {
-          _format->save_corpus_end(*os);
+          format_->save_corpus_end(*os);
         }
         if (!target_paths[i-1].empty()) { // close previous if not cout
           dynamic_cast<ofstream*>(os)->close();
@@ -78,15 +78,15 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
       }
 
       // start writing to new handle
-      _format->save_corpus_start(*os);
+      format_->save_corpus_start(*os);
     }
 
     // write the document contents
-    _format->save(*corpus.documents[i], *os);
+    format_->save(*corpus.documents[i], *os);
 
     // finish writing to the last handle
     if (i == corpus.documents.size() - 1) {
-      _format->save_corpus_end(*os);
+      format_->save_corpus_end(*os);
       if (!target_paths[i].empty()) { // close if not cout
         dynamic_cast<ofstream*>(os)->close();
       }

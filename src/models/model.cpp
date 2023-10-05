@@ -13,7 +13,7 @@
 namespace linpipe {
 
 const string& Model::name() {
-  return _name;
+  return name_;
 }
 
 unique_ptr<Model> Model::create(string& name, istream& input) {

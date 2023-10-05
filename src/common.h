@@ -57,11 +57,11 @@ ostream& logging_start(int level);
 // Errors
 class LinpipeError : public exception {
  public:
-  LinpipeError(const string_view text) : _text(text) {}
-  LinpipeError(initializer_list<string_view> texts) {for (auto&& text : texts) _text += text; }
-  virtual const char* what() const noexcept override { return _text.c_str(); }
+  LinpipeError(const string_view text) : text_(text) {}
+  LinpipeError(initializer_list<string_view> texts) {for (auto&& text : texts) text_ += text; }
+  virtual const char* what() const noexcept override { return text_.c_str(); }
  private:
-  string _text;
+  string text_;
 };
 
 } // namespace linpipe

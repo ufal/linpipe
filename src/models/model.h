@@ -21,8 +21,8 @@ class Model {
   static unique_ptr<Model> create(string& name, istream& input);
 
  protected:
-  Model(string name) : _name(name) {};
-  string _name;
+  Model(string name) : name_(name) {};
+  string name_;
 };
 
 } // namespace linpipe

@@ -24,10 +24,10 @@ class Implementation {
   string& type();
 
  protected:
-  Implementation(const string type, vector<string> model_names) : _type(type), _model_names(model_names) {};
+  Implementation(const string type, vector<string> model_names) : type_(type), model_names_(model_names) {};
 
-  string _type;
-  vector<string> _model_names;
+  string type_;
+  vector<string> model_names_;
 };
 
 } // namespace linpipe::operations

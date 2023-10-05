@@ -27,19 +27,19 @@ NER::NER(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "ner_toy") _ne_recognizer = make_unique<NERecognizerToy>(vector<string>{args["model"]});
+  if (args["model"] == "ner_toy") ne_recognizer_ = make_unique<NERecognizerToy>(vector<string>{args["model"]});
 
-  _model_names = _ne_recognizer->model_names();
-  _source = args["source"];
-  _target = args["target"];
+  model_names_ = ne_recognizer_->model_names();
+  source_ = args["source"];
+  target_ = args["target"];
 }
 
 void NER::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
-    auto& source = doc->get_layer<layers::Tokens>(_source);
-    auto target = make_unique<layers::Spans>(_target);
+    auto& source = doc->get_layer<layers::Tokens>(source_);
+    auto target = make_unique<layers::Spans>(target_);
 
-    _ne_recognizer->recognize(state.model_manager, source.tokens, target->spans);
+    ne_recognizer_->recognize(state.model_manager, source.tokens, target->spans);
 
     doc->add_layer(std::move(target));
   }

@@ -23,10 +23,10 @@ class Conll : public Format {
   virtual unique_ptr<Document> load(istream& input, const string source_path) override;
   virtual void save(Document& document, ostream& output) override;
  private:
-  unordered_map<string, string> _args;
-  vector<string> _types;  // layer types corresponding to columns
-  vector<string> _names;  // layer names corresponding to columns
-  vector<string> _encodings;  // span encodings
+  unordered_map<string, string> args_;
+  vector<string> types_;  // layer types corresponding to columns
+  vector<string> names_;  // layer names corresponding to columns
+  vector<string> encodings_;  // span encodings
 };
 
 } // namespace linpipe::formats

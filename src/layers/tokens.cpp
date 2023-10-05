@@ -16,8 +16,8 @@ namespace linpipe::layers {
 void Tokens::from_json(const Json& json) {
   json_assert_object("Text::from_json", json);
 
-  json_get_string("Text::from_json", json, "type", _type);
-  json_get_string("Text::from_json", json, "name", _name);
+  json_get_string("Text::from_json", json, "type", type_);
+  json_get_string("Text::from_json", json, "name", name_);
 
   json_get_string_vector("Text::from_json", json, "tokens", tokens);
 
@@ -29,8 +29,8 @@ void Tokens::from_json(const Json& json) {
 
 Json Tokens::to_json() {
   return {
-    {"type", _type},
-    {"name", _name},
+    {"type", type_},
+    {"name", name_},
     {"tokens", tokens},
     {"sentences", sentences},
   };

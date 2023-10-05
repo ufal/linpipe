@@ -48,7 +48,7 @@ unique_ptr<Operation> Operation::create(const string description) {
 }
 
 void Operation::reserve_models(PipelineState& state) {
-  for (const string& model_name : _model_names) {
+  for (const string& model_name : model_names_) {
     state.model_manager->reserve(model_name);
   }
 }

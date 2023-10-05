@@ -27,19 +27,19 @@ Tokenize::Tokenize(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "rule_based") _tokenizer = make_unique<RuleBasedTokenizer>(vector<string>{args["model"]});
+  if (args["model"] == "rule_based") tokenizer_ = make_unique<RuleBasedTokenizer>(vector<string>{args["model"]});
 
-  _model_names = _tokenizer->model_names();
-  _source = args["source"];
-  _target = args["target"];
+  model_names_ = tokenizer_->model_names();
+  source_ = args["source"];
+  target_ = args["target"];
 }
 
 void Tokenize::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
-    auto& source = doc->get_layer<layers::Text>(_source);
-    auto target = make_unique<layers::Tokens>(_target);
+    auto& source = doc->get_layer<layers::Text>(source_);
+    auto target = make_unique<layers::Tokens>(target_);
 
-    _tokenizer->tokenize(state.model_manager, source.text, target->tokens);
+    tokenizer_->tokenize(state.model_manager, source.text, target->tokens);
 
     doc->add_layer(std::move(target));
   }

@@ -16,10 +16,10 @@ namespace linpipe {
 ModelManager ModelManager::singleton;
 
 void ModelManager::reserve(const string name) {
-  auto it = _reservations.find(name);
-  if (it == _reservations.end()) {
-    _reserved_models.push_back(name);
-    _reservations.insert(pair<string, unsigned>(name, 1));
+  auto it = reservations_.find(name);
+  if (it == reservations_.end()) {
+    reserved_models_.push_back(name);
+    reservations_.insert(pair<string, unsigned>(name, 1));
   }
   else {
     it->second += 1;
@@ -32,11 +32,11 @@ void ModelManager::reserve(const string name) {
 
 Model* ModelManager::load(const string name) {
   // Return model if model already loaded
-  auto it = _models.find(name);
-  if (it != _models.end()) return it->second.get();
+  auto it = models_.find(name);
+  if (it != models_.end()) return it->second.get();
 
   // Load if capacity permits
-  if (!_capacity || _models.size() < _capacity) {
+  if (!capacity_ || models_.size() < capacity_) {
     // TODO: Search for model in paths, open the istream, have the model loaded.
     return NULL;
   }
@@ -47,8 +47,8 @@ Model* ModelManager::load(const string name) {
 }
 
 void ModelManager::release(const string name) {
-  auto it = _reservations.find(name);
-  if (it == _reservations.end()) {
+  auto it = reservations_.find(name);
+  if (it == reservations_.end()) {
     // Not sure if we should throw an exception, perhaps we should just silently continue?
     throw LinpipeError{"ModelManager::release: Model '", name, "' cannot be released because it has not been reserved."};
   }
@@ -58,14 +58,14 @@ void ModelManager::release(const string name) {
 
   // If no model reservations left, remove from reservations and unload.
   if (it->second == 0) {
-    _reservations.erase(it);
+    reservations_.erase(it);
   }
 
-  auto it2 = find(_reserved_models.begin(), _reserved_models.end(), name);
-  if (it2 != _reserved_models.end()) _reserved_models.erase(it2);
+  auto it2 = find(reserved_models_.begin(), reserved_models_.end(), name);
+  if (it2 != reserved_models_.end()) reserved_models_.erase(it2);
 
-  auto it3 = _models.find(name);
-  if (it3 != _models.end()) _models.erase(it3);
+  auto it3 = models_.find(name);
+  if (it3 != models_.end()) models_.erase(it3);
 }
 
 } // namespace linpipe
