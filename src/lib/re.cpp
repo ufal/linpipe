@@ -109,14 +109,13 @@ basic_string_view<Char> search(OnigRegexType* re, basic_string_view<Char> str, v
 }
 
 template<class Char>
-int split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_view<Char>>& parts, int max_splits) {
+size_t split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_view<Char>>& parts, size_t max_splits) {
   parts.clear();
 
   OnigRegion region;
   onig_region_init(&region);
 
-  int splits = 0;
-  size_t index = 0;
+  size_t splits = 0, index = 0;
   bool empty_match = false;
   while (index + empty_match <= str.size()) {
     int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
@@ -147,14 +146,13 @@ int split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_vi
 }
 
 template<class Char>
-int sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> replacement, basic_string<Char>& output, int max_subs) {
+size_t sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> replacement, basic_string<Char>& output, size_t max_subs) {
   output.clear();
 
   OnigRegion region;
   onig_region_init(&region);
 
-  size_t index = 0;
-  int subs = 0;
+  size_t subs = 0, index = 0;
   bool empty_match = false;
   while (index + empty_match <= str.size()) {
     int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
@@ -169,12 +167,12 @@ int sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> 
     }
 
     output.append(str.substr(index, region.beg[0] / sizeof(Char) - index));
-    for (unsigned i = 0; i < replacement.size(); i++)
+    for (size_t i = 0; i < replacement.size(); i++)
       if (replacement[i] == '\\' && i + 1 < replacement.size() && replacement[i + 1] >= '1' && replacement[i + 1] <= '9') {
-        unsigned group = 0, j = i + 1;
+        size_t group = 0, j = i + 1;
         while (j < replacement.size() && replacement[j] >= '0' && replacement[j] <= '9')
           group = group * 10 + replacement[j++] - '0';
-        if (group < (unsigned)region.num_regs) {
+        if (group < (size_t)region.num_regs) {
           output.append(str.substr(region.beg[group] / sizeof(Char), (region.end[group] - region.beg[group]) / sizeof(Char)));
           i = j - 1;
         } else {
@@ -237,11 +235,11 @@ string_view RE::search(string_view str, vector<string_view>* groups) {
   return linpipe::search<char>((OnigRegexType*)re_, str, groups);
 }
 
-int RE::split(string_view str, vector<string_view>& parts, int max_splits) {
+size_t RE::split(string_view str, vector<string_view>& parts, size_t max_splits) {
   return linpipe::split<char>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
-int RE::sub(string_view str, string_view replacement, string& output, int max_subs) {
+size_t RE::sub(string_view str, string_view replacement, string& output, size_t max_subs) {
   return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 
@@ -285,11 +283,11 @@ u32string_view RE32::search(u32string_view str, vector<u32string_view>* groups) 
   return linpipe::search<char32_t>((OnigRegexType*)re_, str, groups);
 }
 
-int RE32::split(u32string_view str, vector<u32string_view>& parts, int max_splits) {
+size_t RE32::split(u32string_view str, vector<u32string_view>& parts, size_t max_splits) {
   return linpipe::split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
-int RE32::sub(u32string_view str, u32string_view replacement, u32string& output, int max_subs) {
+size_t RE32::sub(u32string_view str, u32string_view replacement, u32string& output, size_t max_subs) {
   return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 

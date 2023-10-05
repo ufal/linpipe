@@ -26,8 +26,8 @@ class RE {
 
   string_view match(string_view str, vector<string_view>* groups=nullptr);
   string_view search(string_view str, vector<string_view>* groups=nullptr);
-  int split(string_view str, vector<string_view>& parts, int max_splits=0);
-  int sub(string_view str, string_view replacement, string& output, int max_subs=0);
+  size_t split(string_view str, vector<string_view>& parts, size_t max_splits=0);
+  size_t sub(string_view str, string_view replacement, string& output, size_t max_subs=0);
 
  private:
   void* re_;
@@ -47,8 +47,8 @@ class RE32 {
 
   u32string_view match(u32string_view str, vector<u32string_view>* groups=nullptr);
   u32string_view search(u32string_view str, vector<u32string_view>* groups=nullptr);
-  int split(u32string_view str, vector<u32string_view>& parts, int max_splits=0);
-  int sub(u32string_view str, u32string_view replacement, u32string& output, int max_subs=0);
+  size_t split(u32string_view str, vector<u32string_view>& parts, size_t max_splits=0);
+  size_t sub(u32string_view str, u32string_view replacement, u32string& output, size_t max_subs=0);
 
  private:
   void* re_;
