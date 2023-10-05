@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     pipeline.execute(corpus);
   }
   catch (LinpipeError& error) {
-    cerr << error.what() << endl;
+    LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
   }
 
   return 0;

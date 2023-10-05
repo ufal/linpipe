@@ -40,8 +40,21 @@ static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
 static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian systems are supported!");
 #endif
 
-#define runtime_failure(message) exit((cerr << message << endl, 1))
+// Logging
+enum { LOGGING_TRACE=0, LOGGING_INFO=1, LOGGING_PROGRESS=2, LOGGING_WARN=3, LOGGING_ERROR=4, LOGGING_FATAL=5, };
+extern int logging_level;
+extern bool logging_to_file;
+ostream& logging_start(int level);
 
+#define LOG(level, message) do { \
+    if constexpr (LOGGING_##level == LOGGING_PROGRESS) { \
+      if (logging_level <= LOGGING_PROGRESS && !logging_to_file) logging_start(LOGGING_PROGRESS) << message << '\r'; \
+    } else { \
+      if (logging_level <= LOGGING_##level) logging_start(LOGGING_##level) << message << endl; \
+    } \
+  } while(false)
+
+// Errors
 class LinpipeError : public exception {
  public:
   LinpipeError(const string_view text) : _text(text) {}
