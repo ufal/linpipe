@@ -28,7 +28,7 @@ unique_ptr<Format> Format::create(const string description) {
     return make_unique<formats::Conll>(description);
   }
 
-  throw LinpipeError{"Invalid value '", description, "' for the --format argument"};
+  throw LinpipeError{"Format::create: Invalid value '", description, "' for the --format argument"};
 }
 
 void Format::save_corpus_start(ostream& /*output*/) {

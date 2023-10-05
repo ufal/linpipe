@@ -19,7 +19,7 @@ const string& Model::name() {
 unique_ptr<Model> Model::create(string& name, istream& input) {
   if (name == "ner_toy") return make_unique<models::NERToy>(name, input);
 
-  throw LinpipeError{"Cannot load model of uknown name '", name, "'"};
+  throw LinpipeError{"Model::create: Cannot load model of uknown name '", name, "'"};
 }
 
 } // namespace linpipe

@@ -82,7 +82,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
       vector<string> cols;
       _string_helper.split(cols, line, "\t");
       if (cols.size() != _types.size()) {
-        throw LinpipeError{"Number of columns does not match number of columns in format description on line '", line, "'"};
+        throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
       }
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "lemmas") {

@@ -19,7 +19,7 @@ void Arguments::parse_operations(vector<string>& descriptions, const string desc
     size_t op = _find_next_operation(description, start);
 
     if (op != start) {
-      throw LinpipeError{"Operation name expected in description at position '", description.substr(start), "'"};
+      throw LinpipeError{"Arguments::parse_operations: Operation name expected in description at position '", description.substr(start), "'"};
     }
 
     // Find next operation
@@ -80,7 +80,7 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
   if (pos != string::npos) {
     format_description = description.substr(pos+1); // remove format name & opening bracket
     if (format_description.empty()) {
-      throw LinpipeError{"Closing bracket missing in format description '", description, "'"};
+      throw LinpipeError{"Arguments::parse_format: Closing bracket missing in format description '", description, "'"};
     }
     format_description.pop_back();  // remove closing bracket
   }
@@ -91,7 +91,7 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
     vector<string> pair;
     _string_helper.split(pair, token, "=");
     if (pair.size() != 2) {
-      throw LinpipeError{"Expected key-value pair separated by '=' in '", token, "' in format description '", description, "'"};
+      throw LinpipeError{"Arguments::parse_format: Expected key-value pair separated by '=' in '", token, "' in format description '", description, "'"};
     }
     args[pair[0]] = pair[1];
   }

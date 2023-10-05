@@ -25,7 +25,7 @@ unique_ptr<Operation> Operation::create(const string description) {
   // Not sure if this can actually happen, probably will be already detected
   // and thrown inside parse_operations.
   if (descriptions.size() == 0) {
-    throw LinpipeError{"No operation specified in description '", description, "'"};
+    throw LinpipeError{"Operation::create: No operation specified in description '", description, "'"};
   }
 
   if (descriptions.size() > 1) {  // Composite
