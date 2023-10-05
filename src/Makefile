@@ -22,6 +22,7 @@ all: default lib test_compile
 # Compilation flags
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
+LD_FLAGS += $(use_threads)
 
 # Collect all Makefile.include files
 LINPIPE_OBJECTS =
