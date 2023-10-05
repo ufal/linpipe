@@ -1,0 +1,15 @@
+--- st.h.ori	2023-09-29 16:42:24.377227323 +0200
++++ st.h	2023-09-29 23:15:04.106565778 +0200
+@@ -5,11 +5,7 @@
+ #ifndef ST_INCLUDED
+ #define ST_INCLUDED
+ 
+-#if SIZEOF_VOIDP == SIZEOF_LONG
+-typedef unsigned long st_data_t;
+-#elif SIZEOF_VOIDP == SIZEOF_LONG_LONG
+-typedef unsigned long long st_data_t;
+-#endif
++typedef void* st_data_t;
+ 
+ #define ST_DATA_T_DEFINED
+ 

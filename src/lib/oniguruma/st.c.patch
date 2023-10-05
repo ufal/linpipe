@@ -1,0 +1,9 @@
+--- st.c.ori	2023-09-29 16:42:24.377227323 +0200
++++ st.c	2023-09-29 23:24:54.233725779 +0200
+@@ -558,5 +558,5 @@
+ static int
+ numhash(st_data_t n)
+ {
+-  return n;
++  return (int)(size_t)n;
+ }

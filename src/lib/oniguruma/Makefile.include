@@ -1,0 +1,30 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call obj,lib/oniguruma/%): C_FLAGS := $(filter-out $(default_warnings),$(C_FLAGS))
+
+LINPIPE_OBJECTS += lib/oniguruma/ascii
+LINPIPE_OBJECTS += lib/oniguruma/onig_init
+LINPIPE_OBJECTS += lib/oniguruma/regcomp
+LINPIPE_OBJECTS += lib/oniguruma/regenc
+LINPIPE_OBJECTS += lib/oniguruma/regerror
+LINPIPE_OBJECTS += lib/oniguruma/regexec
+LINPIPE_OBJECTS += lib/oniguruma/regparse
+LINPIPE_OBJECTS += lib/oniguruma/regsyntax
+LINPIPE_OBJECTS += lib/oniguruma/regtrav
+LINPIPE_OBJECTS += lib/oniguruma/regversion
+LINPIPE_OBJECTS += lib/oniguruma/st
+LINPIPE_OBJECTS += lib/oniguruma/unicode
+LINPIPE_OBJECTS += lib/oniguruma/unicode_fold1_key
+LINPIPE_OBJECTS += lib/oniguruma/unicode_fold2_key
+LINPIPE_OBJECTS += lib/oniguruma/unicode_fold3_key
+LINPIPE_OBJECTS += lib/oniguruma/unicode_unfold_key
+LINPIPE_OBJECTS += lib/oniguruma/utf16_le
+LINPIPE_OBJECTS += lib/oniguruma/utf32_le
+LINPIPE_OBJECTS += lib/oniguruma/utf8

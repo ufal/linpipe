@@ -1,0 +1,2 @@
+#define HAVE_STDINT_H 1
+#define USE_CRNL_AS_LINE_TERMINATOR 1
