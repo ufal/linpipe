@@ -1,4 +1,4 @@
 oniguruma
 - licence: BSD
-- source: https://github.com/kkos/oniguruma/tree/master/src
+- source: https://github.com/kkos/oniguruma
 - version: 6.9.9
