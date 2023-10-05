@@ -8,6 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "utils/arguments.h"
+#include "utils/split.h"
 
 namespace linpipe {
 
@@ -85,15 +86,13 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
     format_description.pop_back();  // remove closing bracket
   }
 
-  vector<string> tokens;
-  _string_helper.split(tokens, format_description, ",");
-  for (string token : tokens) {
-    vector<string> pair;
-    _string_helper.split(pair, token, "=");
-    if (pair.size() != 2) {
+  vector<string_view> tokens;
+  split(format_description, ',', tokens);
+  for (auto& token : tokens) {
+    vector<string_view> pair;
+    if (split(token, '=', pair, 1) != 2)
       throw LinpipeError{"Arguments::parse_format: Expected key-value pair separated by '=' in '", token, "' in format description '", description, "'"};
-    }
-    args[pair[0]] = pair[1];
+    args.emplace(pair[0], pair[1]);
   }
 }
 

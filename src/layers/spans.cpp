@@ -48,15 +48,15 @@ string Spans::to_html() {
   return string();
 }
 
-void Spans::decode(const string& encoded_tag, unsigned index, const SpanEncoding encoding) {
+void Spans::decode(string_view encoded_tag, unsigned index, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
     if (encoded_tag != "O") {
-      if (encoded_tag.find("B-") == 0) {  // start new span
-        spans.push_back(pair<unsigned, unsigned>(index, index));
-        tags.push_back(encoded_tag.substr(2));
+      if (encoded_tag.compare(0, 2, "B-") == 0) {  // start new span
+        spans.emplace_back(index, index);
+        tags.emplace_back(encoded_tag.substr(2));
       }
-      if (encoded_tag.find("I-") == 0) {  // prolong last span
+      if (encoded_tag.compare(0, 2, "I-") == 0) {  // prolong last span
         spans[spans.size() - 1].second = index;
       }
     }

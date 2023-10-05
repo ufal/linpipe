@@ -33,7 +33,7 @@ class Spans : public Layer {
   virtual Json to_json() override;
   virtual string to_html() override;
 
-  void decode(const string& encoded_tag, unsigned index, const SpanEncoding encoding);
+  void decode(string_view encoded_tag, unsigned index, const SpanEncoding encoding);
   void encode(vector<string>& encoded_tags, const SpanEncoding encoding);
 
   string token_layer;

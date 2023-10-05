@@ -13,7 +13,6 @@
 #include "layers/text.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
-#include "utils/string_helper.h"
 
 namespace linpipe {
 

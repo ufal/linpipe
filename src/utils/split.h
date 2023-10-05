@@ -13,10 +13,7 @@
 
 namespace linpipe {
 
-class StringHelper {
- public:
-  void split(vector<string>& tokens, const string& str, const string& delimiter);
-  bool is_number(const string& str);
-};
+size_t split(string_view str, char delimiter, vector<string_view>& parts, size_t max_splits=0);
+size_t split(string_view str, string_view delimiter, vector<string_view>& parts, size_t max_splits=0);
 
 } // namespace linpipe

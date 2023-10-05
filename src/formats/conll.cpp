@@ -14,6 +14,7 @@
 #include "layers/tokens.h"
 #include "lib/json.h"
 #include "utils/arguments.h"
+#include "utils/split.h"
 
 namespace linpipe::formats {
 
@@ -27,18 +28,13 @@ Conll::Conll(const string description) {
     if (it == _args.end()) break; // no more columns
 
     // split column description into name and type
-    if (it->second.find(":") != string::npos) {
-      vector<string> tokens;
-      _string_helper.split(tokens, it->second, ":");
-      if (tokens.size() != 2) {
-        throw LinpipeError{"Expected name:format in description of ", to_string(i), "-th column of --format description '", description, "'"};
-      }
-      _names.push_back(tokens[0]);
-      _types.push_back(tokens[1]);
+    if (size_t index = it->second.find(':'); index != string::npos) {
+      _names.emplace_back(it->second, 0, index);
+      _types.emplace_back(it->second, index + 1);
     }
     else { // if without ':', assume the description is a type
-      _names.push_back({});
-      _types.push_back(it->second);
+      _names.emplace_back();
+      _types.emplace_back(it->second);
     }
 
     i++;
@@ -79,14 +75,13 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
       }
     }
     else { // line with cols
-      vector<string> cols;
-      _string_helper.split(cols, line, "\t");
-      if (cols.size() != _types.size()) {
+      vector<string_view> cols;
+      if (split(line, '\t', cols) != _types.size())
         throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
-      }
+
       for (size_t i = 0; i < _types.size(); i++) {
         if (_types[i] == "lemmas") {
-          document->get_layer<layers::Lemmas>(_names[i]).lemmas.push_back(cols[i]);
+          document->get_layer<layers::Lemmas>(_names[i]).lemmas.emplace_back(cols[i]);
         }
         if (_types[i] == "spans") {
           document->get_layer<layers::Spans>(_names[i]).decode(cols[i],
@@ -94,7 +89,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
                                                                linpipe::layers::SpanEncoding::create(_encodings[i]));
         }
         if (_types[i] == "tokens") {
-          document->get_layer<layers::Tokens>(_names[i]).tokens.push_back(cols[i]);
+          document->get_layer<layers::Tokens>(_names[i]).tokens.emplace_back(cols[i]);
         }
       }
       ntokens += 1;

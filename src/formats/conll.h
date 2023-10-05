@@ -13,7 +13,6 @@
 
 #include "common.h"
 #include "formats/format.h"
-#include "utils/string_helper.h"
 
 namespace linpipe::formats {
 
@@ -28,7 +27,6 @@ class Conll : public Format {
   vector<string> _types;  // layer types corresponding to columns
   vector<string> _names;  // layer names corresponding to columns
   vector<string> _encodings;  // span encodings
-  StringHelper _string_helper;
 };
 
 } // namespace linpipe::formats
