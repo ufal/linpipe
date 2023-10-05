@@ -95,6 +95,9 @@ TEST_CASE("RE32::match") {
     CHECK(RE32("\\w").match(U"\u010d") == U"\u010d");
     CHECK(RE32("\\p{Ll}").match(U"\u010d") == U"\u010d");
     CHECK(RE32("\\p{Ll}").match(U"\u010c").data() == nullptr);
+    CHECK(RE32("\xc4\x8c").match(U"\u010c").data() == U"\u010c");
+    CHECK(RE32("[\xc4\x8c\xc4\x8d]").match(U"\u010d").data() == U"\u010d");
+    CHECK(RE32(U"[\u010c\u010d]").match(U"\u010d").data() == U"\u010d");
   }
   SUBCASE("groups") {
     vector<u32string_view> groups;
