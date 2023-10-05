@@ -1,0 +1,25 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call obj,lib/fasttext/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
+$(call obj,lib/fasttext/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4244 /wd4267,)
+
+LINPIPE_OBJECTS += lib/fasttext/args
+LINPIPE_OBJECTS += lib/fasttext/autotune
+LINPIPE_OBJECTS += lib/fasttext/densematrix
+LINPIPE_OBJECTS += lib/fasttext/dictionary
+LINPIPE_OBJECTS += lib/fasttext/fasttext
+LINPIPE_OBJECTS += lib/fasttext/loss
+LINPIPE_OBJECTS += lib/fasttext/matrix
+LINPIPE_OBJECTS += lib/fasttext/meter
+LINPIPE_OBJECTS += lib/fasttext/model
+LINPIPE_OBJECTS += lib/fasttext/productquantizer
+LINPIPE_OBJECTS += lib/fasttext/quantmatrix
+LINPIPE_OBJECTS += lib/fasttext/utils
+LINPIPE_OBJECTS += lib/fasttext/vector

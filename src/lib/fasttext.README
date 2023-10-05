@@ -1,0 +1,5 @@
+fastText
+- licence: MIT
+- source: https://github.com/facebookresearch/fastText
+- version: 0.9.2
+
