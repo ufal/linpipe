@@ -7,6 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
 #include <array>
 
 #include "lib/re.h"
@@ -114,10 +115,12 @@ int split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_vi
   OnigRegion region;
   onig_region_init(&region);
 
-  int index = 0, splits = 0;
-  while (true) {
+  int splits = 0;
+  size_t index = 0;
+  bool empty_match = false;
+  while (index + empty_match <= str.size()) {
     int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                        (UChar*)(str.data() + index), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
+                        (UChar*)(str.data() + index + empty_match), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -129,14 +132,18 @@ int split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_vi
 
     parts.push_back(str.substr(index, region.beg[0] / sizeof(Char) - index));
     index = region.end[0] / sizeof(Char);
+    empty_match = region.end[0] == region.beg[0];
     splits++;
     if (max_splits > 0 && splits >= max_splits)
       break;
   }
   onig_region_free(&region, 0);
 
-  parts.push_back(str.substr(index));
-  return splits + 1;
+  if (index < str.size() || index) {
+    parts.push_back(str.substr(index));
+    splits++;
+  }
+  return splits;
 }
 
 template<class Char>
@@ -146,10 +153,12 @@ int sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> 
   OnigRegion region;
   onig_region_init(&region);
 
-  int index = 0, subs = 0;
-  while (true) {
+  size_t index = 0;
+  int subs = 0;
+  bool empty_match = false;
+  while (index + empty_match <= str.size()) {
     int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                        (UChar*)(str.data() + index), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
+                        (UChar*)(str.data() + index + empty_match), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -178,6 +187,7 @@ int sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> 
         output.push_back(replacement[i]);
       }
     index = region.end[0] / sizeof(Char);
+    empty_match = region.end[0] == region.beg[0];
     subs++;
     if (max_subs > 0 && subs >= max_subs)
       break;

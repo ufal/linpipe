@@ -46,6 +46,10 @@ TEST_CASE("RE::search") {
 
 TEST_CASE("RE::split") {
   vector<string_view> parts;
+  CHECK(RE(",").split("", parts) == 0); CHECK(parts.empty());
+
+  CHECK(RE(",").split("a", parts) == 1); CHECK(parts == vector{"a"sv});
+
   CHECK(RE(",").split("a,b,c", parts) == 3); CHECK(parts == vector{"a"sv, "b"sv, "c"sv});
 
   CHECK(RE(",").split("a,b,c", parts, 1) == 2); CHECK(parts == vector{"a"sv, "b,c"sv});
@@ -55,6 +59,11 @@ TEST_CASE("RE::split") {
   CHECK(RE("\\d+").split("a42b1c1234", parts) == 4); CHECK(parts == vector{"a"sv, "b"sv, "c"sv, ""sv});
 
   CHECK(RE("(?<=[ab])\\d(?=b)").split("a1a2a3b4b6", parts) == 3); CHECK(parts == vector{"a1a2a"sv, "b"sv, "b6"sv});
+
+  CHECK(RE("(?=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == vector{"a"sv, "1b"sv, "1c"sv, "1d"sv});
+  CHECK(RE("(?=\\d)").split("1b1c1d", parts) == 4); CHECK(parts == vector{""sv, "1b"sv, "1c"sv, "1d"sv});
+  CHECK(RE("(?<=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == vector{"a1"sv, "b1"sv, "c1"sv, "d"sv});
+  CHECK(RE("(?<=\\d)").split("a1b1c1", parts) == 4); CHECK(parts == vector{"a1"sv, "b1"sv, "c1"sv, ""sv});
 }
 
 TEST_CASE("RE::sub") {
@@ -68,6 +77,8 @@ TEST_CASE("RE::sub") {
   CHECK(RE("(\\d)").sub("a1b2c3d", "\\1\\1", result) == 3); CHECK(result == "a11b22c33d");
   CHECK(RE("(\\d)").sub("a1b2c3d", "\\1\\2", result) == 3); CHECK(result == "a1\\2b2\\2c3\\2d");
   CHECK(RE("(\\d)").sub("a1b2c3d", "\\1\\\\", result) == 3); CHECK(result == "a1\\b2\\c3\\d");
+
+  CHECK(RE("").sub("bcd", "_", result) == 4); CHECK(result == "_b_c_d_");
 }
 
 TEST_CASE("RE32::RE32") {
@@ -106,6 +117,10 @@ TEST_CASE("RE32::search") {
 
 TEST_CASE("RE32::split") {
   vector<u32string_view> parts;
+  CHECK(RE32(",").split(U"", parts) == 0); CHECK(parts.empty());
+
+  CHECK(RE32(",").split(U"a", parts) == 1); CHECK(parts == vector{U"a"sv});
+
   CHECK(RE32(",").split(U"a,b,c", parts) == 3); CHECK(parts == vector{U"a"sv, U"b"sv, U"c"sv});
 
   CHECK(RE32(",").split(U"a,b,c", parts, 1) == 2); CHECK(parts == vector{U"a"sv, U"b,c"sv});
@@ -115,6 +130,8 @@ TEST_CASE("RE32::split") {
   CHECK(RE32("\\d+").split(U"a42b1c1234", parts) == 4); CHECK(parts == vector{U"a"sv, U"b"sv, U"c"sv, U""sv});
 
   CHECK(RE32("(?<=[ab])\\d(?=b)").split(U"a1a2a3b4b6", parts) == 3); CHECK(parts == vector{U"a1a2a"sv, U"b"sv, U"b6"sv});
+
+  CHECK(RE32("(?=\\d)").split(U"a1b1c1d", parts) == 4); CHECK(parts == vector{U"a"sv, U"1b"sv, U"1c"sv, U"1d"sv});
 }
 
 TEST_CASE("RE32::sub") {
@@ -128,6 +145,8 @@ TEST_CASE("RE32::sub") {
   CHECK(RE32("(\\d)").sub(U"a1b2c3d", U"\\1\\1", result) == 3); CHECK(result == U"a11b22c33d");
   CHECK(RE32("(\\d)").sub(U"a1b2c3d", U"\\1\\2", result) == 3); CHECK(result == U"a1\\2b2\\2c3\\2d");
   CHECK(RE32("(\\d)").sub(U"a1b2c3d", U"\\1\\\\", result) == 3); CHECK(result == U"a1\\b2\\c3\\d");
+
+  CHECK(RE32("").sub(U"bcd", U"_", result) == 4); CHECK(result == U"_b_c_d_");
 }
 
 } // namespace linpipe
