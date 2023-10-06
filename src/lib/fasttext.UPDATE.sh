@@ -14,8 +14,7 @@ set -e
 mkdir -p fasttext
 rm -f fasttext/*.h fasttext/*.cpp
 
-git clone https://github.com/facebookresearch/fastText fasttext_git
-git -C fasttext_git checkout v0.9.2
+git clone --depth=1 --branch=v0.9.2 https://github.com/facebookresearch/fastText fasttext_git
 
 for f in fasttext_git/src/*; do
   case "$f" in
