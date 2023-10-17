@@ -49,4 +49,4 @@ endif
 # Cleaning
 .PHONY: clean
 clean:
-	@$(call rm,.build $(call all_exe,linpipe linpipe_test $(EXECUTABLES)) $(call all_lib,liblinpipe))
+	@$(call rm,.build $(call all_exe,linpipe linpipe_test) $(call all_lib,liblinpipe))
