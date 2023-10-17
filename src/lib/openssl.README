@@ -1,0 +1,4 @@
+openssl
+- licence: Apache Licence 2.0
+- source: https://github.com/openssl/openssl
+- version: 3.1.3
