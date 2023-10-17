@@ -291,5 +291,4 @@ size_t RE32::sub(u32string_view str, u32string_view replacement, u32string& outp
   return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 
-
 } // namespace linpipe
