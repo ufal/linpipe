@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 $(call obj,lib/oniguruma/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
-$(call obj,lib/oniguruma/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4028,)
+$(call obj,lib/oniguruma/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4028)
 
 LINPIPE_OBJECTS += lib/oniguruma/ascii
 LINPIPE_OBJECTS += lib/oniguruma/onig_init
