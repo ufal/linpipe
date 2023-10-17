@@ -9,5 +9,5 @@
 
 LINPIPE_OBJECTS += lib/re
 
-LINPIPE_TESTS += lib/re_test
 LINPIPE_TESTS += lib/json_test
+LINPIPE_TESTS += lib/re_test
