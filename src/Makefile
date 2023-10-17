@@ -30,7 +30,7 @@ LINPIPE_OBJECTS =
 LINPIPE_TESTS =
 include $(wildcard Makefile.include */Makefile.include */*/Makefile.include)
 
-# Main rules
+# Main targets
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
 $(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_TESTS) utils/win_wmain_utf8)
