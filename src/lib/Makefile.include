@@ -10,5 +10,6 @@
 LINPIPE_OBJECTS += lib/httplib_bundled_certs
 LINPIPE_OBJECTS += lib/re
 
+LINPIPE_TESTS += lib/httplib_test
 LINPIPE_TESTS += lib/json_test
 LINPIPE_TESTS += lib/re_test
