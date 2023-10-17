@@ -32,6 +32,10 @@ using namespace std;
 // Configuration of JSON for Modern C++
 using Json = nlohmann::json;
 
+// Configuration for cpp-httplib
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN
+
 // Assert that int is at least 4B
 static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
 

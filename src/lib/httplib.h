@@ -257,14 +257,16 @@ using socket_t = int;
 #endif // TARGET_OS_OSX
 #endif // _WIN32
 
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/ssl.h>
-#include <openssl/x509v3.h>
+#include "lib/openssl/include/openssl/err.h"
+#include "lib/openssl/include/openssl/evp.h"
+#include "lib/openssl/include/openssl/ssl.h"
+#include "lib/openssl/include/openssl/x509v3.h"
 
 #if defined(_WIN32) && defined(OPENSSL_USE_APPLINK)
-#include <openssl/applink.c>
+#include "lib/openssl/include/openssl/applink.c"
 #endif
+
+#include "lib/httplib_bundled_certs.h"
 
 #include <iostream>
 #include <sstream>
@@ -289,7 +291,7 @@ using socket_t = int;
 /*
  * Declaration
  */
-namespace httplib {
+namespace linpipe::httplib {
 
 namespace detail {
 
@@ -8529,6 +8531,7 @@ inline bool SSLClient::load_certs() {
       loaded = detail::load_system_certs_on_macos(SSL_CTX_get_cert_store(ctx_));
 #endif // TARGET_OS_OSX
 #endif // _WIN32
+      if (!loaded) loaded = detail::load_bundled_certs(SSL_CTX_get_cert_store(ctx_));
       if (!loaded) { SSL_CTX_set_default_verify_paths(ctx_); }
     }
   });
@@ -9253,7 +9256,7 @@ inline SSL_CTX *Client::ssl_context() const {
 
 // ----------------------------------------------------------------------------
 
-} // namespace httplib
+} // namespace linpipe::httplib
 
 #if defined(_WIN32) && defined(CPPHTTPLIB_USE_POLL)
 #undef poll
