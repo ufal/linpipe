@@ -17,6 +17,8 @@ namespace linpipe {
 int logging_level = LOGGING_INFO;
 bool logging_to_file = false;
 
+bool logging_sources = false;
+
 namespace {
 
 static bool logging_last_progress = false;
@@ -40,6 +42,15 @@ LoggingInit LoggingInit::singleton;
 }
 
 void logging_set_level(string_view level) {
+  logging_sources = false;
+  if (level.size() >= 2 && (level.compare(level.size() - 2, 2, "+s") == 0 || level.compare(level.size() - 2, 2, "+S") == 0)) {
+    logging_sources = true;
+    level.remove_suffix(2);
+  } else if (level.size() >= 8 && (level.compare(level.size() - 8, 8, "+sources") == 0 || level.compare(level.size() - 8, 8, "+SOURCES") == 0)) {
+    logging_sources = true;
+    level.remove_suffix(8);
+  }
+
   if (level == "t" || level == "T" || level == "trace" || level == "TRACE")
     logging_level = LOGGING_TRACE;
   else if (level == "i" || level == "I" || level == "info" || level == "INFO")
@@ -64,7 +75,7 @@ void logging_set_file(filesystem::path path) {
   logging_to_file = true;
 }
 
-ostream& logging_start(int level) {
+ostream& logging_start(int level, const char* source, int line) {
   ostream& logger = logging_to_file ? logging_file : cerr;
 
   if (level != LOGGING_PROGRESS && logging_last_progress) logger.put('\n');
@@ -75,6 +86,9 @@ ostream& logging_start(int level) {
   char date_time[6 + 1 + 6 + 1];
   strftime(date_time, size(date_time), "%y%m%d-%H%M%S", localtime(&now));
   logger.write(date_time, sizeof(date_time) - 1);
+
+  if (logging_sources)
+    logger << ' ' << source << ':' << line;
 
   logger.put(' ');
   logger.put("TIPWEF"[level]);

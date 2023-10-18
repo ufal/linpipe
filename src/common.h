@@ -48,13 +48,13 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 enum { LOGGING_TRACE=0, LOGGING_INFO=1, LOGGING_PROGRESS=2, LOGGING_WARN=3, LOGGING_ERROR=4, LOGGING_FATAL=5, };
 extern int logging_level;
 extern bool logging_to_file;
-ostream& logging_start(int level);
+ostream& logging_start(int level, const char* file, int line);
 
 #define LOG(level, message) do { \
     if constexpr (LOGGING_##level == LOGGING_PROGRESS) { \
-      if (logging_level <= LOGGING_PROGRESS && !logging_to_file) logging_start(LOGGING_PROGRESS) << message << '\r'; \
+      if (logging_level <= LOGGING_PROGRESS && !logging_to_file) logging_start(LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r'; \
     } else { \
-      if (logging_level <= LOGGING_##level) logging_start(LOGGING_##level) << message << endl; \
+      if (logging_level <= LOGGING_##level) logging_start(LOGGING_##level, __FILE__, __LINE__) << message << endl; \
     } \
   } while(false)
 
