@@ -64,7 +64,7 @@ grep '^#' $LIB/../Makefile.include.sh
 cat <<"EOF"
 
 $(call obj,lib/openssl/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
-$(call obj,lib/openssl/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4090 /wd4133,)
+$(call obj,lib/openssl/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4090 /wd4133)
 
 EOF
 grep -o '\(crypto\|providers\|ssl\)/[^[:space:]]*[.]c' make.log | sort -u | sed 's@^@LINPIPE_OBJECTS += lib/openssl/@; s@[.]c$@@'
