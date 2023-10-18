@@ -51,10 +51,12 @@ extern bool logging_to_file;
 ostream& logging_start(int level, const char* file, int line);
 
 #define LOG(level, message) do { \
-    if constexpr (LOGGING_##level == LOGGING_PROGRESS) { \
-      if (logging_level <= LOGGING_PROGRESS && !logging_to_file) logging_start(LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r'; \
+    if constexpr (linpipe::LOGGING_##level == linpipe::LOGGING_PROGRESS) { \
+      if (linpipe::logging_level <= linpipe::LOGGING_PROGRESS && !linpipe::logging_to_file) \
+        linpipe::logging_start(linpipe::LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r'; \
     } else { \
-      if (logging_level <= LOGGING_##level) logging_start(LOGGING_##level, __FILE__, __LINE__) << message << endl; \
+      if (linpipe::logging_level <= linpipe::LOGGING_##level) \
+        linpipe::logging_start(linpipe::LOGGING_##level, __FILE__, __LINE__) << message << std::endl; \
     } \
   } while(false)
 
