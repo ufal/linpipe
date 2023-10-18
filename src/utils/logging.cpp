@@ -61,7 +61,7 @@ void logging_set_level(string_view level) {
     logging_level = LOGGING_WARN;
   else if (level == "e" || level == "E" || level == "error" || level == "ERROR")
     logging_level = LOGGING_ERROR;
-  else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL" || level == "none" || level == "NONE")
+  else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL")
     logging_level = LOGGING_FATAL;
   else
     throw LinpipeError{"logging_set_level: Cannot parse logging level '", level, "'"};
