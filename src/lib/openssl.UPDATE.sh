@@ -72,7 +72,7 @@ grep -o '\(crypto\|providers\|ssl\)/[^[:space:]]*[.]c' make.log | sort -u | sed 
 
 )
 
-patch openssl/include/openssl/configuration.h <<EOF
+patch openssl/include/openssl/configuration.h <<"EOF"
 --- configuration.h.ori	2023-10-13 13:15:31.966861248 +0200
 +++ configuration.h	2023-10-13 13:21:50.999608323 +0200
 @@ -196,11 +196,23 @@
@@ -106,7 +106,7 @@ patch openssl/include/openssl/configuration.h <<EOF
  # define RC4_INT unsigned int
 EOF
 
-patch openssl/include/crypto/bn_conf.h <<EOF
+patch openssl/include/crypto/bn_conf.h <<"EOF"
 --- bn_conf.h.ori	2023-10-13 13:22:11.359860627 +0200
 +++ bn_conf.h	2023-10-13 13:23:19.164699450 +0200
 @@ -21,9 +21,6 @@

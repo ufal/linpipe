@@ -15,7 +15,7 @@ git clone --depth=1 --branch=v0.14.1 https://github.com/yhirose/cpp-httplib cpp-
 
 sed 's/namespace httplib/namespace linpipe::httplib/' cpp-httplib/httplib.h >httplib.h
 
-patch httplib.h <<EOF
+patch httplib.h <<"EOF"
 --- httplib.h.ori	2023-10-17 21:42:28.410369628 +0200
 +++ httplib.h	2023-10-17 21:42:28.422369757 +0200
 @@ -257,15 +257,17 @@
