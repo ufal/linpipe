@@ -1,0 +1,4 @@
+sentencepiece
+- licence: Apache Licence 2.0
+- source: https://github.com/google/sentencepiece
+- version: 0.1.99

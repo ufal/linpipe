@@ -1,0 +1,51 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call obj,lib/sentencepiece/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
+$(call obj,lib/sentencepiece/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4244)
+
+LINPIPE_OBJECTS += lib/sentencepiece/bpe_model
+LINPIPE_OBJECTS += lib/sentencepiece/builtin_pb/sentencepiece.pb
+LINPIPE_OBJECTS += lib/sentencepiece/builtin_pb/sentencepiece_model.pb
+LINPIPE_OBJECTS += lib/sentencepiece/char_model
+LINPIPE_OBJECTS += lib/sentencepiece/error
+LINPIPE_OBJECTS += lib/sentencepiece/filesystem
+LINPIPE_OBJECTS += lib/sentencepiece/model_factory
+LINPIPE_OBJECTS += lib/sentencepiece/model_interface
+LINPIPE_OBJECTS += lib/sentencepiece/normalizer
+LINPIPE_OBJECTS += lib/sentencepiece/sentencepiece_processor
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/arena
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/arenastring
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/bytestream
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/coded_stream
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/common
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/extension_set
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/generated_enum_util
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/generated_message_table_driven_lite
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/generated_message_util
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/implicit_weak_message
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/int128
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/io_win32
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/message_lite
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/parse_context
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/repeated_field
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/status
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/statusor
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/stringpiece
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/stringprintf
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/structurally_valid
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/strutil
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/time
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/wire_format_lite
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/zero_copy_stream
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/zero_copy_stream_impl
+LINPIPE_OBJECTS += lib/sentencepiece/third_party/protobuf-lite/zero_copy_stream_impl_lite
+LINPIPE_OBJECTS += lib/sentencepiece/unigram_model
+LINPIPE_OBJECTS += lib/sentencepiece/util
+LINPIPE_OBJECTS += lib/sentencepiece/word_model
