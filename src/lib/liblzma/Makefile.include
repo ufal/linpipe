@@ -1,0 +1,68 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call obj,lib/liblzma/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
+
+LINPIPE_OBJECTS += lib/liblzma/check/check
+LINPIPE_OBJECTS += lib/liblzma/check/crc32_fast
+LINPIPE_OBJECTS += lib/liblzma/check/crc32_table
+LINPIPE_OBJECTS += lib/liblzma/check/crc64_fast
+LINPIPE_OBJECTS += lib/liblzma/check/crc64_table
+LINPIPE_OBJECTS += lib/liblzma/check/sha256
+LINPIPE_OBJECTS += lib/liblzma/common/block_buffer_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_buffer_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_header_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_header_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/block_util
+LINPIPE_OBJECTS += lib/liblzma/common/common
+LINPIPE_OBJECTS += lib/liblzma/common/easy_buffer_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/easy_decoder_memusage
+LINPIPE_OBJECTS += lib/liblzma/common/easy_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/easy_encoder_memusage
+LINPIPE_OBJECTS += lib/liblzma/common/easy_preset
+LINPIPE_OBJECTS += lib/liblzma/common/file_info
+LINPIPE_OBJECTS += lib/liblzma/common/filter_buffer_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/filter_buffer_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/filter_common
+LINPIPE_OBJECTS += lib/liblzma/common/filter_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/filter_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/filter_flags_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/filter_flags_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/index
+LINPIPE_OBJECTS += lib/liblzma/common/index_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/index_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/index_hash
+LINPIPE_OBJECTS += lib/liblzma/common/stream_buffer_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/stream_buffer_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/stream_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/stream_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/stream_flags_common
+LINPIPE_OBJECTS += lib/liblzma/common/stream_flags_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/stream_flags_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/string_conversion
+LINPIPE_OBJECTS += lib/liblzma/common/vli_decoder
+LINPIPE_OBJECTS += lib/liblzma/common/vli_encoder
+LINPIPE_OBJECTS += lib/liblzma/common/vli_size
+LINPIPE_OBJECTS += lib/liblzma/delta/delta_common
+LINPIPE_OBJECTS += lib/liblzma/delta/delta_decoder
+LINPIPE_OBJECTS += lib/liblzma/delta/delta_encoder
+LINPIPE_OBJECTS += lib/liblzma/lz/lz_decoder
+LINPIPE_OBJECTS += lib/liblzma/lz/lz_encoder
+LINPIPE_OBJECTS += lib/liblzma/lz/lz_encoder_mf
+LINPIPE_OBJECTS += lib/liblzma/lzma/fastpos_table
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma2_decoder
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma2_encoder
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma_decoder
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma_encoder
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma_encoder_optimum_fast
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma_encoder_optimum_normal
+LINPIPE_OBJECTS += lib/liblzma/lzma/lzma_encoder_presets
+LINPIPE_OBJECTS += lib/liblzma/rangecoder/price_table
