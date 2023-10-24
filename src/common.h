@@ -32,7 +32,7 @@ using namespace std;
 // Configuration of JSON for Modern C++
 using Json = nlohmann::json;
 
-// Configuration for cpp-httplib
+// Configuration of cpp-httplib
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #define CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN
 
