@@ -13,7 +13,7 @@ set -e
 
 rm -rf liblzma/
 
-git clone --depth=1 --branch=v5.4.4 https://github.com/tukaani-project/xz liblzma_git
+git clone --depth=1 --branch=v5.6.2 https://github.com/tukaani-project/xz liblzma_git
 
 cat >liblzma_git/src/common/config.h <<"EOF"
 #define HAVE_CHECK_CRC32 1

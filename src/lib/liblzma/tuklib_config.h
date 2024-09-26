@@ -1,6 +1,8 @@
 #ifndef HAVE_CONFIG_H
 #define HAVE_CONFIG_H
 #endif
+// SPDX-License-Identifier: 0BSD
+
 // If config.h isn't available, assume that the headers required by
 // tuklib_common.h are available. This is required by crc32_tablegen.c.
 #ifdef HAVE_CONFIG_H
