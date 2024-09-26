@@ -8,7 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 $(call obj,lib/openssl/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
-$(call obj,lib/openssl/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4090 /wd4133)
+$(call obj,lib/openssl/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),$(call define_macro,WIN32_LEAN_AND_MEAN) /wd4090 /wd4133)
 
 LINPIPE_OBJECTS += lib/openssl/crypto/aes/aes_cbc
 LINPIPE_OBJECTS += lib/openssl/crypto/aes/aes_cfb
