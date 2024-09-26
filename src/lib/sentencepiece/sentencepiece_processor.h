@@ -134,6 +134,7 @@ class NBestSentencePieceText;
 class ModelInterface;
 class SentencePieceText;
 class ModelProto;
+class NormalizerSpec;
 
 namespace normalizer {
 class Normalizer;
@@ -431,19 +432,19 @@ class SentencePieceProcessor {
 #define DEFINE_SPP_DIRECT_FUNC_IMPL(FuncName, OutType, ...) \
   OutType output;                                           \
   const auto status = FuncName(__VA_ARGS__, &output);       \
-  SPP_SWIG_CHECK_AND_THROW;				    \
+  SPP_SWIG_CHECK_AND_THROW;                                 \
   return output;
 
 #define DEFINE_SPP_SERIALIZED_PROTO_IMPL(FuncName, OutType, ...)     \
   OutType output;                                                    \
   const auto status = FuncName(__VA_ARGS__, output.mutable_proto()); \
-  SPP_SWIG_CHECK_AND_THROW;					     \
+  SPP_SWIG_CHECK_AND_THROW;                                          \
   return output.SerializeAsString();
 
 #define DEFINE_SPP_IMMUTABLE_PROTO_IMPL(FuncName, OutType, ...)      \
   OutType output;                                                    \
   const auto status = FuncName(__VA_ARGS__, output.mutable_proto()); \
-  SPP_SWIG_CHECK_AND_THROW;					     \
+  SPP_SWIG_CHECK_AND_THROW;                                          \
   return output;
 
   //////////////////////////////////////////////////////////////
@@ -615,6 +616,21 @@ class SentencePieceProcessor {
 #undef DEFINE_SPP_IMMUTABLE_PROTO_IMPL
 
   //////////////////////////////////////////////////////////////
+  // Normalization methods.
+
+  // Normalize `input`.
+  virtual util::Status Normalize(absl::string_view input,
+                                 std::string *normalized) const;
+
+  // Normalize `input`. Stores the utf8-byte offset from
+  // the normalized string to the original input.
+  virtual util::Status Normalize(absl::string_view input,
+                                 std::string *normalized,
+                                 std::vector<size_t> *norm_to_orig) const;
+
+  virtual std::string Normalize(absl::string_view input) const;
+
+  //////////////////////////////////////////////////////////////
   // Vocabulary management methods.
   //
   // Returns the size of sentence pieces, which is the same as
@@ -677,6 +693,11 @@ class SentencePieceProcessor {
   // Useful to save the state of this instance via Python's pickle object.
   util::bytes serialized_model_proto() const;
 
+  // Returns mutable normalizer_spec.
+  // Updating the intenral normalization during the encoding/decoding are not
+  // recommended and may result in unexpected behavior. Use at your own risk.
+  NormalizerSpec *mutable_normalizer_spec() const;
+
  private:
   enum ExtraOption { REVERSE, BOS, EOS, UNK_PIECE };
 
@@ -708,6 +729,10 @@ class SentencePieceProcessor {
 // as this seed is reserved for initializing from
 // std::random_device.
 void SetRandomGeneratorSeed(unsigned int seed);
+
+// Set the global log level. The default loglevel is 0.
+// The log is emitted only when min_log_level >= output_log_level.
+void SetMinLogLevel(int v);
 
 // IO related functions to absorb model formats.
 namespace io {

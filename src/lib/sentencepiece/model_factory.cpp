@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.!
 
+#include "lib/sentencepiece/model_factory.h"
+
 #include "lib/sentencepiece/bpe_model.h"
 #include "lib/sentencepiece/char_model.h"
-#include "lib/sentencepiece/model_factory.h"
-#include "lib/sentencepiece/third_party/absl/memory/memory.h"
 #include "lib/sentencepiece/unigram_model.h"
 #include "lib/sentencepiece/word_model.h"
 
@@ -28,16 +28,16 @@ std::unique_ptr<ModelInterface> ModelFactory::Create(
 
   switch (trainer_spec.model_type()) {
     case TrainerSpec::UNIGRAM:
-      return linpipe::sentencepiece::absl::make_unique<unigram::Model>(model_proto);
+      return std::make_unique<unigram::Model>(model_proto);
       break;
     case TrainerSpec::BPE:
-      return linpipe::sentencepiece::absl::make_unique<bpe::Model>(model_proto);
+      return std::make_unique<bpe::Model>(model_proto);
       break;
     case TrainerSpec::WORD:
-      return linpipe::sentencepiece::absl::make_unique<word::Model>(model_proto);
+      return std::make_unique<word::Model>(model_proto);
       break;
     case TrainerSpec::CHAR:
-      return linpipe::sentencepiece::absl::make_unique<character::Model>(model_proto);
+      return std::make_unique<character::Model>(model_proto);
       break;
     default:
       LOG(ERROR, "Unknown model_type: " << trainer_spec.model_type());
@@ -45,6 +45,6 @@ std::unique_ptr<ModelInterface> ModelFactory::Create(
       break;
   }
 
-  return linpipe::sentencepiece::absl::make_unique<unigram::Model>(model_proto);
+  return std::make_unique<unigram::Model>(model_proto);
 }
 }  // namespace sentencepiece

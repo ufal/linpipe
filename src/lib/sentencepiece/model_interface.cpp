@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.!
 
+#include "lib/sentencepiece/model_interface.h"
+
 #include <algorithm>
 
-#include "lib/sentencepiece/model_interface.h"
 #include "lib/sentencepiece/builtin_pb/sentencepiece_model.pb.h"
-#include "lib/sentencepiece/third_party/absl/memory/memory.h"
 #include "lib/sentencepiece/third_party/absl/strings/str_format.h"
 #include "lib/sentencepiece/util.h"
 
@@ -67,6 +67,23 @@ void ModelInterface::InitializePieces() {
 
   std::set<absl::string_view> user_defined_symbols;
   std::vector<bool> byte_found(256, false);
+
+  int pieces_size = 0;
+  int reserved_id_map_size = 0;
+  for (int i = 0; i < model_proto_->pieces_size(); ++i) {
+    const auto &sp = model_proto_->pieces(i);
+    const bool is_normal_piece =
+        (sp.type() == ModelProto::SentencePiece::NORMAL ||
+         sp.type() == ModelProto::SentencePiece::USER_DEFINED ||
+         sp.type() == ModelProto::SentencePiece::UNUSED);
+    if (is_normal_piece) {
+      ++pieces_size;
+    } else {
+      ++reserved_id_map_size;
+    }
+  }
+  pieces_.reserve(pieces_size);
+  reserved_id_map_.reserve(reserved_id_map_size);
 
   for (int i = 0; i < model_proto_->pieces_size(); ++i) {
     const auto &sp = model_proto_->pieces(i);
@@ -130,7 +147,7 @@ void ModelInterface::InitializePieces() {
     }
   }
 
-  matcher_ = linpipe::sentencepiece::absl::make_unique<normalizer::PrefixMatcher>(user_defined_symbols);
+  matcher_ = std::make_unique<normalizer::PrefixMatcher>(user_defined_symbols);
 }
 
 std::vector<absl::string_view> SplitIntoWords(absl::string_view text,

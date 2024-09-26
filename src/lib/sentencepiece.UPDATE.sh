@@ -15,7 +15,7 @@ set -e
 
 rm -rf sentencepiece/
 
-git clone --depth=1 --branch=v0.1.99 https://github.com/google/sentencepiece sentencepiece_git
+git clone --depth=1 --branch=v0.2.0 https://github.com/google/sentencepiece sentencepiece_git
 mkdir sentencepiece_git/build
 (cd sentencepiece_git/build && cmake ..)
 
@@ -93,8 +93,8 @@ rm -rf sentencepiece/init.h sentencepiece/third_party/absl/flags
 
 # Changes to several files to use our logging system
 patch sentencepiece/common.h <<"EOF"
---- common.h.ori	2023-10-18 11:01:04.451560086 +0200
-+++ common.h	2023-10-18 11:01:28.731720889 +0200
+--- sentencepiece/common.h.orig	2024-09-27 00:11:55.242467168 +0200
++++ sentencepiece/common.h	2024-09-27 00:11:55.242467168 +0200
 @@ -25,6 +25,7 @@
  #include <utility>
  #include <vector>
@@ -103,7 +103,7 @@ patch sentencepiece/common.h <<"EOF"
  #include "lib/sentencepiece/config.h"
  #include "lib/sentencepiece/third_party/absl/strings/string_view.h"
  
-@@ -138,23 +139,8 @@
+@@ -128,23 +129,8 @@
  }  // namespace logging
  }  // namespace sentencepiece
  

@@ -54,12 +54,6 @@ typedef uint64_t uint64;
 
 static constexpr uint32 kUnicodeError = 0xFFFD;
 
-#if defined(OS_WIN) && defined(UNICODE) && defined(_UNICODE)
-#define WPATH(path) (::linpipe::sentencepiece::win32::Utf8ToWide(path).c_str())
-#else
-#define WPATH(path) (path)
-#endif
-
 template <typename T, size_t N>
 char (&ArraySizeHelper(T (&array)[N]))[N];
 
@@ -80,16 +74,12 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 #endif
 #endif
 
-#ifdef IS_BIG_ENDIAN
-inline uint32 Swap32(uint32 x) { return __builtin_bswap32(x); }
-#endif
-
 namespace linpipe::sentencepiece {
-#ifdef OS_WIN
-namespace win32 {
-std::wstring Utf8ToWide(const linpipe::sentencepiece::absl::string_view input);
-}  // namespace win32
-#endif
+namespace util {
+#ifndef OS_WIN
+inline uint32 Swap32(uint32 x) { return __builtin_bswap32(x); }
+#endif  // OS_WIN
+}  // namespace util
 
 namespace error {
 

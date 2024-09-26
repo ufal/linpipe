@@ -12,16 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.!
 
-#include <iostream>
-
 #include "lib/sentencepiece/filesystem.h"
-#include "lib/sentencepiece/third_party/absl/memory/memory.h"
+
+#include <fstream>
+#include <iostream>
+#include <memory>
+
 #include "lib/sentencepiece/util.h"
 
 #if defined(OS_WIN) && defined(UNICODE) && defined(_UNICODE)
-#define WPATH(path) (::linpipe::sentencepiece::win32::Utf8ToWide(path).c_str())
+#define WPATH(path) (::linpipe::sentencepiece::util::Utf8ToWide(path).c_str())
 #else
-#define WPATH(path) (path)
+#define WPATH(path) (path.data())
 #endif
 
 namespace linpipe::sentencepiece {
@@ -32,7 +34,7 @@ class PosixReadableFile : public ReadableFile {
   PosixReadableFile(absl::string_view filename, bool is_binary = false)
       : is_(filename.empty()
                 ? &std::cin
-                : new std::ifstream(WPATH(filename.data()),
+                : new std::ifstream(WPATH(filename),
                                     is_binary ? std::ios::binary | std::ios::in
                                               : std::ios::in)) {
     if (!*is_)
@@ -70,7 +72,7 @@ class PosixWritableFile : public WritableFile {
   PosixWritableFile(absl::string_view filename, bool is_binary = false)
       : os_(filename.empty()
                 ? &std::cout
-                : new std::ofstream(WPATH(filename.data()),
+                : new std::ofstream(WPATH(filename),
                                     is_binary ? std::ios::binary | std::ios::out
                                               : std::ios::out)) {
     if (!*os_)
@@ -102,12 +104,12 @@ using DefaultWritableFile = PosixWritableFile;
 
 std::unique_ptr<ReadableFile> NewReadableFile(absl::string_view filename,
                                               bool is_binary) {
-  return linpipe::sentencepiece::absl::make_unique<DefaultReadableFile>(filename, is_binary);
+  return std::make_unique<DefaultReadableFile>(filename, is_binary);
 }
 
 std::unique_ptr<WritableFile> NewWritableFile(absl::string_view filename,
                                               bool is_binary) {
-  return linpipe::sentencepiece::absl::make_unique<DefaultWritableFile>(filename, is_binary);
+  return std::make_unique<DefaultWritableFile>(filename, is_binary);
 }
 
 }  // namespace filesystem
