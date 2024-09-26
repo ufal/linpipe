@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2023 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2024 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -20,16 +20,8 @@
 #include "lib/openssl/include/crypto/asn1.h"
 #include "lib/openssl/crypto/objects/obj_local.h"
 
-/* obj_dat.h is generated from objects.h by obj_dat.pl */
+/* obj_dat.h is generated from objects.txt and obj_mac.{num,h} by obj_dat.pl */
 #include "lib/openssl/crypto/objects/obj_dat.h"
-
-/*
- * If we don't have suitable TSAN support, we'll use a lock for generation of
- * new NIDs.  This will be slower of course.
- */
-#ifndef tsan_ld_acq
-# define OBJ_USE_LOCK_FOR_NEW_NID
-#endif
 
 DECLARE_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, sn);
 DECLARE_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, ln);
@@ -47,7 +39,7 @@ struct added_obj_st {
 
 static LHASH_OF(ADDED_OBJ) *added = NULL;
 static CRYPTO_RWLOCK *ossl_obj_lock = NULL;
-#ifdef OBJ_USE_LOCK_FOR_NEW_NID
+#ifdef TSAN_REQUIRES_LOCKING
 static CRYPTO_RWLOCK *ossl_obj_nid_lock = NULL;
 #endif
 
@@ -57,7 +49,7 @@ static ossl_inline void objs_free_locks(void)
 {
     CRYPTO_THREAD_lock_free(ossl_obj_lock);
     ossl_obj_lock = NULL;
-#ifdef OBJ_USE_LOCK_FOR_NEW_NID
+#ifdef TSAN_REQUIRES_LOCKING
     CRYPTO_THREAD_lock_free(ossl_obj_nid_lock);
     ossl_obj_nid_lock = NULL;
 #endif
@@ -69,7 +61,7 @@ DEFINE_RUN_ONCE_STATIC(obj_lock_initialise)
     if (ossl_obj_lock == NULL)
         return 0;
 
-#ifdef OBJ_USE_LOCK_FOR_NEW_NID
+#ifdef TSAN_REQUIRES_LOCKING
     ossl_obj_nid_lock = CRYPTO_THREAD_lock_new();
     if (ossl_obj_nid_lock == NULL) {
         objs_free_locks();
@@ -136,7 +128,7 @@ static unsigned long added_obj_hash(const ADDED_OBJ *ca)
     a = ca->obj;
     switch (ca->type) {
     case ADDED_DATA:
-        ret = a->length << 20L;
+        ret = (unsigned long)a->length << 20UL;
         p = (unsigned char *)a->data;
         for (i = 0; i < a->length; i++)
             ret ^= p[i] << ((i * 3) % 24);
@@ -229,31 +221,49 @@ void ossl_obj_cleanup_int(void)
     objs_free_locks();
 }
 
-int OBJ_new_nid(int num)
+/*
+ * Requires that the ossl_obj_lock be held
+ * if TSAN_REQUIRES_LOCKING defined
+ */
+static int obj_new_nid_unlocked(int num)
 {
-#ifdef OBJ_USE_LOCK_FOR_NEW_NID
-    static int new_nid = NUM_NID;
+    static TSAN_QUALIFIER int new_nid = NUM_NID;
+#ifdef TSAN_REQUIRES_LOCKING
     int i;
 
-    if (!CRYPTO_THREAD_write_lock(ossl_obj_nid_lock)) {
+    i = new_nid;
+    new_nid += num;
+
+    return i;
+#else
+    return tsan_add(&new_nid, num);
+#endif
+}
+
+int OBJ_new_nid(int num)
+{
+#ifdef TSAN_REQUIRES_LOCKING
+    int i;
+
+    if (!ossl_obj_write_lock(1)) {
         ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_WRITE_LOCK);
         return NID_undef;
     }
-    i = new_nid;
-    new_nid += num;
-    CRYPTO_THREAD_unlock(ossl_obj_nid_lock);
+
+    i = obj_new_nid_unlocked(num);
+
+    ossl_obj_unlock(1);
+
     return i;
 #else
-    static TSAN_QUALIFIER int new_nid = NUM_NID;
-
-    return tsan_add(&new_nid, num);
+    return obj_new_nid_unlocked(num);
 #endif
 }
 
 static int ossl_obj_add_object(const ASN1_OBJECT *obj, int lock)
 {
     ASN1_OBJECT *o = NULL;
-    ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop;
+    ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop[4];
     int i;
 
     if ((o = OBJ_dup(obj)) == NULL)
@@ -265,10 +275,8 @@ static int ossl_obj_add_object(const ASN1_OBJECT *obj, int lock)
             || (o->sn != NULL
                 && (ao[ADDED_SNAME] = OPENSSL_malloc(sizeof(*ao[0]))) == NULL)
             || (o->ln != NULL
-                && (ao[ADDED_LNAME] = OPENSSL_malloc(sizeof(*ao[0]))) == NULL)) {
-        ERR_raise(ERR_LIB_OBJ, ERR_R_MALLOC_FAILURE);
+                && (ao[ADDED_LNAME] = OPENSSL_malloc(sizeof(*ao[0]))) == NULL))
         goto err2;
-    }
 
     if (!ossl_obj_write_lock(lock)) {
         ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_WRITE_LOCK);
@@ -277,7 +285,7 @@ static int ossl_obj_add_object(const ASN1_OBJECT *obj, int lock)
     if (added == NULL) {
         added = lh_ADDED_OBJ_new(added_obj_hash, added_obj_cmp);
         if (added == NULL) {
-            ERR_raise(ERR_LIB_OBJ, ERR_R_MALLOC_FAILURE);
+            ERR_raise(ERR_LIB_OBJ, ERR_R_CRYPTO_LIB);
             goto err;
         }
     }
@@ -286,9 +294,21 @@ static int ossl_obj_add_object(const ASN1_OBJECT *obj, int lock)
         if (ao[i] != NULL) {
             ao[i]->type = i;
             ao[i]->obj = o;
-            aop = lh_ADDED_OBJ_insert(added, ao[i]);
-            /* memory leak, but should not normally matter */
-            OPENSSL_free(aop);
+            aop[i] = lh_ADDED_OBJ_retrieve(added, ao[i]);
+            if (aop[i] != NULL)
+                aop[i]->type = -1;
+            (void)lh_ADDED_OBJ_insert(added, ao[i]);
+            if (lh_ADDED_OBJ_error(added)) {
+                if (aop[i] != NULL)
+                    aop[i]->type = i;
+                while (i-- > ADDED_DATA) {
+                    lh_ADDED_OBJ_delete(added, ao[i]);
+                    if (aop[i] != NULL)
+                        aop[i]->type = i;
+                }
+                ERR_raise(ERR_LIB_OBJ, ERR_R_CRYPTO_LIB);
+                goto err;
+            }
         }
     }
     o->flags &=
@@ -410,8 +430,8 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
     int i, j;
 
     if (!no_name) {
-        if ((nid = OBJ_sn2nid(s)) != NID_undef ||
-                (nid = OBJ_ln2nid(s)) != NID_undef) {
+        if ((nid = OBJ_sn2nid(s)) != NID_undef
+            || (nid = OBJ_ln2nid(s)) != NID_undef) {
             return OBJ_nid2obj(nid);
         }
         if (!ossl_isdigit(*s)) {
@@ -430,10 +450,8 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
     if (j < 0)
         return NULL;
 
-    if ((buf = OPENSSL_malloc(j)) == NULL) {
-        ERR_raise(ERR_LIB_OBJ, ERR_R_MALLOC_FAILURE);
+    if ((buf = OPENSSL_malloc(j)) == NULL)
         return NULL;
-    }
 
     p = buf;
     /* Write out tag+length */
@@ -504,17 +522,19 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
         use_bn = 0;
         for (;;) {
             unsigned char c = *p++;
+
             len--;
-            if ((len == 0) && (c & 0x80))
+            if (len == 0 && (c & 0x80) != 0)
                 goto err;
             if (use_bn) {
                 if (!BN_add_word(bl, c & 0x7f))
                     goto err;
-            } else
+            } else {
                 l |= c & 0x7f;
-            if (!(c & 0x80))
+            }
+            if ((c & 0x80) == 0)
                 break;
-            if (!use_bn && (l > (ULONG_MAX >> 7L))) {
+            if (!use_bn && l > (ULONG_MAX >> 7L)) {
                 if (bl == NULL && (bl = BN_new()) == NULL)
                     goto err;
                 if (!BN_set_word(bl, l))
@@ -524,8 +544,9 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             if (use_bn) {
                 if (!BN_lshift(bl, bl, 7))
                     goto err;
-            } else
+            } else {
                 l <<= 7L;
+            }
         }
 
         if (first) {
@@ -535,13 +556,14 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
                 if (use_bn) {
                     if (!BN_sub_word(bl, 80))
                         goto err;
-                } else
+                } else {
                     l -= 80;
+                }
             } else {
                 i = (int)(l / 40);
                 l -= (long)(i * 40);
             }
-            if (buf && (buf_len > 1)) {
+            if (buf != NULL && buf_len > 1) {
                 *buf++ = i + '0';
                 *buf = '\0';
                 buf_len--;
@@ -555,7 +577,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
             if (!bndec)
                 goto err;
             i = strlen(bndec);
-            if (buf) {
+            if (buf != NULL) {
                 if (buf_len > 1) {
                     *buf++ = '.';
                     *buf = '\0';
@@ -576,7 +598,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
         } else {
             BIO_snprintf(tbuf, sizeof(tbuf), ".%lu", l);
             i = strlen(tbuf);
-            if (buf && (buf_len > 0)) {
+            if (buf && buf_len > 0) {
                 OPENSSL_strlcpy(buf, tbuf, buf_len);
                 if (i > buf_len) {
                     buf += buf_len;
@@ -687,13 +709,14 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
     if (p == NULL) {
         const char *base_ = base;
         int l, h, i = 0, c = 0;
+        char *p1;
 
         for (i = 0; i < num; ++i) {
-            p = &(base_[i * size]);
-            c = (*cmp) (key, p);
+            p1 = &(base_[i * size]);
+            c = (*cmp) (key, p1);
             if (c == 0
                 || (c < 0 && (flags & OBJ_BSEARCH_VALUE_ON_NOMATCH)))
-                return p;
+                return p1;
         }
     }
 #endif
@@ -758,6 +781,12 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
     ASN1_OBJECT *tmpoid = NULL;
     int ok = 0;
 
+    /* With no arguments at all, nothing can be done */
+    if (oid == NULL && sn == NULL && ln == NULL) {
+        ERR_raise(ERR_LIB_OBJ, ERR_R_PASSED_INVALID_ARGUMENT);
+        return 0;
+    }
+
     /* Check to see if short or long name already present */
     if ((sn != NULL && OBJ_sn2nid(sn) != NID_undef)
             || (ln != NULL && OBJ_ln2nid(ln) != NID_undef)) {
@@ -765,10 +794,19 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
         return 0;
     }
 
-    /* Convert numerical OID string to an ASN1_OBJECT structure */
-    tmpoid = OBJ_txt2obj(oid, 1);
-    if (tmpoid == NULL)
-        return 0;
+    if (oid != NULL) {
+        /* Convert numerical OID string to an ASN1_OBJECT structure */
+        tmpoid = OBJ_txt2obj(oid, 1);
+        if (tmpoid == NULL)
+            return 0;
+    } else {
+        /* Create a no-OID ASN1_OBJECT */
+        tmpoid = ASN1_OBJECT_new();
+        if (tmpoid == NULL) {
+            ERR_raise(ERR_LIB_OBJ, ERR_R_ASN1_LIB);
+            return 0;
+        }
+    }
 
     if (!ossl_obj_write_lock(1)) {
         ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_WRITE_LOCK);
@@ -777,12 +815,14 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
     }
 
     /* If NID is not NID_undef then object already exists */
-    if (ossl_obj_obj2nid(tmpoid, 0) != NID_undef) {
+    if (oid != NULL
+        && ossl_obj_obj2nid(tmpoid, 0) != NID_undef) {
         ERR_raise(ERR_LIB_OBJ, OBJ_R_OID_EXISTS);
         goto err;
     }
 
-    tmpoid->nid = OBJ_new_nid(1);
+    tmpoid->nid = obj_new_nid_unlocked(1);
+
     if (tmpoid->nid == NID_undef)
         goto err;
 

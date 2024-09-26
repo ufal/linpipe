@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2000-2024 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "lib/openssl/include/internal/cryptlib.h"
+#include "lib/openssl/include/internal/sizes.h"
 #include "lib/openssl/include/crypto/asn1.h"
 #include "lib/openssl/include/openssl/crypto.h"
 #include "lib/openssl/include/openssl/x509.h"
@@ -282,10 +283,8 @@ static int do_dump(unsigned long lflags, char_io *io_ch, void *arg,
     der_len = i2d_ASN1_TYPE(&t, NULL);
     if (der_len <= 0)
         return -1;
-    if ((der_buf = OPENSSL_malloc(der_len)) == NULL) {
-        ERR_raise(ERR_LIB_ASN1, ERR_R_MALLOC_FAILURE);
+    if ((der_buf = OPENSSL_malloc(der_len)) == NULL)
         return -1;
-    }
     p = der_buf;
     i2d_ASN1_TYPE(&t, &p);
     outlen = do_hex_dump(io_ch, arg, der_buf, der_len);
@@ -345,8 +344,10 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
 
     if (lflags & ASN1_STRFLGS_SHOW_TYPE) {
         const char *tagname;
+
         tagname = ASN1_tag2str(type);
-        outlen += strlen(tagname);
+        /* We can directly cast here as tagname will never be too large. */
+        outlen += (int)strlen(tagname);
         if (!io_ch(arg, tagname, outlen) || !io_ch(arg, ":", 1))
             return -1;
         outlen++;
@@ -372,7 +373,7 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
 
     if (type == -1) {
         len = do_dump(lflags, io_ch, arg, str);
-        if (len < 0)
+        if (len < 0 || len > INT_MAX - outlen)
             return -1;
         outlen += len;
         return outlen;
@@ -391,7 +392,7 @@ static int do_print_ex(char_io *io_ch, void *arg, unsigned long lflags,
     }
 
     len = do_buf(str->data, str->length, type, flags, &quotes, io_ch, NULL);
-    if (len < 0)
+    if (len < 0 || len > INT_MAX - 2 - outlen)
         return -1;
     outlen += len;
     if (quotes)

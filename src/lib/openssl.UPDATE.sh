@@ -15,7 +15,7 @@ set -e
 
 LIB=$(readlink -f $(dirname $0))
 
-git clone --depth=1 --branch=openssl-3.1.3 https://github.com/openssl/openssl /tmp/openssl
+git clone --depth=1 --branch=openssl-3.3.2 https://github.com/openssl/openssl /tmp/openssl
 
 (
 cd /tmp/openssl
@@ -73,9 +73,9 @@ grep -o '\(crypto\|providers\|ssl\)/[^[:space:]]*[.]c' make.log | sort -u | sed 
 )
 
 patch openssl/include/openssl/configuration.h <<"EOF"
---- configuration.h.ori	2023-10-13 13:15:31.966861248 +0200
-+++ configuration.h	2023-10-13 13:21:50.999608323 +0200
-@@ -196,11 +196,23 @@
+--- openssl/include/openssl/configuration.h.orig	2024-09-27 00:01:13.132539197 +0200
++++ openssl/include/openssl/configuration.h	2024-09-27 00:02:08.644352676 +0200
+@@ -232,11 +232,23 @@
   * The following are cipher-specific, but are part of the public API.
   */
  # if !defined(OPENSSL_SYS_UEFI)

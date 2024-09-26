@@ -17,6 +17,7 @@
  */
 #include "lib/openssl/include/internal/e_os.h"
 #include "lib/openssl/include/openssl/crypto.h"
+#include "lib/openssl/include/openssl/err.h"
 
 #include <string.h>
 
@@ -64,6 +65,18 @@ VirtualLock(
 # endif
 # include <sys/stat.h>
 # include <fcntl.h>
+#endif
+#ifndef HAVE_MADVISE
+# if defined(MADV_DONTDUMP)
+#  define HAVE_MADVISE 1
+# else
+#  define HAVE_MADVISE 0
+# endif
+#endif
+#if HAVE_MADVISE
+# undef NO_MADVISE
+#else
+# define NO_MADVISE
 #endif
 
 #define CLEAR(p, s) OPENSSL_cleanse(p, s)
@@ -141,18 +154,27 @@ int CRYPTO_secure_malloc_initialized(void)
 void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    void *ret;
+    void *ret = NULL;
     size_t actual_size;
+    int reason = CRYPTO_R_SECURE_MALLOC_FAILURE;
 
     if (!secure_mem_initialized) {
         return CRYPTO_malloc(num, file, line);
     }
-    if (!CRYPTO_THREAD_write_lock(sec_malloc_lock))
-        return NULL;
+    if (!CRYPTO_THREAD_write_lock(sec_malloc_lock)) {
+        reason = ERR_R_CRYPTO_LIB;
+        goto err;
+    }
     ret = sh_malloc(num);
     actual_size = ret ? sh_actual_size(ret) : 0;
     secure_mem_used += actual_size;
     CRYPTO_THREAD_unlock(sec_malloc_lock);
+ err:
+    if (ret == NULL && (file != NULL || line != 0)) {
+        ERR_new();
+        ERR_set_debug(file, line, NULL);
+        ERR_set_error(ERR_LIB_CRYPTO, reason, NULL);
+    }
     return ret;
 #else
     return CRYPTO_malloc(num, file, line);
@@ -238,11 +260,17 @@ int CRYPTO_secure_allocated(const void *ptr)
 
 size_t CRYPTO_secure_used(void)
 {
+    size_t ret = 0;
+
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    return secure_mem_used;
-#else
-    return 0;
+    if (!CRYPTO_THREAD_read_lock(sec_malloc_lock))
+        return 0;
+
+    ret = secure_mem_used;
+
+    CRYPTO_THREAD_unlock(sec_malloc_lock);
 #endif /* OPENSSL_NO_SECURE_MEMORY */
+    return ret;
 }
 
 size_t CRYPTO_secure_actual_size(void *ptr)
@@ -557,7 +585,7 @@ static int sh_init(size_t size, size_t minsize)
     if (mlock(sh.arena, sh.arena_size) < 0)
         ret = 2;
 #endif
-#ifdef MADV_DONTDUMP
+#ifndef NO_MADVISE
     if (madvise(sh.arena, sh.arena_size, MADV_DONTDUMP) < 0)
         ret = 2;
 #endif

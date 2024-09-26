@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2018-2023 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the Apache License 2.0 (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -101,8 +101,12 @@ static void *cmac_dup(void *vsrc)
 static size_t cmac_size(void *vmacctx)
 {
     struct cmac_data_st *macctx = vmacctx;
+    const EVP_CIPHER_CTX *cipherctx = CMAC_CTX_get0_cipher_ctx(macctx->ctx);
 
-    return EVP_CIPHER_CTX_get_block_size(CMAC_CTX_get0_cipher_ctx(macctx->ctx));
+    if (EVP_CIPHER_CTX_get0_cipher(cipherctx) == NULL)
+        return 0;
+
+    return EVP_CIPHER_CTX_get_block_size(cipherctx);
 }
 
 static int cmac_setkey(struct cmac_data_st *macctx,
@@ -229,5 +233,5 @@ const OSSL_DISPATCH ossl_cmac_functions[] = {
     { OSSL_FUNC_MAC_SETTABLE_CTX_PARAMS,
       (void (*)(void))cmac_settable_ctx_params },
     { OSSL_FUNC_MAC_SET_CTX_PARAMS, (void (*)(void))cmac_set_ctx_params },
-    { 0, NULL }
+    OSSL_DISPATCH_END
 };

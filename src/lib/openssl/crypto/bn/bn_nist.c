@@ -254,7 +254,7 @@ const BIGNUM *BN_get0_nist_prime_521(void)
 
 /*
  * To avoid more recent compilers (specifically clang-14) from treating this
- * code as a violation of the strict aliasing conditions and omiting it, this
+ * code as a violation of the strict aliasing conditions and omitting it, this
  * cannot be declared as a function.  Moreover, the dst parameter cannot be
  * cached in a local since this no longer references the union and again falls
  * foul of the strict aliasing criteria.  Refer to #18225 for the initial
@@ -322,6 +322,28 @@ static void nist_cp_bn(BN_ULONG *dst, const BN_ULONG *src, int top)
 # endif
 #endif                          /* BN_BITS2 != 64 */
 
+#ifdef NIST_INT64
+/* Helpers to load/store a 32-bit word (uint32_t) from/into a memory
+ * location and avoid potential aliasing issue.  */
+static ossl_inline uint32_t load_u32(const void *ptr)
+{
+    uint32_t tmp;
+
+    memcpy(&tmp, ptr, sizeof(tmp));
+    return tmp;
+}
+
+static ossl_inline void store_lo32(void *ptr, NIST_INT64 val)
+{
+    /* A cast is needed for big-endian system: on a 32-bit BE system
+     * NIST_INT64 may be defined as well if the compiler supports 64-bit
+     * long long.  */
+    uint32_t tmp = (uint32_t)val;
+
+    memcpy(ptr, &tmp, sizeof(tmp));
+}
+#endif /* NIST_INT64 */
+
 #define nist_set_192(to, from, a1, a2, a3) \
         { \
         bn_cp_64(to, 0, from, (a3) - 3) \
@@ -377,42 +399,42 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         unsigned int *rp = (unsigned int *)r_d;
         const unsigned int *bp = (const unsigned int *)buf.ui;
 
-        acc = rp[0];
+        acc = load_u32(&rp[0]);
         acc += bp[3 * 2 - 6];
         acc += bp[5 * 2 - 6];
-        rp[0] = (unsigned int)acc;
+        store_lo32(&rp[0], acc);
         acc >>= 32;
 
-        acc += rp[1];
+        acc += load_u32(&rp[1]);
         acc += bp[3 * 2 - 5];
         acc += bp[5 * 2 - 5];
-        rp[1] = (unsigned int)acc;
+        store_lo32(&rp[1], acc);
         acc >>= 32;
 
-        acc += rp[2];
+        acc += load_u32(&rp[2]);
         acc += bp[3 * 2 - 6];
         acc += bp[4 * 2 - 6];
         acc += bp[5 * 2 - 6];
-        rp[2] = (unsigned int)acc;
+        store_lo32(&rp[2], acc);
         acc >>= 32;
 
-        acc += rp[3];
+        acc += load_u32(&rp[3]);
         acc += bp[3 * 2 - 5];
         acc += bp[4 * 2 - 5];
         acc += bp[5 * 2 - 5];
-        rp[3] = (unsigned int)acc;
+        store_lo32(&rp[3], acc);
         acc >>= 32;
 
-        acc += rp[4];
+        acc += load_u32(&rp[4]);
         acc += bp[4 * 2 - 6];
         acc += bp[5 * 2 - 6];
-        rp[4] = (unsigned int)acc;
+        store_lo32(&rp[4], acc);
         acc >>= 32;
 
-        acc += rp[5];
+        acc += load_u32(&rp[5]);
         acc += bp[4 * 2 - 5];
         acc += bp[5 * 2 - 5];
-        rp[5] = (unsigned int)acc;
+        store_lo32(&rp[5], acc);
 
         carry = (int)(acc >> 32);
     }
@@ -686,36 +708,36 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         unsigned int *rp = (unsigned int *)r_d;
         const unsigned int *bp = (const unsigned int *)buf.ui;
 
-        acc = rp[0];
+        acc = load_u32(&rp[0]);
         acc += bp[8 - 8];
         acc += bp[9 - 8];
         acc -= bp[11 - 8];
         acc -= bp[12 - 8];
         acc -= bp[13 - 8];
         acc -= bp[14 - 8];
-        rp[0] = (unsigned int)acc;
+        store_lo32(&rp[0], acc);
         acc >>= 32;
 
-        acc += rp[1];
+        acc += load_u32(&rp[1]);
         acc += bp[9 - 8];
         acc += bp[10 - 8];
         acc -= bp[12 - 8];
         acc -= bp[13 - 8];
         acc -= bp[14 - 8];
         acc -= bp[15 - 8];
-        rp[1] = (unsigned int)acc;
+        store_lo32(&rp[1], acc);
         acc >>= 32;
 
-        acc += rp[2];
+        acc += load_u32(&rp[2]);
         acc += bp[10 - 8];
         acc += bp[11 - 8];
         acc -= bp[13 - 8];
         acc -= bp[14 - 8];
         acc -= bp[15 - 8];
-        rp[2] = (unsigned int)acc;
+        store_lo32(&rp[2], acc);
         acc >>= 32;
 
-        acc += rp[3];
+        acc += load_u32(&rp[3]);
         acc += bp[11 - 8];
         acc += bp[11 - 8];
         acc += bp[12 - 8];
@@ -724,10 +746,10 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc -= bp[15 - 8];
         acc -= bp[8 - 8];
         acc -= bp[9 - 8];
-        rp[3] = (unsigned int)acc;
+        store_lo32(&rp[3], acc);
         acc >>= 32;
 
-        acc += rp[4];
+        acc += load_u32(&rp[4]);
         acc += bp[12 - 8];
         acc += bp[12 - 8];
         acc += bp[13 - 8];
@@ -735,10 +757,10 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc += bp[14 - 8];
         acc -= bp[9 - 8];
         acc -= bp[10 - 8];
-        rp[4] = (unsigned int)acc;
+        store_lo32(&rp[4], acc);
         acc >>= 32;
 
-        acc += rp[5];
+        acc += load_u32(&rp[5]);
         acc += bp[13 - 8];
         acc += bp[13 - 8];
         acc += bp[14 - 8];
@@ -746,10 +768,10 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc += bp[15 - 8];
         acc -= bp[10 - 8];
         acc -= bp[11 - 8];
-        rp[5] = (unsigned int)acc;
+        store_lo32(&rp[5], acc);
         acc >>= 32;
 
-        acc += rp[6];
+        acc += load_u32(&rp[6]);
         acc += bp[14 - 8];
         acc += bp[14 - 8];
         acc += bp[15 - 8];
@@ -758,10 +780,10 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc += bp[13 - 8];
         acc -= bp[8 - 8];
         acc -= bp[9 - 8];
-        rp[6] = (unsigned int)acc;
+        store_lo32(&rp[6], acc);
         acc >>= 32;
 
-        acc += rp[7];
+        acc += load_u32(&rp[7]);
         acc += bp[15 - 8];
         acc += bp[15 - 8];
         acc += bp[15 - 8];
@@ -770,7 +792,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc -= bp[11 - 8];
         acc -= bp[12 - 8];
         acc -= bp[13 - 8];
-        rp[7] = (unsigned int)acc;
+        store_lo32(&rp[7], acc);
 
         carry = (int)(acc >> 32);
     }
@@ -923,32 +945,32 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         unsigned int *rp = (unsigned int *)r_d;
         const unsigned int *bp = (const unsigned int *)buf.ui;
 
-        acc = rp[0];
+        acc = load_u32(&rp[0]);
         acc += bp[12 - 12];
         acc += bp[21 - 12];
         acc += bp[20 - 12];
         acc -= bp[23 - 12];
-        rp[0] = (unsigned int)acc;
+        store_lo32(&rp[0], acc);
         acc >>= 32;
 
-        acc += rp[1];
+        acc += load_u32(&rp[1]);
         acc += bp[13 - 12];
         acc += bp[22 - 12];
         acc += bp[23 - 12];
         acc -= bp[12 - 12];
         acc -= bp[20 - 12];
-        rp[1] = (unsigned int)acc;
+        store_lo32(&rp[1], acc);
         acc >>= 32;
 
-        acc += rp[2];
+        acc += load_u32(&rp[2]);
         acc += bp[14 - 12];
         acc += bp[23 - 12];
         acc -= bp[13 - 12];
         acc -= bp[21 - 12];
-        rp[2] = (unsigned int)acc;
+        store_lo32(&rp[2], acc);
         acc >>= 32;
 
-        acc += rp[3];
+        acc += load_u32(&rp[3]);
         acc += bp[15 - 12];
         acc += bp[12 - 12];
         acc += bp[20 - 12];
@@ -956,10 +978,10 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc -= bp[14 - 12];
         acc -= bp[22 - 12];
         acc -= bp[23 - 12];
-        rp[3] = (unsigned int)acc;
+        store_lo32(&rp[3], acc);
         acc >>= 32;
 
-        acc += rp[4];
+        acc += load_u32(&rp[4]);
         acc += bp[21 - 12];
         acc += bp[21 - 12];
         acc += bp[16 - 12];
@@ -970,10 +992,10 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc -= bp[15 - 12];
         acc -= bp[23 - 12];
         acc -= bp[23 - 12];
-        rp[4] = (unsigned int)acc;
+        store_lo32(&rp[4], acc);
         acc >>= 32;
 
-        acc += rp[5];
+        acc += load_u32(&rp[5]);
         acc += bp[22 - 12];
         acc += bp[22 - 12];
         acc += bp[17 - 12];
@@ -982,10 +1004,10 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc += bp[21 - 12];
         acc += bp[23 - 12];
         acc -= bp[16 - 12];
-        rp[5] = (unsigned int)acc;
+        store_lo32(&rp[5], acc);
         acc >>= 32;
 
-        acc += rp[6];
+        acc += load_u32(&rp[6]);
         acc += bp[23 - 12];
         acc += bp[23 - 12];
         acc += bp[18 - 12];
@@ -993,48 +1015,48 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         acc += bp[14 - 12];
         acc += bp[22 - 12];
         acc -= bp[17 - 12];
-        rp[6] = (unsigned int)acc;
+        store_lo32(&rp[6], acc);
         acc >>= 32;
 
-        acc += rp[7];
+        acc += load_u32(&rp[7]);
         acc += bp[19 - 12];
         acc += bp[16 - 12];
         acc += bp[15 - 12];
         acc += bp[23 - 12];
         acc -= bp[18 - 12];
-        rp[7] = (unsigned int)acc;
+        store_lo32(&rp[7], acc);
         acc >>= 32;
 
-        acc += rp[8];
+        acc += load_u32(&rp[8]);
         acc += bp[20 - 12];
         acc += bp[17 - 12];
         acc += bp[16 - 12];
         acc -= bp[19 - 12];
-        rp[8] = (unsigned int)acc;
+        store_lo32(&rp[8], acc);
         acc >>= 32;
 
-        acc += rp[9];
+        acc += load_u32(&rp[9]);
         acc += bp[21 - 12];
         acc += bp[18 - 12];
         acc += bp[17 - 12];
         acc -= bp[20 - 12];
-        rp[9] = (unsigned int)acc;
+        store_lo32(&rp[9], acc);
         acc >>= 32;
 
-        acc += rp[10];
+        acc += load_u32(&rp[10]);
         acc += bp[22 - 12];
         acc += bp[19 - 12];
         acc += bp[18 - 12];
         acc -= bp[21 - 12];
-        rp[10] = (unsigned int)acc;
+        store_lo32(&rp[10], acc);
         acc >>= 32;
 
-        acc += rp[11];
+        acc += load_u32(&rp[11]);
         acc += bp[23 - 12];
         acc += bp[20 - 12];
         acc += bp[19 - 12];
         acc -= bp[22 - 12];
-        rp[11] = (unsigned int)acc;
+        store_lo32(&rp[11], acc);
 
         carry = (int)(acc >> 32);
     }
