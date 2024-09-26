@@ -11,14 +11,14 @@
 
 set -e
 
-git clone --depth=1 --branch=v0.14.1 https://github.com/yhirose/cpp-httplib cpp-httplib
+git clone --depth=1 --branch=v0.18.0 https://github.com/yhirose/cpp-httplib cpp-httplib
 
 sed 's/namespace httplib/namespace linpipe::httplib/' cpp-httplib/httplib.h >httplib.h
 
 patch httplib.h <<"EOF"
---- httplib.h.ori	2023-10-17 21:42:28.410369628 +0200
-+++ httplib.h	2023-10-17 21:42:28.422369757 +0200
-@@ -257,15 +257,17 @@
+--- httplib.h.orig	2024-09-26 23:36:33.851068560 +0200
++++ httplib.h	2024-09-26 23:36:33.855068551 +0200
+@@ -277,15 +277,17 @@
  #endif // TARGET_OS_OSX
  #endif // _WIN32
  
@@ -41,7 +41,7 @@ patch httplib.h <<"EOF"
  #include <iostream>
  #include <sstream>
  
-@@ -8529,6 +8531,7 @@
+@@ -9312,6 +9314,7 @@
        loaded = detail::load_system_certs_on_macos(SSL_CTX_get_cert_store(ctx_));
  #endif // TARGET_OS_OSX
  #endif // _WIN32
