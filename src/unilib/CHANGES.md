@@ -1,4 +1,9 @@
-Version 4.0.0 [[29 Sep 2023]
+Version 4.1.0 [27 Sep 2024]
+---------------------------
+- Update Unicode data to 16.0.0.
+
+
+Version 4.0.0 [29 Sep 2023]
 ----------------------------
 - Increase the minimum requirements to C++ 17 [incompatible change].
 - Change the namespace from `ufal::unilib` to `unilib` [incompatible change].
