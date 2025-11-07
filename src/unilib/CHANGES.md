@@ -1,3 +1,18 @@
+Version 4.2.0 [10 Sep 2025]
+---------------------------
+- Update Unicode data to 17.0.0.
+
+
+Version 4.1.2 [27 Mar 2025]
+---------------------------
+- Add forgotten `inline` specifier in the `utf::encode` methods.
+
+
+Version 4.1.1 [4 Nov 2024]
+--------------------------
+- Silence new Clang warning by not using comma operator in returns.
+
+
 Version 4.1.0 [27 Sep 2024]
 ---------------------------
 - Update Unicode data to 16.0.0.
