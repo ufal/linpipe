@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <istream>
 #include <ostream>
 #include <string>

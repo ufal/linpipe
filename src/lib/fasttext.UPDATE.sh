@@ -26,4 +26,17 @@ for f in fasttext_git/src/*; do
        s/fasttext::/linpipe::fasttext::/' $f >fasttext/$target
 done
 
+patch fasttext/args.h <<EOF
+--- a/src/lib/fasttext/args.h
++++ b/src/lib/fasttext/args.h
+@@ -8,6 +8,7 @@
+
+ #pragma once
+
++#include <cstdint>
+ #include <istream>
+ #include <ostream>
+ #include <string>
+EOF
+
 rm -rf fasttext_git
