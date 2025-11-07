@@ -2,7 +2,9 @@ name: Tests
 
 on:
   push:
-    paths: 'src/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/tests.yml'
 
 jobs:
   compile:
