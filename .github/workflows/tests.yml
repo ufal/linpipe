@@ -25,6 +25,9 @@ jobs:
             platform: linux-clang CXX=clang++-17
           - os: ubuntu-24.04
             platform: linux-clang CXX=clang++-18
+          - os: ubuntu-24.04
+            platform: linux-gcc
+            container: quay.io/pypa/manylinux_2_28_x86_64
           - os: windows-2022
             platform: win-vs-32
           - os: windows-2022
