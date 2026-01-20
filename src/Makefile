@@ -48,6 +48,11 @@ $(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
 	$(filter-out -std=% -stdlib=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
 endif
 
+# Linting
+.PHONY: lint
+lint:
+	clang-tidy $(strip $(foreach f,$(LINPIPE_OBJECTS:%=%.cpp),$(if $(filter-out lib/%,$f)$(filter lib/,$(dir $f)),$f))) -- $(C_FLAGS)
+
 # Cleaning
 .PHONY: clean
 clean:
