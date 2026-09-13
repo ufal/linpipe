@@ -1,4 +1,4 @@
-# LinPipe Codestyle
+# Codestyle
 
 - Use full C++17.
 
