@@ -68,19 +68,19 @@ nav = [
 ]
 
 extra_css = [
-  "assets/fonts/fonts.css",
-  "assets/katex/katex.min.css",
+  "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css",
   "assets/extra.css",
 ]
 extra_javascript = [
-  "assets/katex/katex.min.js",
+  "https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js",
   "assets/katex_load.js",
 ]
 
 [project.theme]
 logo = "images/favicon.svg"
 favicon = "images/favicon.svg"
-font = false
+font.text = "Inter"
+font.code = "JetBrains Mono"
 features = [
   "content.code.copy",
   "navigation.tabs",
