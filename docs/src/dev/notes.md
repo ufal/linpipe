@@ -1,4 +1,4 @@
-# Meeting Notes
+# Notes
 
 ### Commandline parameters
 
@@ -18,7 +18,3 @@ E.g.
 ```
 NameTag2-cs-CNEC2.0-20220909
 ```
-
----
- 
-![Architecture Overview](overview_1.png){ width=100% }

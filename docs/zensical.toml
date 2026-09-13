@@ -63,7 +63,8 @@ nav = [
   ] },
   { "Development" = [
     "dev/codestyle.md",
-    "dev/meetings.md",
+    "dev/architecture.md",
+    "dev/notes.md",
   ] },
 ]
 
@@ -124,7 +125,7 @@ pymdownx.highlight = {}
 pymdownx.inlinehilite = {}
 pymdownx.snippets.base_path = ["."]
 pymdownx.snippets.check_paths = true
-pymdownx.superfences = {}
+pymdownx.superfences.custom_fences = [ { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" } ]
 pymdownx.tabbed.alternate_style = true
 pymdownx.tabbed.slugify.kwds.case = "lower"
 
