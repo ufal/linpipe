@@ -1,7 +1,7 @@
 # LinPipe: Multilingual Processing Tool
 
 [![Tests](https://github.com/ufal/linpipe/actions/workflows/tests.yml/badge.svg)](https://github.com/ufal/linpipe/actions/workflows/tests.yml)
-<img src="docs/figures/linpipe_predecessors.svg" alt="LinPipe predecessors" align="right" style="width: 50%">
+<img src="docs/src/images/linpipe_predecessors.svg" alt="LinPipe predecessors" align="right" style="width: 50%">
 
 LinPipe is a multilingual state-of-the-art text processing pipeline, currently
 in preparation stage.
