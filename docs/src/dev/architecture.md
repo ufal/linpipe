@@ -42,7 +42,7 @@ several `Layers` of the same type, but the `Layer` names must be unique.
 ```mermaid
 classDiagram
   class Corpus {
-    +vector~unique_ptr~Document
+    +vector~unique_ptr~Document~~
   }
 
   class Document {
@@ -174,11 +174,13 @@ TODO
 ## Model Management
 
 ```mermaid
-class ModelManager {
-  +reserve(name: string);
-  +load(name: string) *Model;
-  +release(name: string);
-  static ModelManager singleton;
+classDiagram
+  class ModelManager {
+    +reserve(name: string)
+    +load(name: string) unique_ptr~Model~&
+    +release(name: string)
+    +singleton: ModelManager$
+  }
 ```
 
 ## Design Suggestions for the Next Meeting
@@ -189,7 +191,7 @@ A `Pipeline` should validate the compatibility of its `Operations` before
 execution. For that, each `Operation` should implement `require()` (a set of
 `Layer` types) and `produce()` (a set of `Layer` types).
 
-```
+```mermaid
 flowchart LR
     T[Task] --> V[Validate operation sequence]
 
@@ -218,11 +220,11 @@ requires: SegmentedText
 produces: Tokens
 ```
 
-## Execute vs. Apply
+### Execute vs. Apply
 
 Maybe we should rename `execute()` to `apply().
 
-## Corpus
+### Corpus
 
 Do we need a single `Corpus` holder for multiple `Documents`?
 
