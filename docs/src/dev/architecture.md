@@ -2,40 +2,22 @@
 
 ## Overview
 
-The system provides two main use cases:
-
-- **Pipeline**: load a document, apply a configurable sequence of NLP
-  operations, and write the resulting document.
-- **Train model**: train a new model from available training data.
-
-```mermaid
-flowchart LR
-    U((User))
-    P[Pipeline]
-    T[Train Model]
-
-    U --> P
-    U --> T
-```
+LinPipe is an NLP tool which loads an input, applies a configurable sequence of
+NLP operations on it, and writes the resulting output.
 
 An overview of the LinPipe system architecture:
 
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `Text`,
   `SegmentedText`, `Tokens`, `TaggedTokens`, or `TaggedSpans`.
-- **Pipeline**: The inference transformations execution is based on
-  a `Pipeline`, a user-configured sequence of abstract `Operations`, such as
-  `Segment` or `Tokenize`.
+- **Pipeline**: The transformations execution is based on a `Pipeline`,
+  a user-configured sequence of abstract `Operations`, such as `Segment` or
+  `Tokenize`.
 - **I/O**: `Load` and `Save` are also parts of the `Pipeline` as `Operations`,
   ones that contain an abstract class `Format`, such as `Text`, `Conll`, or
   `Lif`.
-- **Train model**: Python binding for the C++ code with I/O and batching
-  implemented in C++, shared with the `Pipeline` use case, and exposed to Python
-  via Python binding `linpipe.training`. The training itself implemented in
-  Python scripts with `import linpipe.training`. Trained checkpoints saved in
-  `onnx`. `ModelManager` loads trained checkpoints via `onnx`.
-- **Model Management**: `Model Manager` orchestrates loading models from disk,
-  access to models and rotating the models in memory.
+- **Model Management**: `Model Manager` singleton orchestrates loading models
+  from disk, access to models and unloading the models from memory.
 
 ## Corpus, Document and Layers
 
@@ -71,7 +53,6 @@ classDiagram
 
   Corpus "1" *-- "0..*" Document
   Document "1" *-- "0..*" Layer
-
 ```
 
 Typical `Layer` types include:
@@ -107,8 +88,8 @@ All pipelines in LinPipe are realized via a user-configurable sequence of
 transformations over data. A `Pipeline` consists of a configurable sequence of
 `Operations`.
 
-The operations are executed sequentially. Each operation receives the Corpus
-produced by the preceding operation and enriches it with additional Layers. The
+The operations are executed sequentially. Each operation receives the `Corpus`
+produced by the preceding operation and enriches it with additional `Layers`. The
 operations also pass a `PipelineState` object which captures the `Pipeline`
 instance information, in particular the pointer to `Model Manager` for access to
 available models and input and output stream.
@@ -120,7 +101,7 @@ classDiagram
   }
 
   class PipelineState {
-    +model_manager: ModelManager&
+    +model_manager: *ModelManager
     +default_input: istream&
     +default_output: ostream&
   }
@@ -167,9 +148,9 @@ flowchart LR
     D3 --> N --> D4
 ```
 
-The sequence of Operations is not fixed. Different Pipelines may compose
-different Operations in different orders, provided that their Layer requirements
-are satisfied.
+The sequence of `Operations` is not fixed. Different `Pipelines` may compose
+different `Operations` in different orders, provided that their `Layer`
+requirements are satisfied.
 
 ## Formats
 
@@ -238,6 +219,11 @@ flowchart LR
 
 ## Model Management
 
+A `ModelManager` singleton orchestrates local models loading upon creation of
+the `Pipeline` based on model reservation requests from the individual
+`Operations` and handles releasing the models from the memory once there is no
+`Operation` to consume the model in the future.
+
 ```mermaid
 classDiagram
   class ModelManager {
@@ -247,6 +233,17 @@ classDiagram
     +singleton: ModelManager$
   }
 ```
+
+## Training Models for LinPipe
+
+LinPipe in C++ only handles the inference.
+
+Model training for LinPipe will be implemented as Python binding for the C++
+code over the I/O and batching C++ implementatins, and exposed to Python via
+Python binding `linpipe.training`. The training itself will be freely
+implemented in Python scripts using `import linpipe.training`. Trained
+checkpoints are saved in `onnx`. `ModelManager` also loads trained checkpoints
+via `onnx`.
 
 ## Design Suggestions for the Next Meeting
 
@@ -268,8 +265,8 @@ flowchart LR
     O2 --> O3[Operation 3]
 ```
 
-An operation may additionally verify its required Layers at runtime and raise
-an exception if the Document does not contain them.
+An operation should additionally verify its required `Layers` at runtime and raise
+an exception if the `Document` does not contain them.
 
 For example, `NER` may declare:
 
@@ -289,23 +286,10 @@ produces: Tokens
 
 Maybe we should rename `execute()` to `apply()`.
 
-### Corpus
-
-Do we need a single `Corpus` holder for multiple `Documents`?
-
 ### Server in PipelineState
 
 Source code has `Server server` in `PipelineState`, why are we passing a server
 along with a Pipeline?
-
-### Train Model
-
-Class design.
-
-## TODO
-
-1. Describe pipeline construction from string description.
-2. Describe I/O.
 
 ---
 
