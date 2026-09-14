@@ -7,17 +7,17 @@ site_dir = "site"
 
 nav = [
   { "LinPipe" = [
-    "linpipe.md",
+    "index.md",
     "design.md",
   ] },
-  { "User Manual" = [
-    "user_manual/installation.md",
+  { "Get Started" = [
+    "get_started/installation.md",
     { "Tutorials" = [
       { "Tutorial1" = "..." }, { "Tutorial2" = "..." }, { "Tutorial3" = "..." },
     ] },
   ] },
   { "Models" = [
-    "models/models.md",
+    "models/index.md",
     { "Tokenization" = [
       { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
     ] },
@@ -38,7 +38,7 @@ nav = [
     ] },
   ] },
   { "Training" = [
-    "training/training.md",
+    "training/index.md",
     { "Tokenization" = [
       { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
     ] },
@@ -62,8 +62,8 @@ nav = [
     "api_reference.md",
   ] },
   { "Development" = [
-    "dev/codestyle.md",
     "dev/architecture.md",
+    "dev/codestyle.md",
     "dev/notes.md",
   ] },
 ]
