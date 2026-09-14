@@ -13,11 +13,11 @@ An overview of the LinPipe system architecture:
 - **Pipeline**: The transformations execution is based on a `Pipeline`,
   a user-configured sequence of abstract `Operations`, such as `Segment` or
   `Tokenize`.
-- **I/O**: `Load` and `Save` are also parts of the `Pipeline` as `Operations`,
-  ones that contain an abstract class `Format`, such as `Text`, `Conll`, or
-  `Lif`.
-- **Model Management**: `Model Manager` singleton orchestrates loading models
-  from disk, access to models and unloading the models from memory.
+- **Formats**: `Load` and `Save` are also parts of the `Pipeline` as
+  `Operations`, ones that contain an abstract class `Format`, such as `Text`,
+  `Conll`, or `Lif`.
+- **Model Management**: `ModelManager` singleton orchestrates loading local
+  models from disk, access to models and unloading the models from memory.
 
 ## Corpus, Document and Layers
 
@@ -91,8 +91,9 @@ transformations over data. A `Pipeline` consists of a configurable sequence of
 The operations are executed sequentially. Each operation receives the `Corpus`
 produced by the preceding operation and enriches it with additional `Layers`. The
 operations also pass a `PipelineState` object which captures the `Pipeline`
-instance information, in particular the pointer to `Model Manager` for access to
-available models and input and output stream.
+instance information, in particular (i) `ModelManager` for access to
+locally available models, (ii) 'Server' for access to cloud-based models, and
+(iii) input and output stream.
 
 ```mermaid
 classDiagram
@@ -102,6 +103,7 @@ classDiagram
 
   class PipelineState {
     +model_manager: *ModelManager
+    +server: Server
     +default_input: istream&
     +default_output: ostream&
   }
@@ -285,11 +287,6 @@ produces: Tokens
 ### Execute vs. Apply
 
 Maybe we should rename `execute()` to `apply()`.
-
-### Server in PipelineState
-
-Source code has `Server server` in `PipelineState`, why are we passing a server
-along with a Pipeline?
 
 ---
 
