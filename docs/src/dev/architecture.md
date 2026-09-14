@@ -210,6 +210,32 @@ classDiagram
   Format <|-- Lif
 ```
 
+An example of a full pipeline including a reader and a writer:
+
+```mermaid
+flowchart LR
+  I["Input<br/>Format"]
+  Load["Load<br/>Input<br/>Format"]
+  D0["Corpus<br/>Document<br/>Text"]
+  S["Segment"]
+  D1["Corpus<br/>Document<br/>+ SegmentedText"]
+  T["Tokenize"]
+  D2["Corpus<br/>Document<br/>+ Tokens"]
+  M["MorphologicalAnalysis"]
+  D3["Corpus<br/>Document<br/>+ TaggedTokens"]
+  N["NER"]
+  D4["Corpus<br/>Document<br/>+ TaggedSpans"]
+  Save["Save<br/>Output<br/>Format"]
+  O["Output<br/>Format"]
+
+  I --> Load --> D0
+  D0 --> S --> D1
+  D1 --> T --> D2
+  D2 --> M --> D3
+  D3 --> N --> D4
+  D4 --> Save --> O
+```
+
 ## Model Management
 
 ```mermaid
