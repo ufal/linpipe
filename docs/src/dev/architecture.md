@@ -42,7 +42,7 @@ several `Layers` of the same type, but the `Layer` names must be unique.
 ```mermaid
 classDiagram
   class Corpus {
-    +vector~unique_ptr~Document~~
+    +documents: vector~unique_ptr~Document~~
   }
 
   class Document {
@@ -115,9 +115,9 @@ classDiagram
   }
 
   class PipelineState {
-    +ModelManager* model_manager;
-    +istream* default_input;
-    +ostream* default_output;
+    +model_manager: ModelManager&
+    +default_input: istream&
+    +default_output: ostream&
   }
 
   class Operation {
