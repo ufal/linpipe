@@ -27,8 +27,8 @@ An overview of the LinPipe system architecture:
   a `Pipeline`, a user-configured sequence of abstract `Operations`, such as
   `Segment` or `Tokenize`.
 - **I/O**: `Load` and `Save` are also parts of the `Pipeline` as `Operations`,
-  ones that contain an abstract class `Format`, such as `LiF`, `Text`, or
-  `CoNLL`.
+  ones that contain an abstract class `Format`, such as `Text`, `Conll`, or
+  `Lif`.
 - **Train model**: Python binding for the C++ code with I/O and batching
   implemented in C++, shared with the `Pipeline` use case, and exposed to Python
   via Python binding `linpipe.training`. The training itself implemented in
@@ -174,8 +174,8 @@ are satisfied.
 ## Formats
 
 `Load` and `Save` are also `Operations` and part of the `Pipeline`. Each
-instance of `Load` and `Save` contains a `Format`, such as `LiF`, `Conll`, or
-`Text`.
+instance of `Load` and `Save` contains a `Format`, such as `Text`, `Conll`, or
+`Lif`.
 
 ```mermaid
 classDiagram
