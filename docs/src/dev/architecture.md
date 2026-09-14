@@ -26,13 +26,14 @@ An overview of the LinPipe system architecture:
 - **Pipeline**: The inference transformations execution is based on
   a `Pipeline`, a user-configured sequence of abstract `Operations`, such as
   `Segment` or `Tokenize`.
+- **I/O**: `Load` and `Save` are also parts of the `Pipeline` as `Operations`,
+  ones that contain an abstract class `Format`, such as `LiF`, `Text`, or
+  `CoNLL`.
 - **Train model**: Python binding for the C++ code with I/O and batching
   implemented in C++, shared with the `Pipeline` use case, and exposed to Python
   via Python binding `linpipe.training`. The training itself implemented in
   Python scripts with `import linpipe.training`. Trained checkpoints saved in
   `onnx`. `ModelManager` loads trained checkpoints via `onnx`.
-- **I/O**: Input and output are realized via abstract `Formats`, such as LinPipe
-  native `LiF`, `Text`, or `CoNLL`.
 - **Model Management**: `Model Manager` orchestrates loading models from disk,
   access to models and rotating the models in memory.
 
@@ -170,9 +171,44 @@ The sequence of Operations is not fixed. Different Pipelines may compose
 different Operations in different orders, provided that their Layer requirements
 are satisfied.
 
-## Input and Output Formats
+## Formats
 
-TODO
+`Load` and `Save` are also `Operations` and part of the `Pipeline`. Each
+instance of `Load` and `Save` contains a `Format`, such as `LiF`, `Conll`, or
+`Text`.
+
+```mermaid
+classDiagram
+  class Load {
+  }
+
+  Load o-- Format
+
+  class Save {
+  }
+
+  Save o-- Format
+
+  Operation <|-- Load
+  Operation <|-- Save
+
+  class Format {
+    <<abstract>>
+    +create(description: string) unique_ptr~Format~
+    +load(input: istream&, source_path: string) unique_ptr~Document~
+    +save(Document, output: ostream&)
+    +save_corpus_start(output: ostream&)
+    +save_corpus_end(output: ostream&)
+  }
+
+  class Text
+  class Conll
+  class Lif
+
+  Format <|-- Text
+  Format <|-- Conll
+  Format <|-- Lif
+```
 
 ## Model Management
 
