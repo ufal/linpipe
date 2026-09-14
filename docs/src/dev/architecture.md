@@ -26,7 +26,11 @@ An overview of the LinPipe system architecture:
 - **Pipeline**: The inference transformations execution is based on
   a `Pipeline`, a user-configured sequence of abstract `Operations`, such as
   `Segment` or `Tokenize`.
-- **Train model**: TODO.
+- **Train model**: Python binding for the C++ code with I/O and batching
+  implemented in C++, shared with the `Pipeline` use case, and exposed to Python
+  via Python binding `linpipe.training`. The training itself implemented in
+  Python scripts with `import linpipe.training`. Trained checkpoints saved in
+  `onnx`. `ModelManager` loads trained checkpoints via `onnx`.
 - **I/O**: Input and output are realized via abstract `Formats`, such as LinPipe
   native `LiF`, `Text`, or `CoNLL`.
 - **Model Management**: `Model Manager` orchestrates loading models from disk,
@@ -231,6 +235,15 @@ Do we need a single `Corpus` holder for multiple `Documents`?
 
 Source code has `Server server` in `PipelineState`, why are we passing a server
 along with a Pipeline?
+
+### Train Model
+
+Class design.
+
+## TODO
+
+1. Describe pipeline construction from string description.
+2. Describe I/O.
 
 ---
 
