@@ -221,7 +221,7 @@ produces: Tokens
 
 ### Execute vs. Apply
 
-Maybe we should rename `execute()` to `apply().
+Maybe we should rename `execute()` to `apply()`.
 
 ### Corpus
 
