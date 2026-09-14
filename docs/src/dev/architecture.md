@@ -25,7 +25,7 @@ An overview of the LinPipe system architecture:
   `SegmentedText`, `Tokens`, `TaggedTokens`, or `TaggedSpans`.
 - **Pipeline**: The inference transformations execution is based on
   a `Pipeline`, a user-configured sequence of abstract `Operations`, such as
-  `Segment`, `Tokenize`, or `Tag`.
+  `Segment` or `Tokenize`.
 - **Train model**: TODO.
 - **I/O**: Input and output are realized via abstract `Formats`, such as LinPipe
   native `LiF`, `Text`, or `CoNLL`.
@@ -106,7 +106,7 @@ The operations are executed sequentially. Each operation receives the Corpus
 produced by the preceding operation and enriches it with additional Layers. The
 operations also pass a `PipelineState` object which captures the `Pipeline`
 instance information, in particular the pointer to `Model Manager` for access to
-available models, `Server` (TODO) and input and output stream.
+available models and input and output stream.
 
 ```mermaid
 classDiagram
@@ -116,7 +116,6 @@ classDiagram
 
   class PipelineState {
     +ModelManager* model_manager;
-    +Server server;
     +istream* default_input;
     +ostream* default_output;
   }
@@ -227,6 +226,11 @@ Maybe we should rename `execute()` to `apply().
 ### Corpus
 
 Do we need a single `Corpus` holder for multiple `Documents`?
+
+### Server in PipelineState
+
+Source code has `Server server` in `PipelineState`, why are we passing a server
+along with a Pipeline?
 
 ---
 
