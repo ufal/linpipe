@@ -18,6 +18,8 @@ flowchart LR
     U --> T
 ```
 
+An overview of the LinPipe system architecture:
+
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `Text`,
   `SegmentedText`, `Tokens`, `TaggedTokens`, or `TaggedSpans`.
@@ -27,6 +29,8 @@ flowchart LR
 - **Train model**: TODO.
 - **I/O**: Input and output are realized via abstract `Formats`, such as LinPipe
   native `LiF`, `Text`, or `CoNLL`.
+- **Model Management**: `Model Manager` orchestrates loading models from disk,
+  access to models and rotating the models in memory.
 
 ## Corpus, Document and Layers
 
@@ -79,13 +83,13 @@ classDiagram
         +type() string&
     }
 
-    class PlainText
+    class Text
     class SegmentedText
     class Tokens
     class TaggedTokens
     class TaggedSpans
 
-    Layer <|-- PlainText
+    Layer <|-- Text
     Layer <|-- SegmentedText
     Layer <|-- Tokens
     Layer <|-- TaggedTokens
@@ -98,40 +102,52 @@ All pipelines in LinPipe are realized via a user-configurable sequence of
 transformations over data. A `Pipeline` consists of a configurable sequence of
 `Operations`.
 
+The operations are executed sequentially. Each operation receives the Corpus
+produced by the preceding operation and enriches it with additional Layers. The
+operations also pass a `PipelineState` object which captures the `Pipeline`
+instance information, in particular the pointer to `Model Manager` for access to
+available models, `Server` (TODO) and input and output stream.
+
 ```mermaid
 classDiagram
-    class Pipeline {
-        +execute(Corpus)
-    }
+  class Pipeline {
+    +execute(Corpus)
+  }
 
-    class Operation {
-        <<interface>>
-        +execute(Corpus) Document
-    }
+  class PipelineState {
+    +ModelManager* model_manager;
+    +Server server;
+    +istream* default_input;
+    +ostream* default_output;
+  }
 
-    Pipeline "1" *-- "1..*" Operation
+  class Operation {
+    <<interface>>
+    +reserve_models(PipelineState)
+    +execute(Corpus) Document
+  }
 
-    class Segment
-    class Tokenize
-    class MorphologicalAnalysis
-    class DependencyParse
-    class NER
+  Pipeline "1" *-- "1..*" Operation
+  Pipeline o-- PipelineState
 
-    Operation <|.. Segment
-    Operation <|.. Tokenize
-    Operation <|.. MorphologicalAnalysis
-    Operation <|.. DependencyParse
-    Operation <|.. NER
+  class Segment
+  class Tokenize
+  class MorphologicalAnalysis
+  class DependencyParse
+  class NER
+
+  Operation <|.. Segment
+  Operation <|.. Tokenize
+  Operation <|.. MorphologicalAnalysis
+  Operation <|.. DependencyParse
+  Operation <|.. NER
 ```
-
-The operations are executed sequentially. Each operation receives the Corpus
-produced by the preceding operation and enriches it with additional Layers.
 
 For example:
 
 ```mermaid
 flowchart LR
-    D0["Corpus<br/>Document<br/>PlainText"]
+    D0["Corpus<br/>Document<br/>Text"]
     S["Segment"]
     D1["Corpus<br/>Document<br/>+ SegmentedText"]
     T["Tokenize"]
@@ -154,6 +170,16 @@ are satisfied.
 ## Input and Output Formats
 
 TODO
+
+## Model Management
+
+```mermaid
+class ModelManager {
+  +reserve(name: string);
+  +load(name: string) *Model;
+  +release(name: string);
+  static ModelManager singleton;
+```
 
 ## Design Suggestions for the Next Meeting
 
