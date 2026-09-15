@@ -11,7 +11,7 @@
 
 #include "core/document.h"
 #include "formats/text.h"
-#include "layers/text.h"
+#include "layers/plain_text.h"
 #include "lib/doctest.h"
 #include "lib/json.h"
 
@@ -26,9 +26,9 @@ TEST_CASE("formats::Text::load") {
 
     CHECK(doc->layers().size() == 1);
     CHECK(doc->source_path() == "source");
-    CHECK(doc->layers()[0]->name() == "text");
+    CHECK(doc->layers()[0]->name() == "plain_text");
 
-    auto& layer = doc->get_layer<layers::Text>("text");
+    auto& layer = doc->get_layer<layers::PlainText>("plain_text");
     CHECK(layer.text == "Hello world!\n");
   }
 

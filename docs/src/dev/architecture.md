@@ -8,7 +8,7 @@ NLP operations on it, and writes the resulting output.
 An overview of the LinPipe system architecture:
 
 - **Data:** All data is held as a single `Corpus`, which contains a list of
-  `Documents`, which contain a list of abstract `Layers`, such as `Text`,
+  `Documents`, which contain a list of abstract `Layers`, such as `PlainText`,
   `SegmentedText`, `Tokens`, `TaggedTokens`, or `TaggedSpans`.
 - **Pipeline**: The transformations execution is based on a `Pipeline`,
   a user-configured sequence of abstract `Operations`, such as `Segment` or
@@ -69,13 +69,13 @@ classDiagram
         +type() string&
     }
 
-    class Text
+    class PlainText
     class SegmentedText
     class Tokens
     class TaggedTokens
     class TaggedSpans
 
-    Layer <|-- Text
+    Layer <|-- PlainText
     Layer <|-- SegmentedText
     Layer <|-- Tokens
     Layer <|-- TaggedTokens
@@ -134,7 +134,7 @@ For example:
 
 ```mermaid
 flowchart LR
-    D0["Corpus<br/>Document<br/>Text"]
+    D0["Corpus<br/>Document<br/>PlainText"]
     S["Segment"]
     D1["Corpus<br/>Document<br/>+ SegmentedText"]
     T["Tokenize"]
@@ -199,7 +199,7 @@ An example of a full pipeline including a reader and a writer:
 flowchart LR
   I["Input<br/>Format"]
   Load["Load<br/>Input<br/>Format"]
-  D0["Corpus<br/>Document<br/>Text"]
+  D0["Corpus<br/>Document<br/>PlainText"]
   S["Segment"]
   D1["Corpus<br/>Document<br/>+ SegmentedText"]
   T["Tokenize"]

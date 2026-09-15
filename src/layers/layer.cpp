@@ -10,7 +10,7 @@
 #include "layers/layer.h"
 #include "layers/lemmas.h"
 #include "layers/spans.h"
-#include "layers/text.h"
+#include "layers/plain_text.h"
 #include "layers/tokens.h"
 #include "lib/json.h"
 
@@ -22,8 +22,8 @@ unique_ptr<Layer> Layer::create(const string type, const string name) {
     return make_unique<layers::Spans>(name);
   if (type == "lemmas")
     return make_unique<layers::Lemmas>(name);
-  if (type == "text")
-    return make_unique<layers::Text>(name);
+  if (type == "plain_text")
+    return make_unique<layers::PlainText>(name);
   if (type == "tokens")
     return make_unique<layers::Tokens>(name);
 

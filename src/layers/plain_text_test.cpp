@@ -7,18 +7,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/text.h"
+#include "layers/plain_text.h"
 #include "lib/doctest.h"
 #include "lib/json.h"
 
 namespace linpipe {
 
-TEST_CASE("Text::from_json") {
-  layers::Text text("text");
-  CHECK_THROWS_AS(text.from_json(Json(42)), LinpipeError);
-  CHECK_THROWS_AS(text.from_json(Json::object()), LinpipeError);
-  CHECK_THROWS_AS(text.from_json(Json{{"text", 42}}), LinpipeError);
-  CHECK_NOTHROW(text.from_json(Json{{"text", "hello world"}, {"type", "text"}, {"name", "text"}}));
+TEST_CASE("PlainText::from_json") {
+  layers::PlainText plain_text("plain_text");
+  CHECK_THROWS_AS(plain_text.from_json(Json(42)), LinpipeError);
+  CHECK_THROWS_AS(plain_text.from_json(Json::object()), LinpipeError);
+  CHECK_THROWS_AS(plain_text.from_json(Json{{"text", 42}}), LinpipeError);
+  CHECK_NOTHROW(plain_text.from_json(Json{{"text", "hello world"}, {"type", "plain_text"}, {"name", "plain_text"}}));
 }
 
 } // namespace linpipe

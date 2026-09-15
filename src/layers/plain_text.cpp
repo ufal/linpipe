@@ -7,22 +7,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/text.h"
+#include "layers/plain_text.h"
 #include "lib/json.h"
 #include "utils/json_utils.h"
 
 namespace linpipe::layers {
 
-void Text::from_json(const Json& json) {
-  json_assert_object("Text::from_json", json);
+void PlainText::from_json(const Json& json) {
+  json_assert_object("PlainText::from_json", json);
 
-  json_get_string("Text::from_json", json, "type", type_);
-  json_get_string("Text::from_json", json, "name", name_);
+  json_get_string("PlainText::from_json", json, "type", type_);
+  json_get_string("PlainText::from_json", json, "name", name_);
 
-  json_get_string("Text::from_json", json, "text", text);
+  json_get_string("PlainText::from_json", json, "text", text);
 }
 
-Json Text::to_json() {
+Json PlainText::to_json() {
   return {
     {"text", text},
     {"name", name_},
@@ -30,7 +30,7 @@ Json Text::to_json() {
   };
 }
 
-string Text::to_html() {
+string PlainText::to_html() {
   return string();
 }
 

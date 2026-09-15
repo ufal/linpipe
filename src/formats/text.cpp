@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "formats/text.h"
-#include "layers/text.h"
+#include "layers/plain_text.h"
 #include "lib/json.h"
 
 namespace linpipe::formats {
@@ -17,7 +17,7 @@ unique_ptr<Document> Text::load(istream& input, const string source_path) {
   if (input.eof())
     return nullptr;
 
-  unique_ptr<layers::Text> layer = make_unique<layers::Text>();
+  unique_ptr<layers::PlainText> layer = make_unique<layers::PlainText>();
 
   char block[4096];
   while (input.read(block, sizeof(block)))
@@ -32,7 +32,7 @@ unique_ptr<Document> Text::load(istream& input, const string source_path) {
 }
 
 void Text::save(Document& document, ostream& output) {
-  auto& layer = document.get_layer<layers::Text>();
+  auto& layer = document.get_layer<layers::PlainText>();
 
   output << string(layer.text);
 }
