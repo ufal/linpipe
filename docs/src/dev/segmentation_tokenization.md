@@ -56,6 +56,20 @@ before its constituent word lines.
 
 ```mermaid
 classDiagram
+
+  class PlainText {
+    +text() string_view
+    +synthetic() bool
+  }
+
+  class IndexSpan {
+    +begin: size_t
+    +end: size_t
+    +size() size_t
+    +empty() bool
+    +contains(index: size_t) bool
+  }
+
   class TokenLayer {
     +size() size_t
     +name() string_view
@@ -75,4 +89,7 @@ classDiagram
     +surface_span: IndexSpan
     +surface_text_override: optional~string~
   }
+
+  TokenLayer "1" *-- "0..*" MultiwordGroup
+  TokenLayer "1" o-- "1" PlainText : mandatory, slices text from
 ```
