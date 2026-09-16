@@ -62,7 +62,9 @@ nav = [
     "api_reference.md",
   ] },
   { "Development" = [
-    "dev/architecture.md",
+    {"System Architecture" = [
+      { "Overview" = "dev/architecture.md" }, {"Segmentation and Tokenization" = "dev/segmentation_tokenization.md" }
+    ] },
     "dev/codestyle.md",
     "dev/notes.md",
   ] },
