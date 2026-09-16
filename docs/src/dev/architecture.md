@@ -9,7 +9,7 @@ An overview of the LinPipe system architecture:
 
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `PlainText`,
-  `SegmentedText`, `Tokens`, `TaggedTokens`, or `TaggedSpans`.
+  `Segmentation`, `TokenLayer`, `TaggedTokens`, or `TaggedSpans`. 
 - **Pipeline**: The transformations execution is based on a `Pipeline`,
   a user-configured sequence of abstract `Operations`, such as `Segment` or
   `Tokenize`.
@@ -70,14 +70,14 @@ classDiagram
     }
 
     class PlainText
-    class SegmentedText
-    class Tokens
+    class Segmentation
+    class TokenLayer
     class TaggedTokens
     class TaggedSpans
 
     Layer <|-- PlainText
-    Layer <|-- SegmentedText
-    Layer <|-- Tokens
+    Layer <|-- Segmentation
+    Layer <|-- TokenLayer
     Layer <|-- TaggedTokens
     Layer <|-- TaggedSpans
 ```
@@ -136,9 +136,9 @@ For example:
 flowchart LR
     D0["Corpus<br/>Document<br/>PlainText"]
     S["Segment"]
-    D1["Corpus<br/>Document<br/>+ SegmentedText"]
+    D1["Corpus<br/>Document<br/>+ Segmentation"]
     T["Tokenize"]
-    D2["Corpus<br/>Document<br/>+ Tokens"]
+    D2["Corpus<br/>Document<br/>+ TokenLayer"]
     M["MorphologicalAnalysis"]
     D3["Corpus<br/>Document<br/>+ TaggedTokens"]
     N["NER"]
@@ -201,9 +201,9 @@ flowchart LR
   Load["Load<br/>Input<br/>Format"]
   D0["Corpus<br/>Document<br/>PlainText"]
   S["Segment"]
-  D1["Corpus<br/>Document<br/>+ SegmentedText"]
+  D1["Corpus<br/>Document<br/>+ Segmentation"]
   T["Tokenize"]
-  D2["Corpus<br/>Document<br/>+ Tokens"]
+  D2["Corpus<br/>Document<br/>+ TokenLayer"]
   M["MorphologicalAnalysis"]
   D3["Corpus<br/>Document<br/>+ TaggedTokens"]
   N["NER"]
@@ -218,6 +218,11 @@ flowchart LR
   D3 --> N --> D4
   D4 --> Save --> O
 ```
+
+For formats like `Conll` that already supply sentence and token boundaries
+jointly, `Load` may construct `PlainText` (synthesized, per
+`segmentation_tokenization.md`), `Segmentation`, and `TokenLayer` directly in
+one pass, rather than needing `Segment` and `Tokenize` to run afterward.
 
 ## Model Management
 
@@ -273,15 +278,20 @@ an exception if the `Document` does not contain them.
 For example, `NER` may declare:
 
 ```
-requires: Tokens
+requires: TokenLayer
 produces: TaggedSpans
 ```
 
-while `Tokenize` may declare:
+while `Segment` and `Tokenize` may declare:
 
 ```
-requires: SegmentedText
-produces: Tokens
+requires: PlainText
+produces: Segmentation
+```
+
+```
+requires: PlainText, Segmentation
+produces: TokenLayer
 ```
 
 ### Execute vs. Apply
