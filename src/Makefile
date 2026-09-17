@@ -36,7 +36,7 @@ include $(wildcard Makefile.include */Makefile.include */*/Makefile.include)
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
 	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain) $(treat_warnings_as_no_errors))
 $(call exe,linpipe_test): $(call obj,linpipe_test $(LINPIPE_OBJECTS) $(LINPIPE_TESTS) utils/win_wmain_utf8)
-	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain))
+	$(call link_exe,$@,$^,$(call win_subsystem,console,wmain) $(treat_warnings_as_no_errors))
 $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 	$(call link_lib,$@,$^)
 
