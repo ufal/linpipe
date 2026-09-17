@@ -1,6 +1,6 @@
 # This file is part of LinPipe <http://github.com/ufal/linpipe/>.
 #
-# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# Copyright 2022-2026 Institute of Formal and Applied Linguistics, Faculty
 # of Mathematics and Physics, Charles University in Prague, Czech Republic.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
