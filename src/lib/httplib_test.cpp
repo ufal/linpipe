@@ -14,17 +14,16 @@
 namespace linpipe {
 
 TEST_CASE("httplib::Client http" * doctest::may_fail(true)) {
-  httplib::Client req("http://lindat.mff.cuni.cz");
+  httplib::Client req("http://huggingface.co");
   auto res = req.Get("/");
-  REQUIRE_MESSAGE(res, "http request failed: ", res.error());
+  REQUIRE_MESSAGE(res, "http request failed: ", httplib::to_string(res.error()));
   CHECK(res->status == 301);
 }
 
 TEST_CASE("httplib::Client https" * doctest::may_fail(true)) {
-  httplib::Client req("https://lindat.mff.cuni.cz");
+  httplib::Client req("https://huggingface.co");
   auto res = req.Get("/");
-  REQUIRE_MESSAGE(res, "https request failed: ", res.error(), ", OpenSSL error: ",
-                  string(req.get_openssl_verify_result() ? X509_verify_cert_error_string(req.get_openssl_verify_result()) : "none"));
+  REQUIRE_MESSAGE(res, "https request failed: ", httplib::to_string(res.error()));
   CHECK(res->status == 200);
 }
 

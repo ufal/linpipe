@@ -11,44 +11,24 @@
 
 set -e
 
-git clone --depth=1 --branch=v0.18.0 https://github.com/yhirose/cpp-httplib cpp-httplib
+[ -d cpp-httplib ] && rm -rf cpp-httplib/
+git clone --depth=1 --branch=v0.56.0 https://github.com/yhirose/cpp-httplib cpp-httplib
 
-sed 's/namespace httplib/namespace linpipe::httplib/' cpp-httplib/httplib.h >httplib.h
+(cd cpp-httplib && python3 split.py -e cpp)
 
-patch httplib.h <<"EOF"
---- httplib.h.orig	2024-09-26 23:36:33.851068560 +0200
-+++ httplib.h	2024-09-26 23:36:33.855068551 +0200
-@@ -277,15 +277,17 @@
- #endif // TARGET_OS_OSX
- #endif // _WIN32
- 
--#include <openssl/err.h>
--#include <openssl/evp.h>
--#include <openssl/ssl.h>
--#include <openssl/x509v3.h>
-+#include "lib/openssl/include/openssl/err.h"
-+#include "lib/openssl/include/openssl/evp.h"
-+#include "lib/openssl/include/openssl/ssl.h"
-+#include "lib/openssl/include/openssl/x509v3.h"
- 
- #if defined(_WIN32) && defined(OPENSSL_USE_APPLINK)
--#include <openssl/applink.c>
-+#include "lib/openssl/include/openssl/applink.c"
- #endif
- 
-+#include "lib/httplib_bundled_certs.h"
-+
- #include <iostream>
- #include <sstream>
- 
-@@ -9312,6 +9314,7 @@
-       loaded = detail::load_system_certs_on_macos(SSL_CTX_get_cert_store(ctx_));
- #endif // TARGET_OS_OSX
- #endif // _WIN32
-+      if (!loaded) loaded = detail::load_bundled_certs(SSL_CTX_get_cert_store(ctx_));
-       if (!loaded) { SSL_CTX_set_default_verify_paths(ctx_); }
-     }
-   });
-EOF
+for e in cpp h; do
+  sed "s/namespace httplib/namespace linpipe::httplib/" cpp-httplib/out/httplib.$e >httplib.$e
+done
+
+sed '
+  /^#define CPPHTTPLIB_HTTPLIB_H$/a #define CPPHTTPLIB_MBEDTLS_SUPPORT 1
+  /^#define CPPHTTPLIB_HTTPLIB_H$/a #if defined(__APPLE__)
+  /^#define CPPHTTPLIB_HTTPLIB_H$/a #define CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN 1
+  /^#define CPPHTTPLIB_HTTPLIB_H$/a #endif
+
+  s@^#include <\(mbedtls\|psa\)\(/[^>]*\)>@#include "lib/mbedtls/include/\1\2"@;
+' -i httplib.h
+
+sed 's@#include "httplib.h"@#include "lib/httplib.h"@' -i httplib.cpp
 
 rm -rf cpp-httplib

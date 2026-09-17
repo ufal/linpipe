@@ -23,8 +23,9 @@ all: default lib test_compile
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
 C_FLAGS += $(if $(filter release,$(MODE)),$(disable_assert))
+C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),$(call define_macro,_WIN32_WINNT,0x0A00))
 LD_FLAGS += $(use_threads)
-LD_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),$(call use_library,advapi32) $(call use_library,user32) $(call use_library,ws2_32))
+LD_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),$(foreach lib,advapi32 bcrypt user32 ws2_32,$(call use_library,$(lib))))
 LD_FLAGS += $(if $(filter macos-%,$(PLATFORM)),-framework CoreFoundation -framework Security)
 
 # Collect all Makefile.include files

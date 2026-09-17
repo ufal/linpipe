@@ -1,0 +1,92 @@
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+#
+# Copyright 2022-2023 Institute of Formal and Applied Linguistics, Faculty
+# of Mathematics and Physics, Charles University in Prague, Czech Republic.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$(call obj,lib/mbedtls/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
+
+LINPIPE_OBJECTS += lib/mbedtls/src/aes
+LINPIPE_OBJECTS += lib/mbedtls/src/aesce
+LINPIPE_OBJECTS += lib/mbedtls/src/aesni
+LINPIPE_OBJECTS += lib/mbedtls/src/aria
+LINPIPE_OBJECTS += lib/mbedtls/src/asn1parse
+LINPIPE_OBJECTS += lib/mbedtls/src/asn1write
+LINPIPE_OBJECTS += lib/mbedtls/src/base64
+LINPIPE_OBJECTS += lib/mbedtls/src/bignum
+LINPIPE_OBJECTS += lib/mbedtls/src/bignum_core
+LINPIPE_OBJECTS += lib/mbedtls/src/camellia
+LINPIPE_OBJECTS += lib/mbedtls/src/ccm
+LINPIPE_OBJECTS += lib/mbedtls/src/chacha20
+LINPIPE_OBJECTS += lib/mbedtls/src/chacha20_neon
+LINPIPE_OBJECTS += lib/mbedtls/src/chachapoly
+LINPIPE_OBJECTS += lib/mbedtls/src/cipher
+LINPIPE_OBJECTS += lib/mbedtls/src/cipher_wrap
+LINPIPE_OBJECTS += lib/mbedtls/src/cmac
+LINPIPE_OBJECTS += lib/mbedtls/src/constant_time
+LINPIPE_OBJECTS += lib/mbedtls/src/ctr_drbg
+LINPIPE_OBJECTS += lib/mbedtls/src/debug
+LINPIPE_OBJECTS += lib/mbedtls/src/error
+LINPIPE_OBJECTS += lib/mbedtls/src/ecdsa
+LINPIPE_OBJECTS += lib/mbedtls/src/ecjpake
+LINPIPE_OBJECTS += lib/mbedtls/src/ecp
+LINPIPE_OBJECTS += lib/mbedtls/src/ecp_curves
+LINPIPE_OBJECTS += lib/mbedtls/src/entropy
+LINPIPE_OBJECTS += lib/mbedtls/src/entropy_poll
+LINPIPE_OBJECTS += lib/mbedtls/src/gcm
+LINPIPE_OBJECTS += lib/mbedtls/src/hmac_drbg
+LINPIPE_OBJECTS += lib/mbedtls/src/md
+LINPIPE_OBJECTS += lib/mbedtls/src/md5
+LINPIPE_OBJECTS += lib/mbedtls/src/oid
+LINPIPE_OBJECTS += lib/mbedtls/src/pem
+LINPIPE_OBJECTS += lib/mbedtls/src/pk
+LINPIPE_OBJECTS += lib/mbedtls/src/pk_ecc
+LINPIPE_OBJECTS += lib/mbedtls/src/pk_rsa
+LINPIPE_OBJECTS += lib/mbedtls/src/pk_wrap
+LINPIPE_OBJECTS += lib/mbedtls/src/pkcs5
+LINPIPE_OBJECTS += lib/mbedtls/src/pkparse
+LINPIPE_OBJECTS += lib/mbedtls/src/pkwrite
+LINPIPE_OBJECTS += lib/mbedtls/src/platform_util
+LINPIPE_OBJECTS += lib/mbedtls/src/poly1305
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_aead
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_cipher
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_client
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_driver_wrappers_no_static
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_ecp
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_ffdh
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_hash
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_mac
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_pake
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_random
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_rsa
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_slot_management
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_storage
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_crypto_xof
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_its_file
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_util
+LINPIPE_OBJECTS += lib/mbedtls/src/psa_util_internal
+LINPIPE_OBJECTS += lib/mbedtls/src/ripemd160
+LINPIPE_OBJECTS += lib/mbedtls/src/rsa
+LINPIPE_OBJECTS += lib/mbedtls/src/rsa_alt_helpers
+LINPIPE_OBJECTS += lib/mbedtls/src/sha1
+LINPIPE_OBJECTS += lib/mbedtls/src/sha256
+LINPIPE_OBJECTS += lib/mbedtls/src/sha3
+LINPIPE_OBJECTS += lib/mbedtls/src/sha512
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_ciphersuites
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_client
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_debug_helpers_generated
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_msg
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls12_client
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls12_server
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls13_client
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls13_generic
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls13_keys
+LINPIPE_OBJECTS += lib/mbedtls/src/ssl_tls13_server
+LINPIPE_OBJECTS += lib/mbedtls/src/x509
+LINPIPE_OBJECTS += lib/mbedtls/src/x509_crt
+LINPIPE_OBJECTS += lib/mbedtls/src/x509_oid

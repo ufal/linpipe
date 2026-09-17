@@ -1,0 +1,4 @@
+mbedtls
+- licence: Apache Licence 2.0
+- source: https://github.com/Mbed-TLS/mbedtls
+- version: 4.2.0
