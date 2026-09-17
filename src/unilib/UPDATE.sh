@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This file is part of C++-Builtem <http://github.com/ufal/cpp_builtem/>.
+# This file is part of LinPipe <http://github.com/ufal/linpipe/>.
 #
 # Copyright 2014-2023 Institute of Formal and Applied Linguistics, Faculty
 # of Mathematics and Physics, Charles University in Prague, Czech Republic.
