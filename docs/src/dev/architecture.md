@@ -365,52 +365,6 @@ implemented in Python scripts using `import linpipe.training`. Trained
 checkpoints are saved in `onnx`. `ModelManager` also loads trained checkpoints
 via `onnx`.
 
-## Design Suggestions for the Next Meeting
-
-### Pipeline Validation
-
-A `Pipeline` should validate the compatibility of its `Operations` before
-execution. For that, each `Operation` should implement `require()` (a set of
-`Layer` types) and `produce()` (a set of `Layer` types).
-
-```mermaid
-flowchart LR
-    T[Task] --> V[Validate operation sequence]
-
-    V -->|valid| R[Run operations]
-    V -->|invalid| E[Configuration error]
-
-    R --> O1[Operation 1]
-    O1 --> O2[Operation 2]
-    O2 --> O3[Operation 3]
-```
-
-An operation should additionally verify its required `Layers` at runtime and raise
-an exception if the `Document` does not contain them.
-
-For example, `NER` may declare:
-
-```
-requires: TokenLayer
-produces: LabeledSpans
-```
-
-while `Segment` and `Tokenize` may declare:
-
-```
-requires: PlainText
-produces: Segmentation
-```
-
-```
-requires: PlainText, Segmentation
-produces: TokenLayer
-```
-
-### Execute vs. Apply
-
-Maybe we should rename `execute()` to `apply()`.
-
 ---
 
 ![Architecture Overview](overview_1.png){ width=100% }
