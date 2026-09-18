@@ -359,7 +359,7 @@ classDiagram
     +reserve(name: string)
     +load(name: string) unique_ptr~Model~&
     +release(name: string)
-    +singleton: ModelManager$
+    +singleton: ModelManager
   }
 ```
 
