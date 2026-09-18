@@ -10,6 +10,11 @@ An overview of the LinPipe system architecture:
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `PlainText`,
   `Segmentation`, `TokenLayer`, `TaggedTokens`, or `LabeledSpans`.
+- **Views:** `Layers` expose the stored data using `Views`: an abstract
+  hierarchy of classes providing a unified API (e.g., `TokenView`: iteration over
+  tokens, accessing a token at position `i`), with specialized implementations for
+  different `Layers`. A `Layer` can expose multiple `Views` (e.g., a `CoNLL-U`
+  layer may expose both `TokenView` and `DependencyTreeView`).
 - **Pipeline**: The transformations execution is based on a `Pipeline`,
   a user-configured sequence of abstract `Operations`, such as `Segment` or
   `Tokenize`.
@@ -19,12 +24,21 @@ An overview of the LinPipe system architecture:
 - **Model Management**: `ModelManager` singleton orchestrates loading local
   models from disk, access to models and unloading the models from memory.
 
-## Corpus, Document and Layers
+## Corpus, Document, Layers and Views
 
 A single `Corpus` serves as a container for a list of multiple `Documents`.
 A `Document` is a collection of `Layers`. `Layers` are pure data structures. The
 `Document` guarantees that layer names are unique. A `Document` may contain
 several `Layers` of the same type, but the `Layer` names must be unique.
+
+`Layers` expose their stored data through `Views`. A `View` provides a unified
+API for accessing a particular kind of linguistic information, independently of
+the underlying `Layer` representation. For example, a `TokenView` provides
+iteration over tokens and access to a token at a given position.
+
+A `Layer` may expose multiple `Views`. For example, a `CoNLL-U` layer may expose
+both a `TokenView` and a `DependencyTreeView`. Conversely, the same `View` type
+may be implemented by different `Layer` types.
 
 ```mermaid
 classDiagram
@@ -51,8 +65,37 @@ classDiagram
     +type() string&
   }
 
+  class View {
+    <<abstract>>
+  }
+
+  class TokenView {
+    <<abstract>>
+  }
+
+  class DependencyTreeView {
+    <<abstract>>
+  }
+
+  class TokenLayer
+  class TaggedTokens
+  class ConlluLayer
+
   Corpus "1" *-- "0..*" Document
   Document "1" *-- "0..*" Layer
+  Layer "1" o-- "0..*" View
+
+  View <|-- TokenView
+  View <|-- DependencyTreeView
+
+  Layer <|-- TokenLayer
+  Layer <|-- TaggedTokens
+  Layer <|-- ConlluLayer
+
+  TokenLayer ..> TokenView : exposes
+  TaggedTokens ..> TokenView : exposes
+  ConlluLayer ..> TokenView : exposes
+  ConlluLayer ..> DependencyTreeView : exposes
 ```
 
 Typical `Layer` types include:
@@ -82,6 +125,42 @@ classDiagram
     Layer <|-- LabeledSpans
 ```
 
+The `View` hierarchy provides unified APIs for accessing data exposed by
+different `Layers`. For example:
+
+```mermaid
+classDiagram
+    class View {
+        <<abstract>>
+    }
+
+    class TokenView {
+        <<abstract>>
+        +iterate over tokens
+        +access token at position i
+    }
+
+    class DependencyTreeView {
+        <<abstract>>
+    }
+
+    class TokenLayer
+    class TaggedTokens
+    class ConlluLayer
+
+    View <|-- TokenView
+    View <|-- DependencyTreeView
+
+    TokenLayer ..> TokenView : exposes
+    TaggedTokens ..> TokenView : exposes
+    ConlluLayer ..> TokenView : exposes
+    ConlluLayer ..> DependencyTreeView : exposes
+```
+
+A `Layer` is therefore not tied to a single way of accessing its data. For
+example, a `CoNLL-U` layer can expose both token-level and dependency-tree
+information through separate `Views`.
+
 ## Pipeline and Operations
 
 All pipelines in LinPipe are realized via a user-configurable sequence of
@@ -89,8 +168,11 @@ transformations over data. A `Pipeline` consists of a configurable sequence of
 `Operations`.
 
 The operations are executed sequentially. Each operation receives the `Corpus`
-produced by the preceding operation and enriches it with additional `Layers`. The
-operations also pass a `PipelineState` object which captures the `Pipeline`
+produced by the preceding operation and enriches it with additional `Layers`.
+Operations access the contents of `Layers` through their corresponding `Views`,
+rather than depending on a particular `Layer` representation.
+
+The operations also pass a `PipelineState` object which captures the `Pipeline`
 instance information, in particular (i) `ModelManager` for access to
 locally available models, (ii) 'Server' for access to cloud-based models, and
 (iii) input and output stream.
@@ -139,9 +221,9 @@ flowchart LR
     D1["Corpus<br/>Document<br/>+ Segmentation"]
     T["Tokenize"]
     D2["Corpus<br/>Document<br/>+ TokenLayer"]
-    M["MorphologicalAnalysis"]
+    M["MorphologicalAnalysis<br/>uses TokenView"]
     D3["Corpus<br/>Document<br/>+ TaggedTokens"]
-    N["NER"]
+    N["NER<br/>uses TokenView"]
     D4["Corpus<br/>Document<br/>+ LabeledSpans"]
 
     D0 --> S --> D1
@@ -223,6 +305,28 @@ For formats like `Conll` that already supply sentence and token boundaries
 jointly, `Load` may construct `PlainText` (synthesized, per
 `segmentation_tokenization.md`), `Segmentation`, and `TokenLayer` directly in
 one pass, rather than needing `Segment` and `Tokenize` to run afterward.
+
+A format may also provide a `Layer` that exposes multiple `Views`. For example,
+a `CoNLL-U` layer may expose both a `TokenView` and a `DependencyTreeView`, which
+can then be used independently by operations requiring token-level or
+dependency-tree access.
+
+```mermaid
+flowchart LR
+  I["CoNLL-U input"]
+  Load["Load<br/>Conll"]
+  L["CoNLL-U Layer"]
+  TV["TokenView"]
+  DV["DependencyTreeView"]
+  M["MorphologicalAnalysis"]
+  D["DependencyParse"]
+
+  I --> Load --> L
+  L -. exposes .-> TV
+  L -. exposes .-> DV
+  TV -. used by .-> M
+  DV -. used by .-> D
+```
 
 ## Model Management
 
