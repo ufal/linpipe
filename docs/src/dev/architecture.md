@@ -373,7 +373,3 @@ Python binding `linpipe.training`. The training itself will be freely
 implemented in Python scripts using `import linpipe.training`. Trained
 checkpoints are saved in `onnx`. `ModelManager` also loads trained checkpoints
 via `onnx`.
-
----
-
-![Architecture Overview](overview_1.png){ width=100% }
