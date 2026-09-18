@@ -24,6 +24,15 @@ An overview of the LinPipe system architecture:
 - **Model Management**: `ModelManager` singleton orchestrates loading local
   models from disk, access to models and unloading the models from memory.
 
+In short:
+
+- `Layers` store data.
+- `Views` provide a uniform API for accessing/interpreting that data.
+- A `Layer` can provide zero, one, or several `Views`.
+- Different `Layer` implementations can provide the same `View` API.
+- `Operations` still consume/produce `Layers`; `Views` are how they access the
+  contents of those `Layers`.
+
 ## Corpus, Document, Layers and Views
 
 A single `Corpus` serves as a container for a list of multiple `Documents`.
