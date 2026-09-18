@@ -49,6 +49,15 @@ A `Layer` may expose multiple `Views`. For example, a `CoNLL-U` layer may expose
 both a `TokenView` and a `DependencyTreeView`. Conversely, the same `View` type
 may be implemented by different `Layer` types.
 
+The distinction between `Layers` and `Views` is important because linguistic
+structures do not always correspond to simple, independent data types.
+Representing all such distinctions directly in the `Layer` hierarchy would lead
+to an unnecessarily large number of specialized classes. `Views` avoid this
+class explosion by separating the stored representation from the way its
+linguistic content is accessed, allowing operations to work with the linguistic
+abstraction they require without depending on the concrete `Layer`
+representation.
+
 ```mermaid
 classDiagram
   class Corpus {
