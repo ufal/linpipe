@@ -11,9 +11,7 @@ $(call obj,lib/liblzma/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_w
 
 LINPIPE_OBJECTS += lib/liblzma/check/check
 LINPIPE_OBJECTS += lib/liblzma/check/crc32_fast
-LINPIPE_OBJECTS += lib/liblzma/check/crc32_table
 LINPIPE_OBJECTS += lib/liblzma/check/crc64_fast
-LINPIPE_OBJECTS += lib/liblzma/check/crc64_table
 LINPIPE_OBJECTS += lib/liblzma/check/sha256
 LINPIPE_OBJECTS += lib/liblzma/common/block_buffer_decoder
 LINPIPE_OBJECTS += lib/liblzma/common/block_buffer_encoder

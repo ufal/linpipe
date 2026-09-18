@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This file is part of LinPipe <http://github.com/ufal/linpipe/>.
 #
@@ -13,7 +13,7 @@ set -e
 
 rm -rf liblzma/
 
-git clone --depth=1 --branch=v5.6.2 https://github.com/tukaani-project/xz liblzma_git
+git clone --depth=1 --branch=v5.8.4 https://github.com/tukaani-project/xz liblzma_git
 
 cat >liblzma_git/src/common/config.h <<"EOF"
 #define HAVE_CHECK_CRC32 1
@@ -44,7 +44,7 @@ EOF
 # Copy the sources and their dependences
 sources=(
   liblzma_git/src/liblzma/api/lzma.h
-  liblzma_git/src/liblzma/check/{check,crc{32,64}_{fast,table},sha256}.c
+  liblzma_git/src/liblzma/check/{check,crc{32,64}_fast,sha256}.c
   liblzma_git/src/liblzma/common/{block*,common*,easy*,file_info,filter*,index*,stream*_{common,decoder,encoder},string_conversion,vli*}.c
   liblzma_git/src/liblzma/delta/delta*.c
   liblzma_git/src/liblzma/lz/lz*.c

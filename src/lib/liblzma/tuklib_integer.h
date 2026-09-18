@@ -86,9 +86,15 @@
 #elif defined(HAVE_SYS_ENDIAN_H)
 	// *BSDs and Darwin
 #	include <sys/endian.h>
-#	define byteswap16(num) bswap16(num)
-#	define byteswap32(num) bswap32(num)
-#	define byteswap64(num) bswap64(num)
+#	ifdef __OpenBSD__
+#		define byteswap16(num) swap16(num)
+#		define byteswap32(num) swap32(num)
+#		define byteswap64(num) swap64(num)
+#	else
+#		define byteswap16(num) bswap16(num)
+#		define byteswap32(num) bswap32(num)
+#		define byteswap64(num) bswap64(num)
+#	endif
 
 #elif defined(HAVE_SYS_BYTEORDER_H)
 	// Solaris
@@ -237,7 +243,7 @@
 // from the memcpy() method than from simple byte-by-byte shift-or code
 // when reading a 32-bit integer:
 //
-//     (1) It may be constructed on stack using using four 8-bit loads,
+//     (1) It may be constructed on stack using four 8-bit loads,
 //         four 8-bit stores to stack, and finally one 32-bit load from stack.
 //
 //     (2) Especially with -Os, an actual memcpy() call may be emitted.
@@ -637,11 +643,10 @@ write64le(uint8_t *buf, uint64_t num)
 //
 // __builtin_assume_aligned is support by GCC >= 4.7 and clang >= 3.6.
 #ifdef HAVE___BUILTIN_ASSUME_ALIGNED
-#	define tuklib_memcpy_aligned(dest, src, size) \
-		memcpy(dest, __builtin_assume_aligned(src, size), size)
+#	define tuklib_assume_aligned(ptr, align) \
+		__builtin_assume_aligned(ptr, align)
 #else
-#	define tuklib_memcpy_aligned(dest, src, size) \
-		memcpy(dest, src, size)
+#	define tuklib_assume_aligned(ptr, align) (ptr)
 #	ifndef TUKLIB_FAST_UNALIGNED_ACCESS
 #		define TUKLIB_USE_UNSAFE_ALIGNED_READS 1
 #	endif
@@ -656,7 +661,7 @@ aligned_read16ne(const uint8_t *buf)
 	return *(const uint16_t *)buf;
 #else
 	uint16_t num;
-	tuklib_memcpy_aligned(&num, buf, sizeof(num));
+	memcpy(&num, tuklib_assume_aligned(buf, sizeof(num)), sizeof(num));
 	return num;
 #endif
 }
@@ -670,7 +675,7 @@ aligned_read32ne(const uint8_t *buf)
 	return *(const uint32_t *)buf;
 #else
 	uint32_t num;
-	tuklib_memcpy_aligned(&num, buf, sizeof(num));
+	memcpy(&num, tuklib_assume_aligned(buf, sizeof(num)), sizeof(num));
 	return num;
 #endif
 }
@@ -684,7 +689,7 @@ aligned_read64ne(const uint8_t *buf)
 	return *(const uint64_t *)buf;
 #else
 	uint64_t num;
-	tuklib_memcpy_aligned(&num, buf, sizeof(num));
+	memcpy(&num, tuklib_assume_aligned(buf, sizeof(num)), sizeof(num));
 	return num;
 #endif
 }
@@ -696,7 +701,7 @@ aligned_write16ne(uint8_t *buf, uint16_t num)
 #ifdef TUKLIB_USE_UNSAFE_TYPE_PUNNING
 	*(uint16_t *)buf = num;
 #else
-	tuklib_memcpy_aligned(buf, &num, sizeof(num));
+	memcpy(tuklib_assume_aligned(buf, sizeof(num)), &num, sizeof(num));
 #endif
 	return;
 }
@@ -708,7 +713,7 @@ aligned_write32ne(uint8_t *buf, uint32_t num)
 #ifdef TUKLIB_USE_UNSAFE_TYPE_PUNNING
 	*(uint32_t *)buf = num;
 #else
-	tuklib_memcpy_aligned(buf, &num, sizeof(num));
+	memcpy(tuklib_assume_aligned(buf, sizeof(num)), &num, sizeof(num));
 #endif
 	return;
 }
@@ -720,7 +725,7 @@ aligned_write64ne(uint8_t *buf, uint64_t num)
 #ifdef TUKLIB_USE_UNSAFE_TYPE_PUNNING
 	*(uint64_t *)buf = num;
 #else
-	tuklib_memcpy_aligned(buf, &num, sizeof(num));
+	memcpy(tuklib_assume_aligned(buf, sizeof(num)), &num, sizeof(num));
 #endif
 	return;
 }
