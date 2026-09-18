@@ -9,7 +9,7 @@ An overview of the LinPipe system architecture:
 
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `PlainText`,
-  `Segmentation`, `TokenLayer`, `TaggedTokens`, or `TaggedSpans`. 
+  `Segmentation`, `TokenLayer`, `TaggedTokens`, or `LabeledSpans`.
 - **Pipeline**: The transformations execution is based on a `Pipeline`,
   a user-configured sequence of abstract `Operations`, such as `Segment` or
   `Tokenize`.
@@ -73,13 +73,13 @@ classDiagram
     class Segmentation
     class TokenLayer
     class TaggedTokens
-    class TaggedSpans
+    class LabeledSpans
 
     Layer <|-- PlainText
     Layer <|-- Segmentation
     Layer <|-- TokenLayer
     Layer <|-- TaggedTokens
-    Layer <|-- TaggedSpans
+    Layer <|-- LabeledSpans
 ```
 
 ## Pipeline and Operations
@@ -142,7 +142,7 @@ flowchart LR
     M["MorphologicalAnalysis"]
     D3["Corpus<br/>Document<br/>+ TaggedTokens"]
     N["NER"]
-    D4["Corpus<br/>Document<br/>+ TaggedSpans"]
+    D4["Corpus<br/>Document<br/>+ LabeledSpans"]
 
     D0 --> S --> D1
     D1 --> T --> D2
@@ -207,7 +207,7 @@ flowchart LR
   M["MorphologicalAnalysis"]
   D3["Corpus<br/>Document<br/>+ TaggedTokens"]
   N["NER"]
-  D4["Corpus<br/>Document<br/>+ TaggedSpans"]
+  D4["Corpus<br/>Document<br/>+ LabeledSpans"]
   Save["Save<br/>Output<br/>Format"]
   O["Output<br/>Format"]
 
@@ -279,7 +279,7 @@ For example, `NER` may declare:
 
 ```
 requires: TokenLayer
-produces: TaggedSpans
+produces: LabeledSpans
 ```
 
 while `Segment` and `Tokenize` may declare:
