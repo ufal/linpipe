@@ -13,6 +13,11 @@ LINPIPE_OBJECTS += utils/logging
 LINPIPE_OBJECTS += utils/split
 LINPIPE_OBJECTS += utils/u8path
 LINPIPE_OBJECTS += utils/win_wmain_utf8
+LINPIPE_OBJECTS += utils/languages
 
 LINPIPE_TESTS += utils/arguments_test
 LINPIPE_TESTS += utils/split_test
+LINPIPE_TESTS += utils/languages_test
+
+utils/languages.cpp: utils/generate_languages_cpp.py
+	python3 $< -o $@
