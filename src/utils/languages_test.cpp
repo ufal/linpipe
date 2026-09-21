@@ -22,7 +22,7 @@ TEST_CASE("Languages::language_by_name") {
   }
 
   SUBCASE("throws on an unknown name") {
-    CHECK_THROWS_AS(languages.language_by_name("Klingon"), LinpipeError);
+    CHECK_THROWS_AS(languages.language_by_name("Morporkian"), LinpipeError);
   }
 
   SUBCASE("is case sensitive") {
@@ -40,7 +40,7 @@ TEST_CASE("Languages::language_by_iso639_1") {
   }
 
   SUBCASE("throws on an unknown code") {
-    CHECK_THROWS_AS(languages.language_by_iso639_1("xx"), LinpipeError);
+    CHECK_THROWS_AS(languages.language_by_iso639_1("x9"), LinpipeError);
   }
 
   SUBCASE("throws on a Set 2/3 code, since that is not Set 1") {
@@ -65,11 +65,49 @@ TEST_CASE("Languages::language_by_non_iso_639_1") {
   }
 
   SUBCASE("throws on an unknown code") {
-    CHECK_THROWS_AS(languages.language_by_non_iso_639_1("xyz"), LinpipeError);
+    CHECK_THROWS_AS(languages.language_by_non_iso_639_1("x9z"), LinpipeError);
   }
 
   SUBCASE("throws on a Set 1 code, since that is not Set 2/3") {
     CHECK_THROWS_AS(languages.language_by_non_iso_639_1("fr"), LinpipeError);
+  }
+}
+
+TEST_CASE("Languages: languages without a Set 1 code (from SIL)") {
+  Languages languages;
+
+  const Language* non_iso1 = nullptr;
+  for (const Language& language : allLanguages)
+    if (language.iso639_1.empty()) {
+      non_iso1 = &language;
+      break;
+    }
+
+  REQUIRE(non_iso1 != nullptr);
+  REQUIRE(!non_iso1->non_iso639_1_codes.empty());
+
+  string name = non_iso1->name_;
+  string code = non_iso1->non_iso639_1_codes[0];
+
+  SUBCASE("is findable by name") {
+    Language& found = languages.language_by_name(name);
+    CHECK(found.iso639_1.empty());
+    CHECK(found.name_ == name);
+  }
+
+  SUBCASE("is findable by one of its Set 2/3 codes") {
+    Language& found = languages.language_by_non_iso_639_1(code);
+    CHECK(found.name_ == name);
+  }
+
+  SUBCASE("both lookups resolve to the same object within one Languages instance") {
+    Language& by_name = languages.language_by_name(name);
+    Language& by_code = languages.language_by_non_iso_639_1(code);
+    CHECK(&by_name == &by_code);
+  }
+
+  SUBCASE("is not findable via language_by_iso639_1, since it has no Set 1 code") {
+    CHECK_THROWS_AS(languages.language_by_iso639_1(""), LinpipeError);
   }
 }
 

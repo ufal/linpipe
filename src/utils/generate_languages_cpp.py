@@ -9,16 +9,25 @@
 
 """generate_languages_cpp.py
 
-First draft of languages.cpp generator. Parses the Wikipedia "List of ISO 639
-language codes".
+Generates languages.cpp from two sources:
+
+- The Wikipedia "List of ISO 639 language codes" table, for every language that
+has a Set 1 (639-1) code.
+- SIL's official ISO 639-3 code table
+(https://iso639-3.sil.org/code_tables/download_tables), for languages that do
+NOT have a Set 1 code.
+
+For these SIL-only entries, iso639_1 is left as "" (empty) and
+non_iso639_1_codes holds whichever of Id/Part2T/Part2B are non-empty.
 
 TODO(Jana):
-- include languages without ISO-639-1 code.
 - include UD codes.
 
 Usage:
     python3 generate_languages_cpp.py [-o languages.cpp]
     python3 generate_languages_cpp.py --input saved_page.html [-o languages.cpp]
+    python3 generate_languages_cpp.py --sil-input iso-639-3.tab [-o languages.cpp]
+    python3 generate_languages_cpp.py --skip-non-iso639-1 [-o languages.cpp]
 """
 
 import argparse
@@ -28,6 +37,12 @@ import urllib.request
 from html.parser import HTMLParser
 
 WIKI_URL = "https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
+
+# SIL is the ISO 639-3 registration authority; this is their canonical
+# tab-separated code table, which also covers languages that have no Set
+# 1 (639-1) code. Columns:
+#   Id  Part2B  Part2T  Part1  Scope  Language_Type  Ref_Name  Comment
+SIL_URL = "https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab"
 
 
 class TableParser(HTMLParser):
@@ -236,7 +251,55 @@ def extract_entries(table):
     return entries
 
 
-def fetch_html(url):
+def parse_sil_table(text):
+    """Parse SIL's tab-separated iso-639-3.tab into (name, "", codes) entries,
+    one per language that has NO Set 1 (639-1) code -- languages that do have
+    one are already covered by the Wikipedia table and are skipped here."""
+    lines = [line for line in text.splitlines() if line.strip()]
+    if not lines:
+        raise RuntimeError("SIL ISO 639-3 table is empty.")
+
+    header = lines[0].split("\t")
+    col_idx = {name.strip().lower(): i for i, name in enumerate(header)}
+    required = ("id", "part2b", "part2t", "part1", "scope", "ref_name")
+    missing = [c for c in required if c not in col_idx]
+    if missing:
+        raise RuntimeError(
+            f"Unexpected SIL ISO 639-3 table format, missing columns: {missing}. "
+            f"Header found: {header}. The table format may have changed -- "
+            "adjust parse_sil_table() below."
+        )
+
+    def col(cols, name):
+        i = col_idx[name.lower()]
+        return cols[i].strip() if i < len(cols) else ""
+
+    entries = []
+    for line in lines[1:]:
+        cols = line.split("\t")
+
+        if col(cols, "Part1"):
+            continue  # has a Set 1 code -> already covered via the Wikipedia table
+
+        if col(cols, "Scope") == "S":
+            continue  # special code (mul, und, mis, zxx, ...), not a real language
+
+        name = col(cols, "Ref_Name")
+        if not name:
+            continue
+
+        codes = []
+        for code in (col(cols, "Id"), col(cols, "Part2T"), col(cols, "Part2B")):
+            if code and code not in codes:
+                codes.append(code)
+        if not codes:
+            continue
+
+        entries.append((name, "", codes))
+    return entries
+
+
+def fetch_text(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinPipeLangGen/1.0)"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         charset = resp.headers.get_content_charset() or "utf-8"
@@ -247,7 +310,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", default="languages.cpp")
     parser.add_argument("--url", default=WIKI_URL)
-    parser.add_argument("--input", help="Read HTML from this local file instead of fetching --url")
+    parser.add_argument("--input", help="Read Wikipedia HTML from this local file instead of fetching --url")
+    parser.add_argument("--sil-url", default=SIL_URL)
+    parser.add_argument("--sil-input", help="Read the SIL ISO 639-3 table from this local .tab file instead of fetching --sil-url")
+    parser.add_argument("--skip-non-iso639-1", action="store_true", help="Don't merge in SIL's non-Set-1 languages; emit only the Wikipedia (Set-1) languages")
     args = parser.parse_args()
 
     if args.input:
@@ -256,14 +322,32 @@ def main():
             html = f.read()
     else:
         print(f"Fetching {args.url} ...", file=sys.stderr)
-        html = fetch_html(args.url)
+        html = fetch_text(args.url)
 
     tp = TableParser()
     tp.feed(html)
 
     table = find_target_table(tp.tables)
     entries = extract_entries(table)
-    print(f"Parsed {len(entries)} language entries.", file=sys.stderr)
+    print(f"Parsed {len(entries)} Set-1 language entries from Wikipedia.", file=sys.stderr)
+
+    if not args.skip_non_iso639_1:
+        if args.sil_input:
+            print(f"Reading {args.sil_input} ...", file=sys.stderr)
+            with open(args.sil_input, encoding="utf-8", errors="replace") as f:
+                sil_text = f.read()
+        else:
+            print(f"Fetching {args.sil_url} ...", file=sys.stderr)
+            sil_text = fetch_text(args.sil_url)
+
+        sil_entries = parse_sil_table(sil_text)
+        print(f"Parsed {len(sil_entries)} non-Set-1 language entries from SIL.", file=sys.stderr)
+
+        seen_names = {name for name, _, _ in entries}
+        for entry in sil_entries:
+            if entry[0] not in seen_names:  # guard against an unexpected name collision
+                seen_names.add(entry[0])
+                entries.append(entry)
 
     lines = [
         '#include "languages.h"',

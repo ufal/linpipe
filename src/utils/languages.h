@@ -18,7 +18,7 @@ namespace linpipe {
 class Language {
   public:
     string name_;
-    string iso639_1;
+    string iso639_1;  // empty for langs without ISO 639-1 code
     vector<string> non_iso639_1_codes;
 };
 
