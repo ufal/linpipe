@@ -9,7 +9,7 @@ An overview of the LinPipe system architecture:
 
 - **Data:** All data is held as a single `Corpus`, which contains a list of
   `Documents`, which contain a list of abstract `Layers`, such as `PlainText`,
-  `Segmentation`, `TokenLayer`, `TaggedTokens`, or `LabeledSpans`.
+  `SegmentedText`, `TokenLayer`, `TaggedTokens`, or `LabeledSpans`.
 - **Views:** `Layers` expose the stored data using `Views`: an abstract
   hierarchy of classes providing a unified API (e.g., `TokenView`: iteration over
   tokens, accessing a token at position `i`), with specialized implementations for
@@ -131,13 +131,13 @@ classDiagram
     }
 
     class PlainText
-    class Segmentation
+    class SegmentedText
     class TokenLayer
     class TaggedTokens
     class LabeledSpans
 
     Layer <|-- PlainText
-    Layer <|-- Segmentation
+    Layer <|-- SegmentedText
     Layer <|-- TokenLayer
     Layer <|-- TaggedTokens
     Layer <|-- LabeledSpans
@@ -236,7 +236,7 @@ For example:
 flowchart LR
     D0["Corpus<br/>Document<br/>PlainText"]
     S["Segment"]
-    D1["Corpus<br/>Document<br/>+ Segmentation"]
+    D1["Corpus<br/>Document<br/>+ SegmentedText"]
     T["Tokenize"]
     D2["Corpus<br/>Document<br/>+ TokenLayer"]
     M["MorphologicalAnalysis<br/>uses TokenView"]
@@ -301,7 +301,7 @@ flowchart LR
   Load["Load<br/>Input<br/>Format"]
   D0["Corpus<br/>Document<br/>PlainText"]
   S["Segment"]
-  D1["Corpus<br/>Document<br/>+ Segmentation"]
+  D1["Corpus<br/>Document<br/>+ SegmentedText"]
   T["Tokenize"]
   D2["Corpus<br/>Document<br/>+ TokenLayer"]
   M["MorphologicalAnalysis"]
@@ -321,7 +321,7 @@ flowchart LR
 
 For formats like `Conll` that already supply sentence and token boundaries
 jointly, `Load` may construct `PlainText` (synthesized, per
-`segmentation_tokenization.md`), `Segmentation`, and `TokenLayer` directly in
+`segmentation_tokenization.md`), `SegmentedText`, and `TokenLayer` directly in
 one pass, rather than needing `Segment` and `Tokenize` to run afterward.
 
 A format may also provide a `Layer` that exposes multiple `Views`. For example,

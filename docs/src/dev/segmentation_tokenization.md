@@ -36,6 +36,135 @@
 ``` mermaid
 classDiagram
   class PlainText {
-    +text() string_view
+    +text string_view
   }
+```
+
+As these text may be very large in large corpora, we avoid copying this content
+and refer to this layer whenever possible in the further design.
+
+### IndexSpan
+
+As a prerequisity to marking spans, we introduce `IndexSpan`:
+
+```mermaid
+classDiagram
+    class IndexSpan {
+        +begin int
+        +end int
+    }
+```
+
+## Segmentation
+
+In linguistics, sentence segmentation is usually used in an abstract way as
+"something that is segmented into sentences". However, we need to distinguish,
+both logically and structually, between:
+
+- `CharSegmentation`: character-based sentence segmentation, in which
+  indices refer to characters anchored in plain text,
+- `TokenSegmentation`: token-based sentence segmentation, in which indices refer
+  to tokens.
+
+Moreover, many linguistic layers may express either of these view based on their
+type and content, so we are also going to have two types of `Views`:
+
+- `CharSegmentationView`: a vector of character-based `IndexSpans` into
+  a `PlainText`.
+- `TokenSegmentationView`: a vector of token-based `IndexSpans` into
+  a `TokenLayer`.
+
+```mermaid
+classDiagram
+    class CharSegmentationView {
+        <<abstract>>
+
+        +size(): size_t
+        +span(i): IndexSpan
+        +text(i): string_view
+        +begin(): const_iterator
+        +end(): const_iterator
+    }
+
+    class PlainTextCharSegmentationView {
+        // returns one fake start-to-end segment
+    }
+
+    class SegmentedTextCharSegmentationView {
+    }
+
+    CharSegmentationView <|-- PlainTextCharSegmentationView
+    CharSegmentationView <|-- SegmentedTextCharSegmentationView
+
+    class PlainText {
+        +text string_view;
+        +plain_text_sentence_view() PlainTextCharSegmentationView;
+        +plain_text_paragraph_view() PlainTextCharSegmentationView;
+    }
+
+    class CharSegmentation {
+        +segmentation vector~IndexSpan~
+    }
+
+    class SegmentedText {
+        +plain_text PlainText;
+        +sentences CharSegmentation;
+        +paragraphs CharSegmentation;
+        +plain_text_sentence_view() SegmentedTextCharSegmentationView;
+        +plain_text_paragraph_view() SegmentedTextCharSegmentationView;
+    }
+
+    SegmentedText *-- CharSegmentation : owns sentences/paragraphs
+    SegmentedText --> PlainText : refers to (non-owned)
+    PlainText ..> PlainTextCharSegmentationView : exposes
+    SegmentedText ..> SegmentedTextCharSegmentationView : exposes
+```
+
+## Tokens
+
+A `Token` may either be constructed by a character anchor into an underlying
+`PlainText` using `IndexSpan`, with additional text overrides (such as
+normalization), or it may be directly constructed from an already segmented and
+tokenized text by a `Load` operation (e.g., using a `CoNLL-U` format).
+
+```mermaid
+classDiagram
+    class Token {
+        +range optional~IndexSpan~
+        +text string_view
+    }
+
+    class TokenSegmentationView {
+        +size() size_t
+        +span(i) IndexSpan
+        +text(i) string_view
+        +begin() const_iterator
+        +end() const_iterator
+    }
+
+    class TokenView {
+        +size() size_t
+        +text(i) string_view
+        +begin() const_iterator
+        +end() const_iterator
+    }
+
+    class TokenSegmentation {
+        +segmentation vector~IndexSpan~
+    }
+
+    class TokenLayer {
+        +tokens vector~Token~
+        +sentences TokenSegmentation
+        +paragraphs TokenSegmentation
+        +plain_text PlainText   // optional
+        token_layer_sentence_view() TokenSegmentationView
+        token_layer_paragraph_view() TokenSegmentationView
+    }
+
+    TokenLayer *-- Token : owns tokens
+    TokenLayer --> PlainText : refers to (optional)
+    TokenLayer *-- TokenSegmentation : owns sentences/paragraphs
+    TokenLayer ..> TokenSegmentationView : exposes
+    TokenLayer ..> TokenView : exposes
 ```
