@@ -9,25 +9,28 @@
 
 """generate_languages_cpp.py
 
-Generates languages.cpp from two sources:
+Generates languages.cpp from three sources:
 
 - The Wikipedia "List of ISO 639 language codes" table, for every language that
 has a Set 1 (639-1) code.
 - SIL's official ISO 639-3 code table
 (https://iso639-3.sil.org/code_tables/download_tables), for languages that do
 NOT have a Set 1 code.
+- Universal Dependencies' languages page
+(https://universaldependencies.org/languages.html).
 
-For these SIL-only entries, iso639_1 is left as "" (empty) and
-non_iso639_1_codes holds whichever of Id/Part2T/Part2B are non-empty.
+For SIL-only and UD-only entries, iso639_1 is left as "" (empty) when the
+code is 3 letters, and non_iso639_1_codes holds whichever of Id/Part2T/Part2B
+(SIL) or the single ISO code (UD) are non-empty.
 
-TODO(Jana):
-- include UD codes.
+TODO(Jana): fun with flags
 
 Usage:
     python3 generate_languages_cpp.py [-o languages.cpp]
     python3 generate_languages_cpp.py --input saved_page.html [-o languages.cpp]
     python3 generate_languages_cpp.py --sil-input iso-639-3.tab [-o languages.cpp]
-    python3 generate_languages_cpp.py --skip-non-iso639-1 [-o languages.cpp]
+    python3 generate_languages_cpp.py --ud-input ud_languages.html [-o languages.cpp]
+    python3 generate_languages_cpp.py --skip-non-iso639-1 --skip-ud [-o languages.cpp]
 """
 
 import argparse
@@ -43,6 +46,10 @@ WIKI_URL = "https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes"
 # 1 (639-1) code. Columns:
 #   Id  Part2B  Part2T  Part1  Scope  Language_Type  Ref_Name  Comment
 SIL_URL = "https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab"
+
+# Universal Dependencies' own list of languages Columns: an unlabeled flag
+# column, Language, ISO Code, Family, Genus, Script, Documentation, Treebanks.
+UD_URL = "https://universaldependencies.org/languages.html"
 
 
 class TableParser(HTMLParser):
@@ -159,11 +166,7 @@ def find_target_table(tables):
             best_score = score
             best = table
     if best is None:
-        raise RuntimeError(
-            "Could not find the ISO 639 codes table. The page structure may "
-            "have changed -- inspect TableParser().tables and adjust "
-            "find_target_table()/column matching below."
-        )
+        raise RuntimeError("Could not find the ISO 639 codes table. The page structure may have changed -- inspect TableParser().tables and adjust find_target_table()/column matching below.")
     return best
 
 
@@ -264,11 +267,7 @@ def parse_sil_table(text):
     required = ("id", "part2b", "part2t", "part1", "scope", "ref_name")
     missing = [c for c in required if c not in col_idx]
     if missing:
-        raise RuntimeError(
-            f"Unexpected SIL ISO 639-3 table format, missing columns: {missing}. "
-            f"Header found: {header}. The table format may have changed -- "
-            "adjust parse_sil_table() below."
-        )
+        raise RuntimeError(f"Unexpected SIL ISO 639-3 table format, missing columns: {missing}. Header found: {header}. The table format may have changed. Adjust parse_sil_table() below.")
 
     def col(cols, name):
         i = col_idx[name.lower()]
@@ -299,6 +298,58 @@ def parse_sil_table(text):
     return entries
 
 
+def find_ud_table(tables):
+    """Pick the table with 'Language' and 'ISO Code' header columns -- UD's
+    languages.html table (id="langTable"), which has no distinguishing
+    class attribute to filter on, unlike the Wikipedia wikitable."""
+    for table in tables:
+        rows = table["rows"]
+        header_rows = [r for r in rows if r and all(c[0] == "th" for c in r)]
+        if not header_rows:
+            continue
+        labels = [normalize_label(c[3]) for c in header_rows[0]]
+        data_rows = [r for r in rows if any(c[0] == "td" for c in r)]
+        if "language" in labels and "iso code" in labels and len(data_rows) > 20:
+            return table
+    raise RuntimeError("Could not find the UD languages table (expected 'Language' and 'ISO Code' header columns). The page structure may have changed. Inspect TableParser().tables and adjust find_ud_table()/extract_ud_entries() below.")
+
+
+def extract_ud_entries(table):
+    """Parse UD's languages.html table into (name, code) pairs -- UD gives
+    exactly one ISO code per language (639-1 if it has one, else 639-3),
+    not the Set 1/2/3 breakdown Wikipedia and SIL provide."""
+    rows = table["rows"]
+    header_rows = [r for r in rows if r and all(c[0] == "th" for c in r)]
+    data_rows = [r for r in rows if any(c[0] == "td" for c in r)]
+
+    labels = [normalize_label(c[3]) for c in header_rows[0]] if header_rows else []
+    name_idx = col_index(labels, "language")
+    code_idx = col_index(labels, "iso code")
+
+    if name_idx is None or code_idx is None:
+        raise RuntimeError(f"Could not find 'Language'/'ISO Code' columns in the UD table. Header labels: {labels}. The page structure may have changed. Adjust extract_ud_entries() below.")
+
+    data_grid = build_grid(data_rows)
+
+    entries = []
+    seen = set()
+    for logical_row in data_grid:
+        def cell(idx):
+            if idx is None or idx >= len(logical_row):
+                return ""
+            return clean_text(logical_row[idx])
+
+        name = cell(name_idx)
+        code = cell(code_idx).strip()
+        if not name or not re.fullmatch(r"[a-z]{2,3}", code):
+            continue
+        if (name, code) in seen:
+            continue
+        seen.add((name, code))
+        entries.append((name, code))
+    return entries
+
+
 def fetch_text(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; LinPipeLangGen/1.0)"})
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -314,6 +365,9 @@ def main():
     parser.add_argument("--sil-url", default=SIL_URL)
     parser.add_argument("--sil-input", help="Read the SIL ISO 639-3 table from this local .tab file instead of fetching --sil-url")
     parser.add_argument("--skip-non-iso639-1", action="store_true", help="Don't merge in SIL's non-Set-1 languages; emit only the Wikipedia (Set-1) languages")
+    parser.add_argument("--ud-url", default=UD_URL)
+    parser.add_argument("--ud-input", help="Read the UD languages page from this local HTML file instead of fetching --ud-url")
+    parser.add_argument("--skip-ud", action="store_true", help="Don't cross-check against Universal Dependencies' languages page")
     args = parser.parse_args()
 
     if args.input:
@@ -348,6 +402,48 @@ def main():
             if entry[0] not in seen_names:  # guard against an unexpected name collision
                 seen_names.add(entry[0])
                 entries.append(entry)
+
+    if not args.skip_ud:
+        if args.ud_input:
+            print(f"Reading {args.ud_input} ...", file=sys.stderr)
+            with open(args.ud_input, encoding="utf-8", errors="replace") as f:
+                ud_html = f.read()
+        else:
+            print(f"Fetching {args.ud_url} ...", file=sys.stderr)
+            ud_html = fetch_text(args.ud_url)
+
+        ud_tp = TableParser()
+        ud_tp.feed(ud_html)
+        ud_table = find_ud_table(ud_tp.tables)
+        ud_entries = extract_ud_entries(ud_table)
+        print(f"Parsed {len(ud_entries)} language entries from Universal Dependencies.", file=sys.stderr)
+
+        # code -> name, over every code (Set 1 and Set 2/3) we already have.
+        known_codes = {}
+        for name, iso1, codes in entries:
+            for code in ([iso1] if iso1 else []) + codes:
+                known_codes.setdefault(code, name)
+        known_names = {name for name, _, _ in entries}
+
+        added, warned = 0, 0
+        for ud_name, ud_code in ud_entries:
+            if ud_code in known_codes:
+                continue  # this exact code is already on file (usually under this same name)
+
+            if ud_name in known_names:
+                existing_codes = sorted({code for name, iso1, codes in entries if name == ud_name for code in ([iso1] if iso1 else []) + codes})
+                print(f"Warning: Universal Dependencies lists '{ud_name}' under code '{ud_code}', but we already have it as {existing_codes}.", file=sys.stderr)
+                warned += 1
+                continue
+
+            iso1 = ud_code if len(ud_code) == 2 else ""
+            codes = [] if iso1 else [ud_code]
+            entries.append((ud_name, iso1, codes))
+            known_names.add(ud_name)
+            known_codes[ud_code] = ud_name
+            added += 1
+
+        print(f"Added {added} new language(s) from Universal Dependencies; {warned} code mismatch(es) warned about.", file=sys.stderr)
 
     lines = [
         '#include "languages.h"',
