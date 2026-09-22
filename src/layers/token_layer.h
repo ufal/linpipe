@@ -14,9 +14,9 @@
 
 namespace linpipe::layers {
 
-class Tokens : public Layer {
+class TokenLayer : public Layer {
  public:
-  Tokens(const string name={}) : Layer("tokens", name.empty() ? "tokens" : name) {};
+  TokenLayer(const string name={}) : Layer("token_layer", name.empty() ? "token_layer" : name) {};
 
   virtual void from_json(const Json& json) override;
   virtual Json to_json() override;

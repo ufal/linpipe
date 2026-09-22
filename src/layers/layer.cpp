@@ -11,7 +11,7 @@
 #include "layers/lemmas.h"
 #include "layers/spans.h"
 #include "layers/plain_text.h"
-#include "layers/tokens.h"
+#include "layers/token_layer.h"
 #include "lib/json.h"
 
 namespace linpipe {
@@ -24,8 +24,8 @@ unique_ptr<Layer> Layer::create(const string type, const string name) {
     return make_unique<layers::Lemmas>(name);
   if (type == "plain_text")
     return make_unique<layers::PlainText>(name);
-  if (type == "tokens")
-    return make_unique<layers::Tokens>(name);
+  if (type == "token_layer")
+    return make_unique<layers::TokenLayer>(name);
 
   throw LinpipeError{"Layer::create: Cannot construct layer of unknown type '", type, "'"};
 }

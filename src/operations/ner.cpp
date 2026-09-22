@@ -7,7 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/tokens.h"
+#include "layers/token_layer.h"
 #include "layers/spans.h"
 #include "operations/ner.h"
 #include "operations/ne_recognizer/ne_recognizer_toy.h"
@@ -36,7 +36,7 @@ NER::NER(const string description) {
 
 void NER::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
-    auto& source = doc->get_layer<layers::Tokens>(source_);
+    auto& source = doc->get_layer<layers::TokenLayer>(source_);
     auto target = make_unique<layers::Spans>(target_);
 
     ne_recognizer_->recognize(state.model_manager, source.tokens, target->spans);

@@ -26,10 +26,10 @@ TEST_CASE("Layer::create") {
     CHECK(layer->type() == "plain_text");
   }
 
-  SUBCASE("creates layer of type tokens and default name") {
-    unique_ptr<Layer> layer = Layer::create("tokens");
-    CHECK(layer->name() == "tokens");
-    CHECK(layer->type() == "tokens");
+  SUBCASE("creates layer of type token layer and default name") {
+    unique_ptr<Layer> layer = Layer::create("token_layer");
+    CHECK(layer->name() == "token_layer");
+    CHECK(layer->type() == "token_layer");
   }
 
 }

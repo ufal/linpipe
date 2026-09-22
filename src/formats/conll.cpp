@@ -11,7 +11,7 @@
 #include "layers/layer.h"
 #include "layers/lemmas.h"
 #include "layers/spans.h"
-#include "layers/tokens.h"
+#include "layers/token_layer.h"
 #include "lib/json.h"
 #include "utils/arguments.h"
 #include "utils/split.h"
@@ -70,7 +70,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
     if (line.empty()) { // end of sentence
       for (size_t i = 0; i < types_.size(); i++) {
         if (types_[i] == "tokens") {
-          document->get_layer<layers::Tokens>(names_[i]).sentences.push_back(ntokens);
+          document->get_layer<layers::TokenLayer>(names_[i]).sentences.push_back(ntokens);
         }
       }
     }
@@ -88,8 +88,8 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
                                                                ntokens,
                                                                linpipe::layers::SpanEncoding::create(encodings_[i]));
         }
-        if (types_[i] == "tokens") {
-          document->get_layer<layers::Tokens>(names_[i]).tokens.emplace_back(cols[i]);
+        if (types_[i] == "token_layer") {
+          document->get_layer<layers::TokenLayer>(names_[i]).tokens.emplace_back(cols[i]);
         }
       }
       ntokens += 1;
@@ -106,8 +106,8 @@ void Conll::save(Document& document, ostream& output) {
   size_t n = 0; // number of token lines
   const vector<unique_ptr<Layer>>& layers = document.layers();
   if (layers.size()) {
-    if (layers[0]->type() == "tokens") {
-      n = dynamic_cast<layers::Tokens*>(layers[0].get())->tokens.size();
+    if (layers[0]->type() == "token_layer") {
+      n = dynamic_cast<layers::TokenLayer*>(layers[0].get())->tokens.size();
     }
   }
 
@@ -133,7 +133,7 @@ void Conll::save(Document& document, ostream& output) {
       }
 
       if (types_[j] == "tokens") {
-        auto& layer = document.get_layer<layers::Tokens>(names_[j]);
+        auto& layer = document.get_layer<layers::TokenLayer>(names_[j]);
 
         // Print end of sentence.
         if (layer.sentences[sentence_index] == i && !sentence_printed) {

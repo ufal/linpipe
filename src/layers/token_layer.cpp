@@ -7,13 +7,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/tokens.h"
+#include "layers/token_layer.h"
 #include "lib/json.h"
 #include "utils/json_utils.h"
 
 namespace linpipe::layers {
 
-void Tokens::from_json(const Json& json) {
+void TokenLayer::from_json(const Json& json) {
   json_assert_object("Text::from_json", json);
 
   json_get_string("Text::from_json", json, "type", type_);
@@ -27,7 +27,7 @@ void Tokens::from_json(const Json& json) {
     sentences.clear();
 }
 
-Json Tokens::to_json() {
+Json TokenLayer::to_json() {
   return {
     {"type", type_},
     {"name", name_},
@@ -36,7 +36,7 @@ Json Tokens::to_json() {
   };
 }
 
-string Tokens::to_html() {
+string TokenLayer::to_html() {
   return string();
 }
 

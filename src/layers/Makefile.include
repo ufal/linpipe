@@ -11,7 +11,7 @@ LINPIPE_OBJECTS += layers/layer
 LINPIPE_OBJECTS += layers/lemmas
 LINPIPE_OBJECTS += layers/spans
 LINPIPE_OBJECTS += layers/plain_text
-LINPIPE_OBJECTS += layers/tokens
+LINPIPE_OBJECTS += layers/token_layer
 
 LINPIPE_TESTS += layers/layer_test
 LINPIPE_TESTS += layers/plain_text_test

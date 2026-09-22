@@ -10,7 +10,7 @@
 #include "core/document.h"
 #include "layers/layer.h"
 #include "layers/plain_text.h"
-#include "layers/tokens.h"
+#include "layers/token_layer.h"
 #include "lib/doctest.h"
 
 namespace linpipe {
