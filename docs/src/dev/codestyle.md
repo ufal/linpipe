@@ -1,6 +1,7 @@
 # Codestyle
 
-- Use full C++17.
+- Use C++20, but for the time being with conservative set of features
+  (no modules, `std::format`, `chrono` additions; full C++17 is OK).
 
 - Indent by two spaces; the sources should contain no tabs.
 
