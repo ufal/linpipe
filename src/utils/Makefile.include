@@ -19,5 +19,5 @@ LINPIPE_TESTS += utils/arguments_test
 LINPIPE_TESTS += utils/split_test
 LINPIPE_TESTS += utils/languages_test
 
-utils/languages.cpp: utils/generate_languages_cpp.py
+utils/languages.cpp: utils/languages.gen.py
 	python3 $< -o $@
