@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <array>
 #include <unordered_map>
 
 #include "common.h"
@@ -16,57 +17,19 @@
 namespace linpipe {
 
 class Language {
-  public:
-    string name_;
-    string iso639_1;  // empty for langs without ISO 639-1 code
-    vector<string> non_iso639_1_codes;
+ public:
+  const char* name;
+  const char* iso639_1;
+  const char* iso639_2b;
+  const char* iso639_3;
+  const char* flag;
 };
 
-// Raw generated data, produced by generate_languages_cpp.py.
-extern const vector<Language> allLanguages;
-
 class Languages {
-  public:
-    Languages() : languages_(allLanguages) {
-      for (size_t i = 0; i < languages_.size(); i++) {
-        const Language& language = languages_[i];
-        name_to_language[language.name_] = i;
+ public:
+  static const std::array<Language, 7936> languages;
 
-        if (!language.iso639_1.empty())
-          iso_639_1_to_language[language.iso639_1] = i;
-
-        for (const string& code : language.non_iso639_1_codes)
-          non_iso_639_1_to_language[code] = i;
-      }
-    }
-
-    Language& language_by_name(const string& name) {
-      auto it = name_to_language.find(name);
-      if (it == name_to_language.end())
-        throw LinpipeError{"Unknown language name: '", name, "'"};
-      return languages_[it->second];
-    }
-
-    Language& language_by_iso639_1(const string& iso_639_1) {
-      auto it = iso_639_1_to_language.find(iso_639_1);
-      if (it == iso_639_1_to_language.end())
-        throw LinpipeError{"Unknown ISO 639-1 code: '", iso_639_1, "'"};
-      return languages_[it->second];
-    }
-
-    Language& language_by_non_iso_639_1(const string& iso_639_1) {
-      auto it = non_iso_639_1_to_language.find(iso_639_1);
-      if (it == non_iso_639_1_to_language.end())
-        throw LinpipeError{"Unknown non-ISO-639-1 code: '", iso_639_1, "'"};
-      return languages_[it->second];
-    }
-
-  private:
-    vector<Language> languages_;
-
-    unordered_map<string, int> name_to_language;
-    unordered_map<string, int> iso_639_1_to_language;
-    unordered_map<string, int> non_iso_639_1_to_language;
+  static const Language* language_by_code(std::string_view code);
 };
 
 } // namespace linpipe
