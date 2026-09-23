@@ -17,11 +17,11 @@ namespace linpipe {
 
 class Arguments {
  public:
-  void parse_operations(vector<string>& descriptions, const string description);
-  void parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description);
-  void parse_format(unordered_map<string, string>& args, const string description);
+  void parse_operations(std::vector<std::string>& descriptions, const std::string description);
+  void parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description);
+  void parse_format(std::unordered_map<std::string, std::string>& args, const std::string description);
  private:
-  size_t find_next_operation_(const string description, size_t offset);
+  size_t find_next_operation_(const std::string description, size_t offset);
 };
 
 } // namespace linpipe

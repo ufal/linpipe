@@ -13,8 +13,8 @@
 
 namespace linpipe {
 
-bool lzma_compress(const byte* data, size_t length, vector<byte>& output, uint32_t preset=6);
-bool lzma_decompress_all(const byte* data, size_t length, vector<byte>& output);
-size_t lzma_decompress_one(const byte* data, size_t length, vector<byte>& output);
+bool lzma_compress(const std::byte* data, size_t length, std::vector<std::byte>& output, uint32_t preset=6);
+bool lzma_decompress_all(const std::byte* data, size_t length, std::vector<std::byte>& output);
+size_t lzma_decompress_one(const std::byte* data, size_t length, std::vector<std::byte>& output);
 
 } // namespace linpipe

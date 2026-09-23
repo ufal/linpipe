@@ -19,12 +19,12 @@ class Format {
  public:
   virtual ~Format() {}
 
-  static unique_ptr<Format> create(const string description);
+  static std::unique_ptr<Format> create(const std::string description);
 
-  virtual unique_ptr<Document> load(istream& input, const string source_path) = 0;
-  virtual void save(Document& document, ostream& output) = 0;
-  virtual void save_corpus_start(ostream& output);
-  virtual void save_corpus_end(ostream& output);
+  virtual std::unique_ptr<Document> load(std::istream& input, const std::string source_path) = 0;
+  virtual void save(Document& document, std::ostream& output) = 0;
+  virtual void save_corpus_start(std::ostream& output);
+  virtual void save_corpus_end(std::ostream& output);
 };
 
 } // namespace linpipe

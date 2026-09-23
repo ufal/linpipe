@@ -18,17 +18,17 @@
 
 namespace linpipe::formats {
 
-Conll::Conll(const string description) {
+Conll::Conll(const std::string description) {
   Arguments args;
   args.parse_format(args_, description);
 
   int i = 1;
   while(true) { // see how many columns requested
-    unordered_map<string, string>::const_iterator it = args_.find(to_string(i));
+    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i));
     if (it == args_.end()) break; // no more columns
 
     // split column description into name and type
-    if (size_t index = it->second.find(':'); index != string::npos) {
+    if (size_t index = it->second.find(':'); index != std::string::npos) {
       names_.emplace_back(it->second, 0, index);
       types_.emplace_back(it->second, index + 1);
     }
@@ -42,7 +42,7 @@ Conll::Conll(const string description) {
 
   encodings_.resize(names_.size());
   for (size_t i = 0; i < encodings_.size(); i++) {
-    unordered_map<string, string>::const_iterator it = args_.find(to_string(i+1) + "_encoding");
+    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i+1) + "_encoding");
     if (it != args_.end()) {
       encodings_[i] = it->second;
     }
@@ -50,11 +50,11 @@ Conll::Conll(const string description) {
 
 }
 
-unique_ptr<Document> Conll::load(istream& input, const string source_path) {
+std::unique_ptr<Document> Conll::load(std::istream& input, const std::string source_path) {
   if (input.eof())
     return nullptr;
 
-  auto document = make_unique<Document>();
+  auto document = std::make_unique<Document>();
 
   // Create layers.
   for (size_t i = 0; i < types_.size(); i++) {
@@ -64,7 +64,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
   }
 
   // Read content.
-  string line;
+  std::string line;
   unsigned ntokens = 0;
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
@@ -75,7 +75,7 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
       }
     }
     else { // line with cols
-      vector<string_view> cols;
+      std::vector<std::string_view> cols;
       if (split(line, '\t', cols) != types_.size())
         throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
 
@@ -101,10 +101,10 @@ unique_ptr<Document> Conll::load(istream& input, const string source_path) {
   return document;
 }
 
-void Conll::save(Document& document, ostream& output) {
+void Conll::save(Document& document, std::ostream& output) {
   // Peek in first layer to find out the number of tokens.
   size_t n = 0; // number of token lines
-  const vector<unique_ptr<Layer>>& layers = document.layers();
+  const std::vector<std::unique_ptr<Layer>>& layers = document.layers();
   if (layers.size()) {
     if (layers[0]->type() == "token_layer") {
       n = dynamic_cast<layers::TokenLayer*>(layers[0].get())->tokens.size();
@@ -113,7 +113,7 @@ void Conll::save(Document& document, ostream& output) {
 
   // Preprocess the columns that need preprocessing,
   // e.g. encoding named entities.
-  vector<vector<string>> encoded_columns(layers.size());
+  std::vector<std::vector<std::string>> encoded_columns(layers.size());
   for (size_t i = 0; i < encoded_columns.size(); i++) {
     if (types_[i] == "spans") { // encode spans
       encoded_columns[i].resize(n);
@@ -137,7 +137,7 @@ void Conll::save(Document& document, ostream& output) {
 
         // Print end of sentence.
         if (layer.sentences[sentence_index] == i && !sentence_printed) {
-          output << endl;
+          output << std::endl;
           sentence_index += 1;
           sentence_printed = true;
         }
@@ -153,7 +153,7 @@ void Conll::save(Document& document, ostream& output) {
       // Print delimiter.
       if (j != n-1) output << "\t";
     }
-    output << endl;
+    output << std::endl;
   }
 }
 

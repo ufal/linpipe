@@ -20,14 +20,14 @@ class Implementation {
 
  public:
   virtual ~Implementation() {};
-  vector<string>& model_names();
-  string& type();
+  std::vector<std::string>& model_names();
+  std::string& type();
 
  protected:
-  Implementation(const string type, vector<string> model_names) : type_(type), model_names_(model_names) {};
+  Implementation(const std::string type, std::vector<std::string> model_names) : type_(type), model_names_(model_names) {};
 
-  string type_;
-  vector<string> model_names_;
+  std::string type_;
+  std::vector<std::string> model_names_;
 };
 
 } // namespace linpipe::operations

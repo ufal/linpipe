@@ -16,8 +16,8 @@ namespace linpipe {
 
 TEST_CASE("Arguments::parse_operations") {
   Arguments args;
-  vector<string> parsed;
-  vector<string> gold;
+  std::vector<std::string> parsed;
+  std::vector<std::string> gold;
 
   SUBCASE("parses single operation name") {
     gold.push_back(" -load");
@@ -48,10 +48,10 @@ TEST_CASE("Arguments::parse_operations") {
 
 TEST_CASE("Arguments::parse_arguments") {
   Arguments parser;
-  unordered_map<string, string> args;
-  vector<string> kwargs;
-  unordered_map<string, string> gold_args;
-  vector<string> gold_kwargs;
+  std::unordered_map<std::string, std::string> args;
+  std::vector<std::string> kwargs;
+  std::unordered_map<std::string, std::string> gold_args;
+  std::vector<std::string> gold_kwargs;
 
   SUBCASE("parses 1 kwarg in 1 operation") {
     gold_kwargs.push_back("test.in");
@@ -78,8 +78,8 @@ TEST_CASE("Arguments::parse_arguments") {
 
 TEST_CASE("Arguments::parse_format") {
   Arguments args;
-  unordered_map<string, string> parsed;
-  unordered_map<string, string> gold;
+  std::unordered_map<std::string, std::string> parsed;
+  std::unordered_map<std::string, std::string> gold;
 
   SUBCASE("parses empty description") {
     CHECK_NOTHROW(args.parse_format(parsed, ""));

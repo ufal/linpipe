@@ -11,7 +11,7 @@
 
 namespace linpipe::models {
 
-NERToy::NERToy(string& name, istream& /*input*/) : Model(name) {
+NERToy::NERToy(std::string& name, std::istream& /*input*/) : Model(name) {
 
 }
 

@@ -19,22 +19,22 @@ class Layer {
  public:
   virtual ~Layer() {}
 
-  static unique_ptr<Layer> create(const string type, const string name={});
+  static std::unique_ptr<Layer> create(const std::string type, const std::string name={});
 
   virtual void from_json(const Json& json) = 0;
   virtual Json to_json() = 0;
-  virtual string to_html() = 0;
+  virtual std::string to_html() = 0;
 
-  const string& name() { return name_; }
-  const string& type() { return type_; }
+  const std::string& name() { return name_; }
+  const std::string& type() { return type_; }
 
   // TODO: add more structured metadata info
 
  protected:
-  Layer(const string type, const string name) : type_(type), name_(name) {};
+  Layer(const std::string type, const std::string name) : type_(type), name_(name) {};
 
-  string type_;
-  string name_;
+  std::string type_;
+  std::string name_;
   friend class Document;
 };
 

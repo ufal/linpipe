@@ -16,8 +16,8 @@ namespace linpipe::formats {
 
 class Lif : public Format {
  public:
-  virtual unique_ptr<Document> load(istream& input, const string source_path) override;
-  virtual void save(Document& document, ostream& output) override;
+  virtual std::unique_ptr<Document> load(std::istream& input, const std::string source_path) override;
+  virtual void save(Document& document, std::ostream& output) override;
 };
 
 } // namespace linpipe::formats

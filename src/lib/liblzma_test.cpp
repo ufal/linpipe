@@ -14,20 +14,20 @@ namespace linpipe {
 
 TEST_CASE("lzma_roundtrip") {
   auto input = "Testing LZMA compression in LinPipe"s;
-  vector<byte> compressed;
-  CHECK(lzma_compress((const byte*) input.data(), input.size(), compressed));
+  std::vector<std::byte> compressed;
+  CHECK(lzma_compress((const std::byte*) input.data(), input.size(), compressed));
 
-  vector<byte> decompressed;
+  std::vector<std::byte> decompressed;
   CHECK(lzma_decompress_all(compressed.data(), compressed.size(), decompressed));
-  CHECK(input == string_view((const char*)decompressed.data(), decompressed.size()));
+  CHECK(input == std::string_view((const char*)decompressed.data(), decompressed.size()));
 
   for (size_t i = 0, limit = compressed.size(); i < limit; i++)
     compressed.push_back(compressed[i]);
   CHECK(lzma_decompress_all(compressed.data(), compressed.size(), decompressed));
-  CHECK(string(input) + string(input) == string_view((const char*)decompressed.data(), decompressed.size()));
+  CHECK(std::string(input) + std::string(input) == std::string_view((const char*)decompressed.data(), decompressed.size()));
 
   CHECK(lzma_decompress_one(compressed.data(), compressed.size(), decompressed) == compressed.size() / 2);
-  CHECK(input == string_view((const char*)decompressed.data(), decompressed.size()));
+  CHECK(input == std::string_view((const char*)decompressed.data(), decompressed.size()));
 }
 
 } // namespace linpipe

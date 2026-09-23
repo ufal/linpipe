@@ -20,25 +20,25 @@ class Document {
  public:
   // The responsibility of the Document is to guarantee that layers
   // have unique name.
-  template<typename T=Layer> T& get_layer(const string_view name={});
-  Layer& add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate=true);
-  void del_layer(const string_view name);
+  template<typename T=Layer> T& get_layer(const std::string_view name={});
+  Layer& add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_duplicate=true);
+  void del_layer(const std::string_view name);
 
-  const vector<unique_ptr<Layer>>& layers();
-  const string& source_path();
+  const std::vector<std::unique_ptr<Layer>>& layers();
+  const std::string& source_path();
 
-  void set_source_path(const string_view source_path);
+  void set_source_path(const std::string_view source_path);
 
  private:
-  vector<unique_ptr<Layer>> layers_;
-  set<string> names_;
+  std::vector<std::unique_ptr<Layer>> layers_;
+  std::set<std::string> names_;
 
-  string source_path_;
+  std::string source_path_;
 };
 
 // Definitions
 
-template<> inline Layer& Document::get_layer(const string_view name) {
+template<> inline Layer& Document::get_layer(const std::string_view name) {
   /* Gets layer by name or the last layer if no name given.
 
   Receives:
@@ -67,7 +67,7 @@ template<> inline Layer& Document::get_layer(const string_view name) {
   throw LinpipeError{"Document::get_layer: Layer '", name, "' was not found in document."};
 }
 
-template<typename T> T& Document::get_layer(const string_view name) {
+template<typename T> T& Document::get_layer(const std::string_view name) {
   /* Gets layer by name and type or the last layer of the type if no name given.
 
   Receives:

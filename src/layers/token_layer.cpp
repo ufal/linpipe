@@ -36,8 +36,8 @@ Json TokenLayer::to_json() {
   };
 }
 
-string TokenLayer::to_html() {
-  return string();
+std::string TokenLayer::to_html() {
+  return std::string();
 }
 
 } // namespace linpipe::layers

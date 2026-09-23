@@ -14,10 +14,10 @@
 
 namespace linpipe::operations {
 
-Load::Load(const string description) {
+Load::Load(const std::string description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  std::unordered_map<std::string, std::string> args;
+  std::vector<std::string> kwargs;
   args["format"] = "lif";
 
   Arguments arguments;
@@ -33,9 +33,9 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
     read_from_handle_(corpus, *state.default_input, "");
   }
   else {  // file inputs
-    for (string source_path : source_paths_) {
-      ifstream input_file;
-      input_file.open(string(source_path));
+    for (std::string source_path : source_paths_) {
+      std::ifstream input_file;
+      input_file.open(std::string(source_path));
       if (!input_file) {
         throw LinpipeError{"Load::execute: Could not open source path '", source_path, "' for reading"};
       }
@@ -44,8 +44,8 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
   }
 }
 
-void Load::read_from_handle_(Corpus& corpus, istream& input, const string source_path) {
-  unique_ptr<Document> doc;
+void Load::read_from_handle_(Corpus& corpus, std::istream& input, const std::string source_path) {
+  std::unique_ptr<Document> doc;
   while ((doc = format_->load(input, source_path)))
     corpus.documents.push_back(std::move(doc));
 }

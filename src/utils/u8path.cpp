@@ -11,21 +11,21 @@
 
 namespace linpipe {
 
-filesystem::path path_from_u8(string_view str) {
+std::filesystem::path path_from_u8(std::string_view str) {
 #if defined(__cpp_lib_char8_t)
   // Convert string_view to std::u8string_view to avoid deprecated u8path constructor.
-  return filesystem::path(u8string_view(reinterpret_cast<const char8_t*>(str.data()), str.size()));
+  return std::filesystem::path(u8string_view(reinterpret_cast<const char8_t*>(str.data()), str.size()));
 #else
   // Use u8path method.
-  return filesystem::u8path(str);
+  return std::filesystem::u8path(str);
 #endif
 }
 
-string path_to_u8(const filesystem::path& path) {
+std::string path_to_u8(const std::filesystem::path& path) {
 #if defined(__cpp_lib_char8_t)
   // Create a copy of the u8string as std::string.
   auto u8_path = path.u8string();
-  return string(reinterpret_cast<const char*>(u8_path.data()), u8_path.size());
+  return std::string(reinterpret_cast<const char*>(u8_path.data()), u8_path.size());
 #else
   // Return path::u8string directly.
   return path.u8string();

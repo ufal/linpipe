@@ -44,14 +44,14 @@ class REInit {
     }
   }
   inline static bool initialized_ = false;
-  inline static array<OnigEncoding, 2> encodings_ = {ONIG_ENCODING_UTF8, ONIG_ENCODING_UTF32_LE};
+  inline static std::array<OnigEncoding, 2> encodings_ = {ONIG_ENCODING_UTF8, ONIG_ENCODING_UTF32_LE};
   static REInit singleton;
 };
 REInit REInit::singleton;
 
 // Private template RE methods
 template<class Char>
-basic_string_view<Char> match(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_view<Char>>* groups) {
+std::basic_string_view<Char> match(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>* groups) {
   if (groups) groups->clear();
 
   OnigRegion region;
@@ -67,7 +67,7 @@ basic_string_view<Char> match(OnigRegexType* re, basic_string_view<Char> str, ve
 
       onig_region_free(&region, 0);
     }
-    return basic_string_view<Char>(str.data(), r / sizeof(Char));
+    return std::basic_string_view<Char>(str.data(), r / sizeof(Char));
   }
 
   if (groups)
@@ -77,11 +77,11 @@ basic_string_view<Char> match(OnigRegexType* re, basic_string_view<Char> str, ve
     onig_error_code_to_str((UChar* )s, r);
     LOG(ERROR, "RE::match: An error occurred during matching: " << s);
   }
-  return basic_string_view<Char>();
+  return std::basic_string_view<Char>();
 }
 
 template<class Char>
-basic_string_view<Char> search(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_view<Char>>* groups) {
+std::basic_string_view<Char> search(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>* groups) {
   if (groups) groups->clear();
 
   OnigRegion region;
@@ -94,7 +94,7 @@ basic_string_view<Char> search(OnigRegexType* re, basic_string_view<Char> str, v
       for (int i = 1; i < region.num_regs; i++)
         groups->push_back(str.substr(region.beg[i] / sizeof(Char), (region.end[i] - region.beg[i]) / sizeof(Char)));
     }
-    basic_string_view<Char> result = str.substr(region.beg[0] / sizeof(Char), (region.end[0] - region.beg[0]) / sizeof(Char));
+    std::basic_string_view<Char> result = str.substr(region.beg[0] / sizeof(Char), (region.end[0] - region.beg[0]) / sizeof(Char));
     onig_region_free(&region, 0);
     return result;
   }
@@ -105,11 +105,11 @@ basic_string_view<Char> search(OnigRegexType* re, basic_string_view<Char> str, v
     onig_error_code_to_str((UChar* )s, r);
     LOG(ERROR, "RE::search: An error occurred during searching: " << s);
   }
-  return basic_string_view<Char>();
+  return std::basic_string_view<Char>();
 }
 
 template<class Char>
-size_t split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string_view<Char>>& parts, size_t max_splits) {
+size_t split(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>& parts, size_t max_splits) {
   parts.clear();
 
   OnigRegion region;
@@ -146,7 +146,7 @@ size_t split(OnigRegexType* re, basic_string_view<Char> str, vector<basic_string
 }
 
 template<class Char>
-size_t sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Char> replacement, basic_string<Char>& output, size_t max_subs) {
+size_t sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_string_view<Char> replacement, std::basic_string<Char>& output, size_t max_subs) {
   output.clear();
 
   OnigRegion region;
@@ -199,7 +199,7 @@ size_t sub(OnigRegexType* re, basic_string_view<Char> str, basic_string_view<Cha
 }
 
 // RE declarations
-RE::RE(string_view pattern, int options) : re_(nullptr) {
+RE::RE(std::string_view pattern, int options) : re_(nullptr) {
   REInit::initialize();
 
   OnigErrorInfo einfo;
@@ -227,26 +227,26 @@ RE::~RE() {
   }
 }
 
-string_view RE::match(string_view str, vector<string_view>* groups) {
+std::string_view RE::match(std::string_view str, std::vector<std::string_view>* groups) {
   return linpipe::match<char>((OnigRegexType*)re_, str, groups);
 }
 
-string_view RE::search(string_view str, vector<string_view>* groups) {
+std::string_view RE::search(std::string_view str, std::vector<std::string_view>* groups) {
   return linpipe::search<char>((OnigRegexType*)re_, str, groups);
 }
 
-size_t RE::split(string_view str, vector<string_view>& parts, size_t max_splits) {
+size_t RE::split(std::string_view str, std::vector<std::string_view>& parts, size_t max_splits) {
   return linpipe::split<char>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
-size_t RE::sub(string_view str, string_view replacement, string& output, size_t max_subs) {
+size_t RE::sub(std::string_view str, std::string_view replacement, std::string& output, size_t max_subs) {
   return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 
 // RE32 declarations
-RE32::RE32(string_view pattern, int options) : RE32([pattern]{ u32string u32; unilib::utf::decode(pattern, u32); return u32; }(), options) {}
+RE32::RE32(std::string_view pattern, int options) : RE32([pattern]{ std::u32string u32; unilib::utf::decode(pattern, u32); return u32; }(), options) {}
 
-RE32::RE32(u32string_view pattern, int options) : re_(nullptr) {
+RE32::RE32(std::u32string_view pattern, int options) : re_(nullptr) {
   REInit::initialize();
 
   OnigErrorInfo einfo;
@@ -259,7 +259,7 @@ RE32::RE32(u32string_view pattern, int options) : re_(nullptr) {
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str((UChar*)s, r, &einfo);
-    string u8pattern; unilib::utf::encode(pattern, u8pattern);
+    std::string u8pattern; unilib::utf::encode(pattern, u8pattern);
     throw LinpipeError{"RE::RE: Cannot parse regular expression '", u8pattern, "': ", s};
   }
 }
@@ -275,19 +275,19 @@ RE32::~RE32() {
   }
 }
 
-u32string_view RE32::match(u32string_view str, vector<u32string_view>* groups) {
+std::u32string_view RE32::match(std::u32string_view str, std::vector<std::u32string_view>* groups) {
   return linpipe::match<char32_t>((OnigRegexType*)re_, str, groups);
 }
 
-u32string_view RE32::search(u32string_view str, vector<u32string_view>* groups) {
+std::u32string_view RE32::search(std::u32string_view str, std::vector<std::u32string_view>* groups) {
   return linpipe::search<char32_t>((OnigRegexType*)re_, str, groups);
 }
 
-size_t RE32::split(u32string_view str, vector<u32string_view>& parts, size_t max_splits) {
+size_t RE32::split(std::u32string_view str, std::vector<std::u32string_view>& parts, size_t max_splits) {
   return linpipe::split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
-size_t RE32::sub(u32string_view str, u32string_view replacement, u32string& output, size_t max_subs) {
+size_t RE32::sub(std::u32string_view str, std::u32string_view replacement, std::u32string& output, size_t max_subs) {
   return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 

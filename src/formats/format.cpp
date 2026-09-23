@@ -14,27 +14,27 @@
 
 namespace linpipe {
 
-unique_ptr<Format> Format::create(const string description) {
+std::unique_ptr<Format> Format::create(const std::string description) {
   if (description == "text") {
-    return make_unique<formats::Text>();
+    return std::make_unique<formats::Text>();
   }
   if (description == "lif") {
-    return make_unique<formats::Lif>();
+    return std::make_unique<formats::Lif>();
   }
   if (description == "conll") {
-    return make_unique<formats::Conll>("conll(1=tokens)");
+    return std::make_unique<formats::Conll>("conll(1=tokens)");
   }
   if (description.find("conll(") == 0) {
-    return make_unique<formats::Conll>(description);
+    return std::make_unique<formats::Conll>(description);
   }
 
   throw LinpipeError{"Format::create: Invalid value '", description, "' for the --format argument"};
 }
 
-void Format::save_corpus_start(ostream& /*output*/) {
+void Format::save_corpus_start(std::ostream& /*output*/) {
 }
 
-void Format::save_corpus_end(ostream& /*output*/) {
+void Format::save_corpus_end(std::ostream& /*output*/) {
 }
 
 } // namespace linpipe

@@ -16,8 +16,8 @@
 
 namespace linpipe {
 
-unique_ptr<Operation> Operation::create(const string description) {
-  vector<string> descriptions;
+std::unique_ptr<Operation> Operation::create(const std::string description) {
+  std::vector<std::string> descriptions;
 
   Arguments args;
   args.parse_operations(descriptions, description);
@@ -29,17 +29,17 @@ unique_ptr<Operation> Operation::create(const string description) {
   }
 
   if (descriptions.size() > 1) {  // Composite
-    return make_unique<operations::Composite>(description);
+    return std::make_unique<operations::Composite>(description);
   }
   else {  // simple (leaf) operations
     if (description.find(" -load", 0) == 0) { // Load
-      return make_unique<operations::Load>(description);
+      return std::make_unique<operations::Load>(description);
     }
     if (description.find(" -save", 0) == 0) { // Save
-      return make_unique<operations::Save>(description);
+      return std::make_unique<operations::Save>(description);
     }
     if (description.find(" -tokenize", 0) == 0) { // Tokenize
-      return make_unique<operations::Tokenize>(description);
+      return std::make_unique<operations::Tokenize>(description);
     }
   }
 
@@ -48,7 +48,7 @@ unique_ptr<Operation> Operation::create(const string description) {
 }
 
 void Operation::reserve_models(PipelineState& state) {
-  for (const string& model_name : model_names_) {
+  for (const std::string& model_name : model_names_) {
     state.model_manager->reserve(model_name);
   }
 }

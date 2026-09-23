@@ -16,12 +16,12 @@ namespace linpipe::operations {
 
 class Save : public Operation {
  public:
-  Save(const string description);
+  Save(const std::string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
 
  private:
-  unique_ptr<Format> format_;
-  vector<string> target_paths_;
+  std::unique_ptr<Format> format_;
+  std::vector<std::string> target_paths_;
 };
 
 } // namespace linpipe::operations

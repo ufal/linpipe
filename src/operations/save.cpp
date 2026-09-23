@@ -14,10 +14,10 @@
 
 namespace linpipe::operations {
 
-Save::Save(const string description) {
+Save::Save(const std::string description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  std::unordered_map<std::string, std::string> args;
+  std::vector<std::string> kwargs;
   args["format"] = "lif";
 
   Arguments arguments;
@@ -29,12 +29,12 @@ Save::Save(const string description) {
 }
 
 void Save::execute(Corpus& corpus, PipelineState& state) {
-  vector<string> target_paths = target_paths_;
+  std::vector<std::string> target_paths = target_paths_;
 
   // If user requested custom target paths for documents in format kwargs,
   // check that the number of target paths matches the number of documents.
   if (target_paths.size() && target_paths.size() != corpus.documents.size()) {
-    throw LinpipeError{"Save::execute: The number of target paths (", to_string(target_paths.size()), ") != number of documents in the corpus (", to_string(corpus.documents.size()), ")"};
+    throw LinpipeError{"Save::execute: The number of target paths (", std::to_string(target_paths.size()), ") != number of documents in the corpus (", std::to_string(corpus.documents.size()), ")"};
   }
 
   // If no custom outputs were required in format kwargs, try to figure out the
@@ -53,8 +53,8 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
   }
 
   // Write the documents to their respective target paths.
-  ostream* os = state.default_output;
-  ofstream os_file;
+  std::ostream* os = state.default_output;
+  std::ofstream os_file;
   for (size_t i = 0; i < corpus.documents.size(); i++) {
     if (i == 0 || target_paths[i] != target_paths[i-1]) {
 
@@ -64,7 +64,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
           format_->save_corpus_end(*os);
         }
         if (!target_paths[i-1].empty()) { // close previous if not cout
-          dynamic_cast<ofstream*>(os)->close();
+          dynamic_cast<std::ofstream*>(os)->close();
         }
       }
 
@@ -88,7 +88,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
     if (i == corpus.documents.size() - 1) {
       format_->save_corpus_end(*os);
       if (!target_paths[i].empty()) { // close if not cout
-        dynamic_cast<ofstream*>(os)->close();
+        dynamic_cast<std::ofstream*>(os)->close();
       }
     }
   }

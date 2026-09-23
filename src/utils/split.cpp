@@ -11,13 +11,13 @@
 
 namespace linpipe {
 
-size_t split(string_view str, char delimiter, vector<string_view>& parts, size_t max_splits) {
+size_t split(std::string_view str, char delimiter, std::vector<std::string_view>& parts, size_t max_splits) {
   parts.clear();
 
   size_t splits = 0, index = 0;
   while (true) {
     size_t pos = str.find(delimiter, index);
-    if (pos == string::npos) break;
+    if (pos == std::string::npos) break;
 
     parts.push_back(str.substr(index, pos - index));
     index = pos + 1;
@@ -33,13 +33,13 @@ size_t split(string_view str, char delimiter, vector<string_view>& parts, size_t
   return splits;
 }
 
-size_t split(string_view str, string_view delimiter, vector<string_view>& parts, size_t max_splits) {
+size_t split(std::string_view str, std::string_view delimiter, std::vector<std::string_view>& parts, size_t max_splits) {
   parts.clear();
 
   size_t splits = 0, index = 0;
   while (true) {
     size_t pos = str.find(delimiter, index);
-    if (pos == string::npos) break;
+    if (pos == std::string::npos) break;
 
     parts.push_back(str.substr(index, pos - index));
     index = pos + delimiter.size();

@@ -18,10 +18,10 @@ namespace linpipe::operations {
 class Tokenizer : public Implementation {
  public:
   virtual ~Tokenizer() {};
-  virtual void tokenize(ModelManager* model_manager, const string& text, vector<string>& tokens) = 0;
+  virtual void tokenize(ModelManager* model_manager, const std::string& text, std::vector<std::string>& tokens) = 0;
 
  protected:
-  Tokenizer(const string type, vector<string> model_names) : Implementation(type, model_names) {};
+  Tokenizer(const std::string type, std::vector<std::string> model_names) : Implementation(type, model_names) {};
 };
 
 } // namespace linpipe::operations

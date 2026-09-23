@@ -16,16 +16,16 @@
 
 namespace linpipe {
 
-unique_ptr<Layer> Layer::create(const string type, const string name) {
+std::unique_ptr<Layer> Layer::create(const std::string type, const std::string name) {
   // Construct layer of corresponding type.
   if (type == "spans")
-    return make_unique<layers::Spans>(name);
+    return std::make_unique<layers::Spans>(name);
   if (type == "lemmas")
-    return make_unique<layers::Lemmas>(name);
+    return std::make_unique<layers::Lemmas>(name);
   if (type == "plain_text")
-    return make_unique<layers::PlainText>(name);
+    return std::make_unique<layers::PlainText>(name);
   if (type == "token_layer")
-    return make_unique<layers::TokenLayer>(name);
+    return std::make_unique<layers::TokenLayer>(name);
 
   throw LinpipeError{"Layer::create: Cannot construct layer of unknown type '", type, "'"};
 }

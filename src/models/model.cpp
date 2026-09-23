@@ -12,12 +12,12 @@
 
 namespace linpipe {
 
-const string& Model::name() {
+const std::string& Model::name() {
   return name_;
 }
 
-unique_ptr<Model> Model::create(string& name, istream& input) {
-  if (name == "ner_toy") return make_unique<models::NERToy>(name, input);
+std::unique_ptr<Model> Model::create(std::string& name, std::istream& input) {
+  if (name == "ner_toy") return std::make_unique<models::NERToy>(name, input);
 
   throw LinpipeError{"Model::create: Cannot load model of uknown name '", name, "'"};
 }

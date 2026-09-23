@@ -18,16 +18,16 @@ class RE {
  public:
   enum { IGNORECASE = 1, DOTALL = 2, MULTILINE = 4 };
 
-  RE(string_view pattern, int options=0);
+  RE(std::string_view pattern, int options=0);
   RE(RE&& other);
   RE(const RE& other) = delete;
   RE& operator=(const RE& other) = delete;
   ~RE();
 
-  string_view match(string_view str, vector<string_view>* groups=nullptr);
-  string_view search(string_view str, vector<string_view>* groups=nullptr);
-  size_t split(string_view str, vector<string_view>& parts, size_t max_splits=0);
-  size_t sub(string_view str, string_view replacement, string& output, size_t max_subs=0);
+  std::string_view match(std::string_view str, std::vector<std::string_view>* groups=nullptr);
+  std::string_view search(std::string_view str, std::vector<std::string_view>* groups=nullptr);
+  size_t split(std::string_view str, std::vector<std::string_view>& parts, size_t max_splits=0);
+  size_t sub(std::string_view str, std::string_view replacement, std::string& output, size_t max_subs=0);
 
  private:
   void* re_;
@@ -38,17 +38,17 @@ class RE32 {
  public:
   enum { IGNORECASE = 1, DOTALL = 2, MULTILINE = 4 };
 
-  RE32(string_view pattern, int options=0);
-  RE32(u32string_view pattern, int options=0);
+  RE32(std::string_view pattern, int options=0);
+  RE32(std::u32string_view pattern, int options=0);
   RE32(RE32&& other);
   RE32(const RE32& other) = delete;
   RE32& operator=(const RE32& other) = delete;
   ~RE32();
 
-  u32string_view match(u32string_view str, vector<u32string_view>* groups=nullptr);
-  u32string_view search(u32string_view str, vector<u32string_view>* groups=nullptr);
-  size_t split(u32string_view str, vector<u32string_view>& parts, size_t max_splits=0);
-  size_t sub(u32string_view str, u32string_view replacement, u32string& output, size_t max_subs=0);
+  std::u32string_view match(std::u32string_view str, std::vector<std::u32string_view>* groups=nullptr);
+  std::u32string_view search(std::u32string_view str, std::vector<std::u32string_view>* groups=nullptr);
+  size_t split(std::u32string_view str, std::vector<std::u32string_view>& parts, size_t max_splits=0);
+  size_t sub(std::u32string_view str, std::u32string_view replacement, std::u32string& output, size_t max_subs=0);
 
  private:
   void* re_;

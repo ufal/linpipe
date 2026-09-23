@@ -13,28 +13,28 @@
 
 namespace linpipe::formats {
 
-unique_ptr<Document> Text::load(istream& input, const string source_path) {
+std::unique_ptr<Document> Text::load(std::istream& input, const std::string source_path) {
   if (input.eof())
     return nullptr;
 
-  unique_ptr<layers::PlainText> layer = make_unique<layers::PlainText>();
+  std::unique_ptr<layers::PlainText> layer = std::make_unique<layers::PlainText>();
 
   char block[4096];
   while (input.read(block, sizeof(block)))
     layer->text.append(block, sizeof(block));
   layer->text.append(block, input.gcount());
 
-  auto document = make_unique<Document>();
+  auto document = std::make_unique<Document>();
   document->add_layer(std::move(layer));
   document->set_source_path(source_path);
 
   return document;
 }
 
-void Text::save(Document& document, ostream& output) {
+void Text::save(Document& document, std::ostream& output) {
   auto& layer = document.get_layer<layers::PlainText>();
 
-  output << string(layer.text);
+  output << layer.text;
 }
 
 } // namespace linpipe::formats

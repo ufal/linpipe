@@ -19,7 +19,7 @@ class Operation {
  public:
   virtual ~Operation() {}
 
-  static unique_ptr<Operation> create(const string description);
+  static std::unique_ptr<Operation> create(const std::string description);
 
   virtual void execute(Corpus& corpus, PipelineState& state) = 0;
 
@@ -28,13 +28,13 @@ class Operation {
  protected:
   Operation() {};
 
-  vector<string> model_names_;
+  std::vector<std::string> model_names_;
 
   // Name of source layer. If empty (default), the last layer of the
   // appropriate type of the respective operation will be taken from the
   // document.
-  string source_ = {}; // name of source layer to start from
-  string target_ = {}; // name of the newly constructed target layer
+  std::string source_ = {}; // name of source layer to start from
+  std::string target_ = {}; // name of the newly constructed target layer
 };
 
 } // namespace linpipe

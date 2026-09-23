@@ -16,13 +16,13 @@ namespace linpipe {
 class Model {
  public:
   virtual ~Model() {}
-  const string& name();
+  const std::string& name();
 
-  static unique_ptr<Model> create(string& name, istream& input);
+  static std::unique_ptr<Model> create(std::string& name, std::istream& input);
 
  protected:
-  Model(string name) : name_(name) {};
-  string name_;
+  Model(std::string name) : name_(name) {};
+  std::string name_;
 };
 
 } // namespace linpipe

@@ -23,7 +23,7 @@ bool logging_sources = false;
 namespace {
 
 static bool logging_last_progress = false;
-static ofstream logging_file;
+static std::ofstream logging_file;
 
 class LoggingInit {
  private:
@@ -42,7 +42,7 @@ LoggingInit LoggingInit::singleton;
 
 }
 
-void logging_set_level(string_view level) {
+void logging_set_level(std::string_view level) {
   logging_sources = false;
   if (level.size() >= 2 && (level.compare(level.size() - 2, 2, "+s") == 0 || level.compare(level.size() - 2, 2, "+S") == 0)) {
     logging_sources = true;
@@ -68,16 +68,16 @@ void logging_set_level(string_view level) {
     throw LinpipeError{"logging_set_level: Cannot parse logging level '", level, "'"};
 }
 
-void logging_set_file(filesystem::path path) {
-  logging_file.open(path, ios::out | ios::app);
+void logging_set_file(std::filesystem::path path) {
+  logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
     throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_u8(path), "'"};
 
   logging_to_file = true;
 }
 
-ostream& logging_start(int level, const char* source, int line) {
-  ostream& logger = logging_to_file ? logging_file : cerr;
+std::ostream& logging_start(int level, const char* source, int line) {
+  std::ostream& logger = logging_to_file ? logging_file : std::cerr;
 
   if (level != LOGGING_PROGRESS && logging_last_progress) logger.put('\n');
   logging_last_progress = level == LOGGING_PROGRESS;
@@ -85,7 +85,7 @@ ostream& logging_start(int level, const char* source, int line) {
   time_t now;
   time(&now);
   char date_time[6 + 1 + 6 + 1];
-  strftime(date_time, size(date_time), "%y%m%d-%H%M%S", localtime(&now));
+  strftime(date_time, std::size(date_time), "%y%m%d-%H%M%S", localtime(&now));
   logger.write(date_time, sizeof(date_time) - 1);
 
   if (logging_sources)

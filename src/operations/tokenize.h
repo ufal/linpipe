@@ -16,10 +16,10 @@ namespace linpipe::operations {
 
 class Tokenize : public Operation {
  public:
-  Tokenize(const string description);
+  Tokenize(const std::string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
  private:
-  unique_ptr<Tokenizer> tokenizer_;
+  std::unique_ptr<Tokenizer> tokenizer_;
 };
 
 } // namespace linpipe::operations

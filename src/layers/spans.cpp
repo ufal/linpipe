@@ -13,7 +13,7 @@
 
 namespace linpipe::layers {
 
-SpanEncoding SpanEncoding::create(const string& type) {
+SpanEncoding SpanEncoding::create(const std::string& type) {
   if (type == "BIO") return SpanEncoding::BIO;
   if (type == "IOB") return SpanEncoding::IOB;
   throw LinpipeError{"SpanEncoding::create: Unexpected SpanEncoding type '", type, "'"};
@@ -44,11 +44,11 @@ Json Spans::to_json() {
   };
 }
 
-string Spans::to_html() {
-  return string();
+std::string Spans::to_html() {
+  return std::string();
 }
 
-void Spans::decode(string_view encoded_tag, unsigned index, const SpanEncoding encoding) {
+void Spans::decode(std::string_view encoded_tag, unsigned index, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
     if (encoded_tag != "O") {
@@ -68,10 +68,10 @@ void Spans::decode(string_view encoded_tag, unsigned index, const SpanEncoding e
     return;
   }
 
-  throw LinpipeError{"Spans::decode: Unexpected SpanEncoding with value ", to_string(encoding.type)};
+  throw LinpipeError{"Spans::decode: Unexpected SpanEncoding with value ", std::to_string(encoding.type)};
 }
 
-void Spans::encode(vector<string>& encoded_tags, const SpanEncoding encoding) {
+void Spans::encode(std::vector<std::string>& encoded_tags, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
     for (size_t i = 0; i < encoded_tags.size(); i++) {
@@ -91,7 +91,7 @@ void Spans::encode(vector<string>& encoded_tags, const SpanEncoding encoding) {
     return;
   }
 
-  throw LinpipeError{"Spans::encode: Unexpected SpanEncoding with value ", to_string(encoding.type)};
+  throw LinpipeError{"Spans::encode: Unexpected SpanEncoding with value ", std::to_string(encoding.type)};
 }
 
 } // namespace linpipe::layers

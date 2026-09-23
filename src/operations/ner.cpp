@@ -15,10 +15,10 @@
 
 namespace linpipe::operations {
 
-NER::NER(const string description) {
+NER::NER(const std::string description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  std::unordered_map<std::string, std::string> args;
+  std::vector<std::string> kwargs;
   args["model"] = "ner_toy";
   args["source"] = "";
   args["target"] = "";
@@ -27,7 +27,7 @@ NER::NER(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "ner_toy") ne_recognizer_ = make_unique<NERecognizerToy>(vector<string>{args["model"]});
+  if (args["model"] == "ner_toy") ne_recognizer_ = std::make_unique<NERecognizerToy>(std::vector<std::string>{args["model"]});
 
   model_names_ = ne_recognizer_->model_names();
   source_ = args["source"];
@@ -37,7 +37,7 @@ NER::NER(const string description) {
 void NER::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
     auto& source = doc->get_layer<layers::TokenLayer>(source_);
-    auto target = make_unique<layers::Spans>(target_);
+    auto target = std::make_unique<layers::Spans>(target_);
 
     ne_recognizer_->recognize(state.model_manager, source.tokens, target->spans);
 

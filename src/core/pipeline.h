@@ -16,7 +16,7 @@ namespace linpipe {
 
 class Pipeline {
  public:
-  Pipeline(const string description);
+  Pipeline(const std::string description);
 
   bool execute(Corpus& corpus);
 
@@ -25,7 +25,7 @@ class Pipeline {
  private:
   Pipeline();
 
-  unique_ptr<Operation> operation_;
+  std::unique_ptr<Operation> operation_;
 };
 
 } // namespace linpipe

@@ -15,7 +15,7 @@
 
 namespace linpipe {
 
-void logging_set_level(string_view level);
-void logging_set_file(filesystem::path path);
+void logging_set_level(std::string_view level);
+void logging_set_file(std::filesystem::path path);
 
 } // namespace linpipe

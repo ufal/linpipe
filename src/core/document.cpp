@@ -13,7 +13,7 @@
 
 namespace linpipe {
 
-Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
+Layer& Document::add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_duplicate) {
   /* Adds layer to collection of layers, maintaining unique layer names by default.
 
   Receives:
@@ -35,8 +35,8 @@ Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplic
   // If name already exists, add numbers until unique.
   if (unique_name_if_duplicate && names_.find(layer->name_) != names_.end()) {
     int i = 2;
-    while (names_.find(layer->name_ + "_" + to_string(i)) != names_.end()) i++;
-    layer->name_ += "_" + to_string(i);
+    while (names_.find(layer->name_ + "_" + std::to_string(i)) != names_.end()) i++;
+    layer->name_ += "_" + std::to_string(i);
   }
 
   names_.insert(layer->name_);
@@ -45,8 +45,8 @@ Layer& Document::add_layer(unique_ptr<Layer>&& layer, bool unique_name_if_duplic
   return *layers_.back().get();
 }
 
-void Document::del_layer(const string_view name) {
-  auto it = find_if(layers_.begin(), layers_.end(), [&](const unique_ptr<Layer>& l) { return l->name() == name; });
+void Document::del_layer(const std::string_view name) {
+  auto it = find_if(layers_.begin(), layers_.end(), [&](const std::unique_ptr<Layer>& l) { return l->name() == name; });
 
   if (it == layers_.end()) {
     throw LinpipeError{"Document::del_layer: Layer '", name, "' was not found in document."};
@@ -55,15 +55,15 @@ void Document::del_layer(const string_view name) {
   layers_.erase(it);
 }
 
-const vector<unique_ptr<Layer>>& Document::layers() {
+const std::vector<std::unique_ptr<Layer>>& Document::layers() {
   return layers_;
 }
 
-const string& Document::source_path() {
+const std::string& Document::source_path() {
   return source_path_;
 }
 
-void Document::set_source_path(const string_view source_path) {
+void Document::set_source_path(const std::string_view source_path) {
   source_path_ = source_path;
 }
 

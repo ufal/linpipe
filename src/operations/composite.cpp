@@ -12,13 +12,13 @@
 
 namespace linpipe::operations {
 
-Composite::Composite(const string description) {
-  vector<string> descriptions;
+Composite::Composite(const std::string description) {
+  std::vector<std::string> descriptions;
 
   Arguments args;
   args.parse_operations(descriptions, description);
 
-  for (string d : descriptions) {
+  for (std::string d : descriptions) {
     operations_.push_back(Operation::create(d));
   }
 }

@@ -26,8 +26,8 @@ TEST_CASE("RE::match") {
     CHECK(RE("\\p{Ll}").match("\xc4\x8c").data() == nullptr);
   }
   SUBCASE("groups") {
-    vector<string_view> groups;
-    CHECK(RE(".(\\w).(\\w)").match("abcde", &groups) == "abcd"); CHECK(groups == vector{"b"sv, "d"sv});
+    std::vector<std::string_view> groups;
+    CHECK(RE(".(\\w).(\\w)").match("abcde", &groups) == "abcd"); CHECK(groups == std::vector{"b"sv, "d"sv});
   }
 }
 
@@ -38,36 +38,36 @@ TEST_CASE("RE::search") {
     CHECK(RE("\\p{Ll}").search("\xc4\x8c\xc4\x8d") == "\xc4\x8d");
   }
   SUBCASE("groups") {
-    vector<string_view> groups;
+    std::vector<std::string_view> groups;
     CHECK(RE("(\\w)!(\\w)").search("Hi\xc4\x8c!\xc4\x8dthere", &groups) == "\xc4\x8c!\xc4\x8d");
-    CHECK(groups == vector{"\xc4\x8c"sv, "\xc4\x8d"sv});
+    CHECK(groups == std::vector{"\xc4\x8c"sv, "\xc4\x8d"sv});
   }
 }
 
 TEST_CASE("RE::split") {
-  vector<string_view> parts;
+  std::vector<std::string_view> parts;
   CHECK(RE(",").split("", parts) == 0); CHECK(parts.empty());
 
-  CHECK(RE(",").split("a", parts) == 1); CHECK(parts == vector{"a"sv});
+  CHECK(RE(",").split("a", parts) == 1); CHECK(parts == std::vector{"a"sv});
 
-  CHECK(RE(",").split("a,b,c", parts) == 3); CHECK(parts == vector{"a"sv, "b"sv, "c"sv});
+  CHECK(RE(",").split("a,b,c", parts) == 3); CHECK(parts == std::vector{"a"sv, "b"sv, "c"sv});
 
-  CHECK(RE(",").split("a,b,c", parts, 1) == 2); CHECK(parts == vector{"a"sv, "b,c"sv});
+  CHECK(RE(",").split("a,b,c", parts, 1) == 2); CHECK(parts == std::vector{"a"sv, "b,c"sv});
 
-  CHECK(RE(",").split(",a,b,c,", parts) == 5); CHECK(parts == vector{""sv, "a"sv, "b"sv, "c"sv, ""sv});
+  CHECK(RE(",").split(",a,b,c,", parts) == 5); CHECK(parts == std::vector{""sv, "a"sv, "b"sv, "c"sv, ""sv});
 
-  CHECK(RE("\\d+").split("a42b1c1234", parts) == 4); CHECK(parts == vector{"a"sv, "b"sv, "c"sv, ""sv});
+  CHECK(RE("\\d+").split("a42b1c1234", parts) == 4); CHECK(parts == std::vector{"a"sv, "b"sv, "c"sv, ""sv});
 
-  CHECK(RE("(?<=[ab])\\d(?=b)").split("a1a2a3b4b6", parts) == 3); CHECK(parts == vector{"a1a2a"sv, "b"sv, "b6"sv});
+  CHECK(RE("(?<=[ab])\\d(?=b)").split("a1a2a3b4b6", parts) == 3); CHECK(parts == std::vector{"a1a2a"sv, "b"sv, "b6"sv});
 
-  CHECK(RE("(?=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == vector{"a"sv, "1b"sv, "1c"sv, "1d"sv});
-  CHECK(RE("(?=\\d)").split("1b1c1d", parts) == 4); CHECK(parts == vector{""sv, "1b"sv, "1c"sv, "1d"sv});
-  CHECK(RE("(?<=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == vector{"a1"sv, "b1"sv, "c1"sv, "d"sv});
-  CHECK(RE("(?<=\\d)").split("a1b1c1", parts) == 4); CHECK(parts == vector{"a1"sv, "b1"sv, "c1"sv, ""sv});
+  CHECK(RE("(?=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == std::vector{"a"sv, "1b"sv, "1c"sv, "1d"sv});
+  CHECK(RE("(?=\\d)").split("1b1c1d", parts) == 4); CHECK(parts == std::vector{""sv, "1b"sv, "1c"sv, "1d"sv});
+  CHECK(RE("(?<=\\d)").split("a1b1c1d", parts) == 4); CHECK(parts == std::vector{"a1"sv, "b1"sv, "c1"sv, "d"sv});
+  CHECK(RE("(?<=\\d)").split("a1b1c1", parts) == 4); CHECK(parts == std::vector{"a1"sv, "b1"sv, "c1"sv, ""sv});
 }
 
 TEST_CASE("RE::sub") {
-  string result;
+  std::string result;
   CHECK(RE("a").sub("abacad", "_", result) == 3); CHECK(result == "_b_c_d");
   CHECK(RE("a").sub("abacad", "_", result, 1) == 1); CHECK(result == "_bacad");
   CHECK(RE("a").sub("abaca", "_", result) == 3); CHECK(result == "_b_c_");
@@ -100,8 +100,8 @@ TEST_CASE("RE32::match") {
     CHECK(RE32(U"[\u010c\u010d]").match(U"\u010d").data() == U"\u010d");
   }
   SUBCASE("groups") {
-    vector<u32string_view> groups;
-    CHECK(RE32(".(\\w).(\\w)").match(U"abcde", &groups) == U"abcd"); CHECK(groups == vector{U"b"sv, U"d"sv});
+    std::vector<std::u32string_view> groups;
+    CHECK(RE32(".(\\w).(\\w)").match(U"abcde", &groups) == U"abcd"); CHECK(groups == std::vector{U"b"sv, U"d"sv});
   }
 }
 
@@ -112,33 +112,33 @@ TEST_CASE("RE32::search") {
     CHECK(RE32("\\p{Ll}").search(U"\u010c\u010d") == U"\u010d");
   }
   SUBCASE("groups") {
-    vector<u32string_view> groups;
+    std::vector<std::u32string_view> groups;
     CHECK(RE32("(\\w)!(\\w)").search(U"Hi\u010c!\u010dthere", &groups) == U"\u010c!\u010d");
-    CHECK(groups == vector{U"\u010c"sv, U"\u010d"sv});
+    CHECK(groups == std::vector{U"\u010c"sv, U"\u010d"sv});
   }
 }
 
 TEST_CASE("RE32::split") {
-  vector<u32string_view> parts;
+  std::vector<std::u32string_view> parts;
   CHECK(RE32(",").split(U"", parts) == 0); CHECK(parts.empty());
 
-  CHECK(RE32(",").split(U"a", parts) == 1); CHECK(parts == vector{U"a"sv});
+  CHECK(RE32(",").split(U"a", parts) == 1); CHECK(parts == std::vector{U"a"sv});
 
-  CHECK(RE32(",").split(U"a,b,c", parts) == 3); CHECK(parts == vector{U"a"sv, U"b"sv, U"c"sv});
+  CHECK(RE32(",").split(U"a,b,c", parts) == 3); CHECK(parts == std::vector{U"a"sv, U"b"sv, U"c"sv});
 
-  CHECK(RE32(",").split(U"a,b,c", parts, 1) == 2); CHECK(parts == vector{U"a"sv, U"b,c"sv});
+  CHECK(RE32(",").split(U"a,b,c", parts, 1) == 2); CHECK(parts == std::vector{U"a"sv, U"b,c"sv});
 
-  CHECK(RE32(",").split(U",a,b,c,", parts) == 5); CHECK(parts == vector{U""sv, U"a"sv, U"b"sv, U"c"sv, U""sv});
+  CHECK(RE32(",").split(U",a,b,c,", parts) == 5); CHECK(parts == std::vector{U""sv, U"a"sv, U"b"sv, U"c"sv, U""sv});
 
-  CHECK(RE32("\\d+").split(U"a42b1c1234", parts) == 4); CHECK(parts == vector{U"a"sv, U"b"sv, U"c"sv, U""sv});
+  CHECK(RE32("\\d+").split(U"a42b1c1234", parts) == 4); CHECK(parts == std::vector{U"a"sv, U"b"sv, U"c"sv, U""sv});
 
-  CHECK(RE32("(?<=[ab])\\d(?=b)").split(U"a1a2a3b4b6", parts) == 3); CHECK(parts == vector{U"a1a2a"sv, U"b"sv, U"b6"sv});
+  CHECK(RE32("(?<=[ab])\\d(?=b)").split(U"a1a2a3b4b6", parts) == 3); CHECK(parts == std::vector{U"a1a2a"sv, U"b"sv, U"b6"sv});
 
-  CHECK(RE32("(?=\\d)").split(U"a1b1c1d", parts) == 4); CHECK(parts == vector{U"a"sv, U"1b"sv, U"1c"sv, U"1d"sv});
+  CHECK(RE32("(?=\\d)").split(U"a1b1c1d", parts) == 4); CHECK(parts == std::vector{U"a"sv, U"1b"sv, U"1c"sv, U"1d"sv});
 }
 
 TEST_CASE("RE32::sub") {
-  u32string result;
+  std::u32string result;
   CHECK(RE32("a").sub(U"abacad", U"_", result) == 3); CHECK(result == U"_b_c_d");
   CHECK(RE32("a").sub(U"abacad", U"_", result, 1) == 1); CHECK(result == U"_bacad");
   CHECK(RE32("a").sub(U"abaca", U"_", result) == 3); CHECK(result == U"_b_c_");

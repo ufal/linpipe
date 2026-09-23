@@ -14,7 +14,7 @@
 
 namespace linpipe {
 
-bool lzma_compress(const byte* data, size_t length, vector<byte>& output, uint32_t preset) {
+bool lzma_compress(const std::byte* data, size_t length, std::vector<std::byte>& output, uint32_t preset) {
   output.clear();
 
   lzma_stream stream = LZMA_STREAM_INIT;
@@ -22,7 +22,7 @@ bool lzma_compress(const byte* data, size_t length, vector<byte>& output, uint32
   if (ret != LZMA_OK)
     return false;
 
-  output.resize(max(length / 4, size_t(128)));
+  output.resize(std::max(length / 4, size_t(128)));
 
   stream.next_in = (const uint8_t*)data;
   stream.avail_in = length;
@@ -48,7 +48,7 @@ bool lzma_compress(const byte* data, size_t length, vector<byte>& output, uint32
   return true;
 }
 
-bool lzma_decompress_all(const byte* data, size_t length, vector<byte>& output) {
+bool lzma_decompress_all(const std::byte* data, size_t length, std::vector<std::byte>& output) {
   output.clear();
 
   lzma_stream stream = LZMA_STREAM_INIT;
@@ -56,7 +56,7 @@ bool lzma_decompress_all(const byte* data, size_t length, vector<byte>& output) 
   if (ret != LZMA_OK)
     return false;
 
-  output.resize(max(length, size_t(128)));
+  output.resize(std::max(length, size_t(128)));
 
   stream.next_in = (const uint8_t*)data;
   stream.avail_in = length;
@@ -82,7 +82,7 @@ bool lzma_decompress_all(const byte* data, size_t length, vector<byte>& output) 
   return true;
 }
 
-size_t lzma_decompress_one(const byte* data, size_t length, vector<byte>& output) {
+size_t lzma_decompress_one(const std::byte* data, size_t length, std::vector<std::byte>& output) {
   output.clear();
 
   lzma_stream stream = LZMA_STREAM_INIT;
@@ -90,7 +90,7 @@ size_t lzma_decompress_one(const byte* data, size_t length, vector<byte>& output
   if (ret != LZMA_OK)
     return 0;
 
-  output.resize(max(length, size_t(128)));
+  output.resize(std::max(length, size_t(128)));
 
   stream.next_in = (const uint8_t*)data;
   stream.avail_in = length;
@@ -113,7 +113,7 @@ size_t lzma_decompress_one(const byte* data, size_t length, vector<byte>& output
   output.resize(stream.next_out - (const uint8_t*)output.data());
 
   lzma_end(&stream);
-  return (const byte*)stream.next_in - data;
+  return (const std::byte*)stream.next_in - data;
 }
 
 } // namespace linpipe

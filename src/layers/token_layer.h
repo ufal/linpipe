@@ -16,14 +16,14 @@ namespace linpipe::layers {
 
 class TokenLayer : public Layer {
  public:
-  TokenLayer(const string name={}) : Layer("token_layer", name.empty() ? "token_layer" : name) {};
+  TokenLayer(const std::string name={}) : Layer("token_layer", name.empty() ? "token_layer" : name) {};
 
   virtual void from_json(const Json& json) override;
   virtual Json to_json() override;
-  virtual string to_html() override;
+  virtual std::string to_html() override;
 
-  vector<string> tokens;
-  vector<unsigned> sentences;
+  std::vector<std::string> tokens;
+  std::vector<unsigned> sentences;
 };
 
 } // namespace linpipe::layers

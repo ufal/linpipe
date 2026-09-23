@@ -15,8 +15,8 @@
 
 namespace linpipe {
 
-filesystem::path path_from_u8(string_view str);
+std::filesystem::path path_from_u8(std::string_view str);
 
-string path_to_u8(const filesystem::path& path);
+std::string path_to_u8(const std::filesystem::path& path);
 
 } // namespace linpipe

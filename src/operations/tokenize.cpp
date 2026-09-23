@@ -15,10 +15,10 @@
 
 namespace linpipe::operations {
 
-Tokenize::Tokenize(const string description) {
+Tokenize::Tokenize(const std::string description) {
   // Parse arguments
-  unordered_map<string, string> args;
-  vector<string> kwargs;
+  std::unordered_map<std::string, std::string> args;
+  std::vector<std::string> kwargs;
   args["model"] = "rule_based";
   args["source"] = "";
   args["target"] = "";
@@ -27,7 +27,7 @@ Tokenize::Tokenize(const string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "rule_based") tokenizer_ = make_unique<RuleBasedTokenizer>(vector<string>{args["model"]});
+  if (args["model"] == "rule_based") tokenizer_ = std::make_unique<RuleBasedTokenizer>(std::vector<std::string>{args["model"]});
 
   model_names_ = tokenizer_->model_names();
   source_ = args["source"];
@@ -37,7 +37,7 @@ Tokenize::Tokenize(const string description) {
 void Tokenize::execute(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
     auto& source = doc->get_layer<layers::PlainText>(source_);
-    auto target = make_unique<layers::TokenLayer>(target_);
+    auto target = std::make_unique<layers::TokenLayer>(target_);
 
     tokenizer_->tokenize(state.model_manager, source.text, target->tokens);
 

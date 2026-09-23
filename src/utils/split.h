@@ -13,7 +13,7 @@
 
 namespace linpipe {
 
-size_t split(string_view str, char delimiter, vector<string_view>& parts, size_t max_splits=0);
-size_t split(string_view str, string_view delimiter, vector<string_view>& parts, size_t max_splits=0);
+size_t split(std::string_view str, char delimiter, std::vector<std::string_view>& parts, size_t max_splits=0);
+size_t split(std::string_view str, std::string_view delimiter, std::vector<std::string_view>& parts, size_t max_splits=0);
 
 } // namespace linpipe

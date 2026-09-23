@@ -18,7 +18,7 @@ class NERToy : public Model {
  /* Toy NER model as a proof of concept. */
 
  public:
-  NERToy(string& name, istream& input);
+  NERToy(std::string& name, std::istream& input);
 };
 
 } // namespace linpipe::models

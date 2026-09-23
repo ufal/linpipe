@@ -15,7 +15,7 @@
 namespace linpipe {
 
 TEST_CASE("vectors can be sized and resized") {
-  vector<int> v(5);
+  std::vector<int> v(5);
 
   REQUIRE(v.size() == 5);
   REQUIRE(v.capacity() >= 5);

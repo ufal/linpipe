@@ -12,7 +12,7 @@
 
 namespace linpipe {
 
-void Arguments::parse_operations(vector<string>& descriptions, const string description) {
+void Arguments::parse_operations(std::vector<std::string>& descriptions, const std::string description) {
   size_t start = 0;
 
   while (start < description.length()) {
@@ -31,16 +31,16 @@ void Arguments::parse_operations(vector<string>& descriptions, const string desc
   }
 }
 
-void Arguments::parse_arguments(unordered_map<string, string>& args, vector<string>& kwargs, const string description) {
+void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description) {
   // Everything must be separated by space.
   // TODO: Add values separated by "=" (--format="text") and quotes.
 
   size_t start = 1; // skip leading space
   size_t pos = 0;
-  string argument = "";
-  while (pos != string::npos) {
+  std::string argument = "";
+  while (pos != std::string::npos) {
     pos = description.find(' ', start);
-    string token = description.substr(start, pos-start);
+    std::string token = description.substr(start, pos-start);
 
     if (start > 1) { // skip operation name
       if (token.find("--") == 0) { // argument found
@@ -61,7 +61,7 @@ void Arguments::parse_arguments(unordered_map<string, string>& args, vector<stri
   }
 }
 
-void Arguments::parse_format(unordered_map<string, string>& args, const string description) {
+void Arguments::parse_format(std::unordered_map<std::string, std::string>& args, const std::string description) {
   /* Parses format key-value arguments.
 
   Receives:
@@ -76,9 +76,9 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
   */
 
   // Remove leading format name and brackets (if present)
-  string format_description = description;
+  std::string format_description = description;
   size_t pos = description.find("(");
-  if (pos != string::npos) {
+  if (pos != std::string::npos) {
     format_description = description.substr(pos+1); // remove format name & opening bracket
     if (format_description.empty()) {
       throw LinpipeError{"Arguments::parse_format: Closing bracket missing in format description '", description, "'"};
@@ -86,31 +86,31 @@ void Arguments::parse_format(unordered_map<string, string>& args, const string d
     format_description.pop_back();  // remove closing bracket
   }
 
-  vector<string_view> tokens;
+  std::vector<std::string_view> tokens;
   split(format_description, ',', tokens);
   for (auto& token : tokens) {
-    vector<string_view> pair;
+    std::vector<std::string_view> pair;
     if (split(token, '=', pair, 1) != 2)
       throw LinpipeError{"Arguments::parse_format: Expected key-value pair separated by '=' in '", token, "' in format description '", description, "'"};
     args.emplace(pair[0], pair[1]);
   }
 }
 
-size_t Arguments::find_next_operation_(const string description, size_t offset) {
+size_t Arguments::find_next_operation_(const std::string description, size_t offset) {
 
   while (offset < description.length()) {
     size_t op = description.find(" -", offset);
 
-    if (op == string::npos) { // not found
-      return string::npos;
+    if (op == std::string::npos) { // not found
+      return std::string::npos;
     }
 
-    if (op + 2 == string::npos) { // description too short
-      return string::npos;
+    if (op + 2 == std::string::npos) { // description too short
+      return std::string::npos;
     }
 
     if (description[op+2] == ' ') { // invalid description
-      return string::npos;
+      return std::string::npos;
     }
 
     if (description[op+2] != '-') { // operation found
@@ -120,7 +120,7 @@ size_t Arguments::find_next_operation_(const string description, size_t offset) 
     offset = op+2; // argument found, search further
   }
 
-  return string::npos;
+  return std::string::npos;
 }
 
 } // namespace linpipe

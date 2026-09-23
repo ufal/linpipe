@@ -18,15 +18,15 @@ namespace linpipe::formats {
 
 class Conll : public Format {
  public:
-  Conll(const string description);
+  Conll(const std::string description);
 
-  virtual unique_ptr<Document> load(istream& input, const string source_path) override;
-  virtual void save(Document& document, ostream& output) override;
+  virtual std::unique_ptr<Document> load(std::istream& input, const std::string source_path) override;
+  virtual void save(Document& document, std::ostream& output) override;
  private:
-  unordered_map<string, string> args_;
-  vector<string> types_;  // layer types corresponding to columns
-  vector<string> names_;  // layer names corresponding to columns
-  vector<string> encodings_;  // span encodings
+  std::unordered_map<std::string, std::string> args_;
+  std::vector<std::string> types_;  // layer types corresponding to columns
+  std::vector<std::string> names_;  // layer names corresponding to columns
+  std::vector<std::string> encodings_;  // span encodings
 };
 
 } // namespace linpipe::formats

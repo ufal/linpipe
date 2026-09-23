@@ -15,11 +15,11 @@ namespace linpipe {
 
 ModelManager ModelManager::singleton;
 
-void ModelManager::reserve(const string name) {
+void ModelManager::reserve(const std::string name) {
   auto it = reservations_.find(name);
   if (it == reservations_.end()) {
     reserved_models_.push_back(name);
-    reservations_.insert(pair<string, unsigned>(name, 1));
+    reservations_.insert(std::pair<std::string, unsigned>(name, 1));
   }
   else {
     it->second += 1;
@@ -30,7 +30,7 @@ void ModelManager::reserve(const string name) {
   }
 }
 
-Model* ModelManager::load(const string name) {
+Model* ModelManager::load(const std::string name) {
   // Return model if model already loaded
   auto it = models_.find(name);
   if (it != models_.end()) return it->second.get();
@@ -46,7 +46,7 @@ Model* ModelManager::load(const string name) {
   }
 }
 
-void ModelManager::release(const string name) {
+void ModelManager::release(const std::string name) {
   auto it = reservations_.find(name);
   if (it == reservations_.end()) {
     // Not sure if we should throw an exception, perhaps we should just silently continue?

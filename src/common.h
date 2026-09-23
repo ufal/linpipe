@@ -27,7 +27,7 @@
 
 namespace linpipe {
 
-using namespace std;
+using namespace std::literals;
 
 // Configuration of JSON for Modern C++
 using Json = nlohmann::json;
@@ -44,7 +44,7 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 enum { LOGGING_TRACE=0, LOGGING_INFO=1, LOGGING_PROGRESS=2, LOGGING_WARN=3, LOGGING_ERROR=4, LOGGING_FATAL=5, };
 extern int logging_level;
 extern bool logging_to_file;
-ostream& logging_start(int level, const char* file, int line);
+std::ostream& logging_start(int level, const char* file, int line);
 
 #define LOG(level, message) do { \
     if constexpr (linpipe::LOGGING_##level == linpipe::LOGGING_PROGRESS) { \
@@ -57,13 +57,13 @@ ostream& logging_start(int level, const char* file, int line);
   } while(false)
 
 // Errors
-class LinpipeError : public exception {
+class LinpipeError : public std::exception {
  public:
-  LinpipeError(const string_view text) : text_(text) {}
-  LinpipeError(initializer_list<string_view> texts) {for (auto&& text : texts) text_ += text; }
+  LinpipeError(const std::string_view text) : text_(text) {}
+  LinpipeError(std::initializer_list<std::string_view> texts) {for (auto&& text : texts) text_ += text; }
   virtual const char* what() const noexcept override { return text_.c_str(); }
  private:
-  string text_;
+  std::string text_;
 };
 
 } // namespace linpipe

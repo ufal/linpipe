@@ -20,25 +20,25 @@ class SpanEncoding {
   int type;
 
   SpanEncoding(int type) : type(type) {}
-  static SpanEncoding create(const string& type);
+  static SpanEncoding create(const std::string& type);
 
-  static inline vector<string> types = {"BIO", "IOB"};
+  static inline std::vector<std::string> types = {"BIO", "IOB"};
 };
 
 class Spans : public Layer {
  public:
-  Spans(const string name={}) : Layer("spans", name.empty() ? "spans" : name) {};
+  Spans(const std::string name={}) : Layer("spans", name.empty() ? "spans" : name) {};
 
   virtual void from_json(const Json& json) override;
   virtual Json to_json() override;
-  virtual string to_html() override;
+  virtual std::string to_html() override;
 
-  void decode(string_view encoded_tag, unsigned index, const SpanEncoding encoding);
-  void encode(vector<string>& encoded_tags, const SpanEncoding encoding);
+  void decode(std::string_view encoded_tag, unsigned index, const SpanEncoding encoding);
+  void encode(std::vector<std::string>& encoded_tags, const SpanEncoding encoding);
 
-  string token_layer;
-  vector<pair<unsigned, unsigned>> spans;
-  vector<string> tags;
+  std::string token_layer;
+  std::vector<std::pair<unsigned, unsigned>> spans;
+  std::vector<std::string> tags;
 };
 
 } // namespace linpipe::layers

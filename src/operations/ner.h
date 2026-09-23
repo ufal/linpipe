@@ -16,10 +16,10 @@ namespace linpipe::operations {
 
 class NER : public Operation {
  public:
-  NER(const string description);
+  NER(const std::string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
  private:
-  unique_ptr<NERecognizer> ne_recognizer_;
+  std::unique_ptr<NERecognizer> ne_recognizer_;
 };
 
 } // namespace linpipe::operations

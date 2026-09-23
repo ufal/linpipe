@@ -15,10 +15,10 @@ namespace linpipe::operations {
 
 class Composite : public Operation {
  public:
-  Composite(const string description);
+  Composite(const std::string description);
   virtual void execute(Corpus& corpus, PipelineState& state) override;
  private:
-  vector<unique_ptr<Operation>> operations_;
+  std::vector<std::unique_ptr<Operation>> operations_;
 };
 
 } // namespace linpipe::operations

@@ -13,7 +13,7 @@
 namespace linpipe {
 
 TEST_CASE("split") {
-  vector<string_view> parts;
+  std::vector<std::string_view> parts;
 
   SUBCASE("splits empty string") {
     CHECK(split("", ',', parts) == 0); CHECK(parts.empty());
@@ -21,18 +21,18 @@ TEST_CASE("split") {
   }
 
   SUBCASE("splits one token") {
-    CHECK(split("hello", ',', parts) == 1); CHECK(parts == vector{"hello"sv});
-    CHECK(split("hello", ",", parts) == 1); CHECK(parts == vector{"hello"sv});
+    CHECK(split("hello", ',', parts) == 1); CHECK(parts == std::vector{"hello"sv});
+    CHECK(split("hello", ",", parts) == 1); CHECK(parts == std::vector{"hello"sv});
   }
 
   SUBCASE("splits two tokens") {
-    CHECK(split("hello,world", ',', parts) == 2); CHECK(parts == vector{"hello"sv, "world"sv});
-    CHECK(split("hello,world", ",", parts) == 2); CHECK(parts == vector{"hello"sv, "world"sv});
-    CHECK(split("hello,", ',', parts) == 2); CHECK(parts == vector{"hello"sv, ""sv});
-    CHECK(split("hello,", ",", parts) == 2); CHECK(parts == vector{"hello"sv, ""sv});
-    CHECK(split(",hello", ',', parts) == 2); CHECK(parts == vector{""sv, "hello"sv});
-    CHECK(split(",hello", ",", parts) == 2); CHECK(parts == vector{""sv, "hello"sv});
-    CHECK(split("hello, world", ", ", parts) == 2); CHECK(parts == vector{"hello"sv, "world"sv});
+    CHECK(split("hello,world", ',', parts) == 2); CHECK(parts == std::vector{"hello"sv, "world"sv});
+    CHECK(split("hello,world", ",", parts) == 2); CHECK(parts == std::vector{"hello"sv, "world"sv});
+    CHECK(split("hello,", ',', parts) == 2); CHECK(parts == std::vector{"hello"sv, ""sv});
+    CHECK(split("hello,", ",", parts) == 2); CHECK(parts == std::vector{"hello"sv, ""sv});
+    CHECK(split(",hello", ',', parts) == 2); CHECK(parts == std::vector{""sv, "hello"sv});
+    CHECK(split(",hello", ",", parts) == 2); CHECK(parts == std::vector{""sv, "hello"sv});
+    CHECK(split("hello, world", ", ", parts) == 2); CHECK(parts == std::vector{"hello"sv, "world"sv});
   }
 }
 

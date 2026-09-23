@@ -11,11 +11,11 @@
 
 namespace linpipe::operations {
 
-vector<string>& Implementation::model_names() {
+std::vector<std::string>& Implementation::model_names() {
   return model_names_;
 }
 
-string& Implementation::type() {
+std::string& Implementation::type() {
   return type_;
 }
 

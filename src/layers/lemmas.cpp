@@ -25,8 +25,8 @@ Json Lemmas::to_json() {
   };
 }
 
-string Lemmas::to_html() {
-  return string();
+std::string Lemmas::to_html() {
+  return std::string();
 }
 
 } // namespace linpipe::layers

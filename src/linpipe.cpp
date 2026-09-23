@@ -14,12 +14,12 @@
 using namespace linpipe;
 
 int main(int argc, char* argv[]) {
-  iostream::sync_with_stdio(false);
+  std::iostream::sync_with_stdio(false);
 
   // Concatenate commandline arguments into a string description
-  string description = "";
+  std::string description = "";
   for (int i = 1; i < argc; i++) {
-    description.append(" ").append(string(argv[i]));
+    description.append(" ").append(argv[i]);
   }
 
   // Create and execute pipeline

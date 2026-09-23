@@ -21,9 +21,9 @@ class RuleBasedTokenizer : public Tokenizer {
 
  public:
   // RuleBasedTokenizer drops model names (will not use any).
-  RuleBasedTokenizer(vector<string> /*model_names*/) : Tokenizer("rule_based", {}) {};
+  RuleBasedTokenizer(std::vector<std::string> /*model_names*/) : Tokenizer("rule_based", {}) {};
 
-  void tokenize(ModelManager* model_manager, const string& text, vector<string>& tokens) override;
+  void tokenize(ModelManager* model_manager, const std::string& text, std::vector<std::string>& tokens) override;
 };
 
 } // namespace linpipe::operations

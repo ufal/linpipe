@@ -13,18 +13,18 @@
 
 namespace linpipe {
 
-Json json_parse(const string_view caller, const string_view input);
+Json json_parse(const std::string_view caller, const std::string_view input);
 
-void json_assert_object(const string_view caller, const Json& json);
-Json json_get_key(const string_view caller, const Json& json, const string_view key);
-Json json_get_array(const string_view caller, const Json& json, const string_view key);
-Json json_get_object(const string_view caller, const Json& json, const string_view key);
+void json_assert_object(const std::string_view caller, const Json& json);
+Json json_get_key(const std::string_view caller, const Json& json, const std::string_view key);
+Json json_get_array(const std::string_view caller, const Json& json, const std::string_view key);
+Json json_get_object(const std::string_view caller, const Json& json, const std::string_view key);
 
-string json_get_string(const string_view caller, const Json& json, const string_view key);
-void json_get_string(const string_view caller, const Json& json, const string_view key, string& output);
+std::string json_get_string(const std::string_view caller, const Json& json, const std::string_view key);
+void json_get_string(const std::string_view caller, const Json& json, const std::string_view key, std::string& output);
 
-void json_get_unsigned_vector(const string_view caller, const Json& json, const string_view key, vector<unsigned>& output);
-void json_get_unsigned_pair_vector(const string_view caller, const Json& json, const string_view key, vector<pair<unsigned, unsigned>>& output);
-void json_get_string_vector(const string_view caller, const Json& json, const string_view key, vector<string>& output);
+void json_get_unsigned_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<unsigned>& output);
+void json_get_unsigned_pair_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<std::pair<unsigned, unsigned>>& output);
+void json_get_string_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<std::string>& output);
 
 } // namespace linpipe

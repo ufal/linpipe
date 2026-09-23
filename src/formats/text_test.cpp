@@ -18,10 +18,10 @@
 namespace linpipe {
 
 TEST_CASE("formats::Text::load") {
-  unique_ptr<Format> text = Format::create("text");
+  std::unique_ptr<Format> text = Format::create("text");
 
   SUBCASE("loads text, adds text layer with default name") {
-    istringstream is("Hello world!\n");
+    std::istringstream is("Hello world!\n");
     auto doc = text->load(is, "source");
 
     CHECK(doc->layers().size() == 1);
