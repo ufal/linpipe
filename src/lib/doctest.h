@@ -1,3 +1,4 @@
+#define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
 // =============================================================
 // == DO NOT MODIFY THIS FILE BY HAND - IT IS AUTO GENERATED! ==
 // =============================================================
