@@ -46,7 +46,7 @@ Layer& Document::add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_d
 }
 
 void Document::del_layer(const std::string_view name) {
-  auto it = find_if(layers_.begin(), layers_.end(), [&](const std::unique_ptr<Layer>& l) { return l->name() == name; });
+  auto it = find_if(layers_.begin(), layers_.end(), [&](const auto& l) { return l->name() == name; });
 
   if (it == layers_.end()) {
     throw LinpipeError{"Document::del_layer: Layer '", name, "' was not found in document."};
