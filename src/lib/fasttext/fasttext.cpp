@@ -784,7 +784,7 @@ void FastText::startThreads(const TrainCallback& callback) {
   std::vector<std::thread> threads;
   if (args_->thread > 1) {
     for (int32_t i = 0; i < args_->thread; i++) {
-      threads.push_back(std::thread([=]() { trainThread(i, callback); }));
+      threads.push_back(std::thread(&FastText::trainThread, this, i, callback));
     }
   } else {
     // webassembly can't instantiate `std::thread`

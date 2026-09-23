@@ -46,7 +46,7 @@ void DenseMatrix::uniform(real a, unsigned int thread, int32_t seed) {
   if (thread > 1) {
     std::vector<std::thread> threads;
     for (int i = 0; i < thread; i++) {
-      threads.push_back(std::thread([=]() { uniformThread(a, i, seed); }));
+      threads.push_back(std::thread(&DenseMatrix::uniformThread, this, a, i, seed));
     }
     for (int32_t i = 0; i < threads.size(); i++) {
       threads[i].join();
