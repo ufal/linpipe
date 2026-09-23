@@ -7,7 +7,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""generate_languages_cpp.py
+"""languages.gen.py
 
 Generates languages.cpp from three sources:
 
@@ -26,11 +26,11 @@ code is 3 letters, and non_iso639_1_codes holds whichever of Id/Part2T/Part2B
 TODO(Jana): fun with flags
 
 Usage:
-    python3 generate_languages_cpp.py [-o languages.cpp]
-    python3 generate_languages_cpp.py --input saved_page.html [-o languages.cpp]
-    python3 generate_languages_cpp.py --sil-input iso-639-3.tab [-o languages.cpp]
-    python3 generate_languages_cpp.py --ud-input ud_languages.html [-o languages.cpp]
-    python3 generate_languages_cpp.py --skip-non-iso639-1 --skip-ud [-o languages.cpp]
+    python3 languages.gen.py [-o languages.cpp]
+    python3 languages.gen.py --input saved_page.html [-o languages.cpp]
+    python3 languages.gen.py --sil-input iso-639-3.tab [-o languages.cpp]
+    python3 languages.gen.py --ud-input ud_languages.html [-o languages.cpp]
+    python3 languages.gen.py --skip-non-iso639-1 --skip-ud [-o languages.cpp]
 """
 
 import argparse
