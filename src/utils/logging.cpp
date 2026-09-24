@@ -10,6 +10,7 @@
 #include <ctime>
 #include <fstream>
 
+#include "utils/getenv_utf8.h"
 #include "utils/logging.h"
 #include "utils/path_utf8.h"
 
@@ -28,13 +29,13 @@ static std::ofstream logging_file;
 class LoggingInit {
  private:
   LoggingInit() {
-    auto env_log_level = getenv("LINPIPE_LOG_LEVEL");
+    auto env_log_level = getenv_utf8("LINPIPE_LOG_LEVEL");
     if (env_log_level)
-      logging_set_level(env_log_level);
+      logging_set_level(*env_log_level);
 
-    auto env_log_file = getenv("LINPIPE_LOG_FILE");
+    auto env_log_file = getenv_utf8("LINPIPE_LOG_FILE");
     if (env_log_file)
-      logging_set_file(path_from_utf8(env_log_file));
+      logging_set_file(path_from_utf8(*env_log_file));
   }
   static LoggingInit singleton;
 };
