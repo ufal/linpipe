@@ -11,7 +11,7 @@ LINPIPE_OBJECTS += utils/arguments
 LINPIPE_OBJECTS += utils/json_utils
 LINPIPE_OBJECTS += utils/logging
 LINPIPE_OBJECTS += utils/split
-LINPIPE_OBJECTS += utils/u8path
+LINPIPE_OBJECTS += utils/path_utf8
 LINPIPE_OBJECTS += utils/win_wmain_utf8
 LINPIPE_OBJECTS += utils/languages
 

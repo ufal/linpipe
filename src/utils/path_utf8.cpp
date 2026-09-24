@@ -7,11 +7,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "utils/u8path.h"
+#include "utils/path_utf8.h"
 
 namespace linpipe {
 
-std::filesystem::path path_from_u8(std::string_view str) {
+std::filesystem::path path_from_utf8(std::string_view str) {
 #if defined(__cpp_lib_char8_t)
   // Convert string_view to u8string_view to avoid deprecated u8path constructor.
   return std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(str.data()), str.size()));
@@ -21,7 +21,7 @@ std::filesystem::path path_from_u8(std::string_view str) {
 #endif
 }
 
-std::string path_to_u8(const std::filesystem::path& path) {
+std::string path_to_utf8(const std::filesystem::path& path) {
 #if defined(__cpp_lib_char8_t)
   // Create a copy of the u8string as string.
   auto u8_path = path.u8string();

@@ -11,7 +11,7 @@
 #include <fstream>
 
 #include "utils/logging.h"
-#include "utils/u8path.h"
+#include "utils/path_utf8.h"
 
 namespace linpipe {
 
@@ -34,7 +34,7 @@ class LoggingInit {
 
     auto env_log_file = getenv("LINPIPE_LOG_FILE");
     if (env_log_file)
-      logging_set_file(path_from_u8(env_log_file));
+      logging_set_file(path_from_utf8(env_log_file));
   }
   static LoggingInit singleton;
 };
@@ -71,7 +71,7 @@ void logging_set_level(std::string_view level) {
 void logging_set_file(std::filesystem::path path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
-    throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_u8(path), "'"};
+    throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_utf8(path), "'"};
 
   logging_to_file = true;
 }
