@@ -66,7 +66,7 @@ void logging_set_level(std::string_view level) {
   else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL")
     logging_level = LOGGING_FATAL;
   else
-    throw LinpipeError{"logging_set_level: Cannot parse logging level '", level, "'"};
+    LOG(WARN, "logging_set_level: Cannot parse logging level '" << level << "'");
 }
 
 void logging_set_file(std::filesystem::path path) {
