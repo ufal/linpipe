@@ -17,7 +17,7 @@ namespace linpipe::operations {
 class Save : public Operation {
  public:
   Save(const std::string description);
-  virtual void execute(Corpus& corpus, PipelineState& state) override;
+  virtual void apply(Corpus& corpus, PipelineState& state) override;
 
  private:
   std::unique_ptr<Format> format_;

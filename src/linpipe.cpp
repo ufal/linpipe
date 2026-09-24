@@ -22,12 +22,12 @@ int main(int argc, char* argv[]) {
     description.append(" ").append(argv[i]);
   }
 
-  // Create and execute pipeline
+  // Create and apply pipeline
   try {
     Pipeline pipeline = Pipeline(description);
 
     Corpus corpus;
-    pipeline.execute(corpus);
+    pipeline.apply(corpus);
   }
   catch (LinpipeError& error) {
     LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());

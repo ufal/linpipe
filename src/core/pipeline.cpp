@@ -18,11 +18,11 @@ Pipeline::Pipeline(const std::string description) {
   operation_ = Operation::create(description);
 }
 
-bool Pipeline::execute(Corpus& corpus) {
+bool Pipeline::apply(Corpus& corpus) {
   // TODO: Initialize state
 
   operation_->reserve_models(state);
-  operation_->execute(corpus, state);
+  operation_->apply(corpus, state);
 
   // TODO: Correctly return true/false
   return true;

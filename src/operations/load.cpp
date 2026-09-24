@@ -28,7 +28,7 @@ Load::Load(const std::string description) {
   source_paths_ = kwargs;
 }
 
-void Load::execute(Corpus& corpus, PipelineState& state) {
+void Load::apply(Corpus& corpus, PipelineState& state) {
   if (source_paths_.empty()) {  // default input
     read_from_handle_(corpus, *state.default_input, "");
   }
@@ -37,7 +37,7 @@ void Load::execute(Corpus& corpus, PipelineState& state) {
       std::ifstream input_file;
       input_file.open(std::string(source_path));
       if (!input_file) {
-        throw LinpipeError{"Load::execute: Could not open source path '", source_path, "' for reading"};
+        throw LinpipeError{"Load::apply: Could not open source path '", source_path, "' for reading"};
       }
       read_from_handle_(corpus, input_file, source_path);
     }

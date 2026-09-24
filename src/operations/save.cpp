@@ -28,13 +28,13 @@ Save::Save(const std::string description) {
   target_paths_ = kwargs;
 }
 
-void Save::execute(Corpus& corpus, PipelineState& state) {
+void Save::apply(Corpus& corpus, PipelineState& state) {
   std::vector<std::string> target_paths = target_paths_;
 
   // If user requested custom target paths for documents in format kwargs,
   // check that the number of target paths matches the number of documents.
   if (target_paths.size() && target_paths.size() != corpus.documents.size()) {
-    throw LinpipeError{"Save::execute: The number of target paths (", std::to_string(target_paths.size()), ") != number of documents in the corpus (", std::to_string(corpus.documents.size()), ")"};
+    throw LinpipeError{"Save::apply: The number of target paths (", std::to_string(target_paths.size()), ") != number of documents in the corpus (", std::to_string(corpus.documents.size()), ")"};
   }
 
   // If no custom outputs were required in format kwargs, try to figure out the
@@ -73,7 +73,7 @@ void Save::execute(Corpus& corpus, PipelineState& state) {
         os_file.open(target_paths[i]);
         os = &os_file;
         if (!os) {
-          throw LinpipeError{"Save::execute: Could not open target path '", target_paths[i], "'"};
+          throw LinpipeError{"Save::apply: Could not open target path '", target_paths[i], "'"};
         }
       }
 

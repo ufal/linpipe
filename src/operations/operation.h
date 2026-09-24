@@ -21,7 +21,7 @@ class Operation {
 
   static std::unique_ptr<Operation> create(const std::string description);
 
-  virtual void execute(Corpus& corpus, PipelineState& state) = 0;
+  virtual void apply(Corpus& corpus, PipelineState& state) = 0;
 
   virtual void reserve_models(PipelineState& state);
 

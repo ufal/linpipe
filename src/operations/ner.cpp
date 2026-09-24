@@ -34,7 +34,7 @@ NER::NER(const std::string description) {
   target_ = args["target"];
 }
 
-void NER::execute(Corpus& corpus, PipelineState& state) {
+void NER::apply(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
     auto& source = doc->get_layer<layers::TokenLayer>(source_);
     auto target = std::make_unique<layers::Spans>(target_);

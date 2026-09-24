@@ -17,7 +17,7 @@ namespace linpipe::operations {
 class Load : public Operation {
  public:
   Load(const std::string description);
-  virtual void execute(Corpus& corpus, PipelineState& state) override;
+  virtual void apply(Corpus& corpus, PipelineState& state) override;
 
  private:
   void read_from_handle_(Corpus& corpus, std::istream& input_file, const std::string source_path);

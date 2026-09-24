@@ -18,7 +18,7 @@ class Pipeline {
  public:
   Pipeline(const std::string description);
 
-  bool execute(Corpus& corpus);
+  bool apply(Corpus& corpus);
 
   PipelineState state;
 
