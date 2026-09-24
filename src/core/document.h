@@ -49,7 +49,7 @@ template<> inline Layer& Document::get_layer(const std::string_view name) {
     layer.
 
   Throws:
-    LinpipeError if document has no layers.
+    LinpipeError if no name is given and no layers exist to fall back on.
     LinpipeError if layer of given name is not found in the document.
   */
 
@@ -78,10 +78,10 @@ template<typename T> T& Document::get_layer(const std::string_view name) {
     layer of the type.
 
   Throws:
-    LinpipeError if document has no layers.
-    LinpipeError if layer of given name is not found in the document.
+    LinpipeError if no name is given and no layers exist to fall back on.
+    LinpipeError if no name is given and no layer of requested type is found.
     LinpipeError if layer of given name is not of requested type.
-    LinpipeError if name is empty but no layer of requested type is found.
+    LinpipeError if layer of given name is not found in the document.
   */
 
   if (name.empty()) {
@@ -104,6 +104,5 @@ template<typename T> T& Document::get_layer(const std::string_view name) {
 
   throw LinpipeError{"Document::get_layer: Layer '", name, "' was not found in document."};
 }
-
 
 } // namespace linpipe
