@@ -26,6 +26,5 @@ LINPIPE_OBJECTS += lib/oniguruma/unicode_fold1_key
 LINPIPE_OBJECTS += lib/oniguruma/unicode_fold2_key
 LINPIPE_OBJECTS += lib/oniguruma/unicode_fold3_key
 LINPIPE_OBJECTS += lib/oniguruma/unicode_unfold_key
-LINPIPE_OBJECTS += lib/oniguruma/utf16_le
 LINPIPE_OBJECTS += lib/oniguruma/utf32_le
 LINPIPE_OBJECTS += lib/oniguruma/utf8

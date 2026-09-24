@@ -1,5 +1,5 @@
---- oniguruma.h.ori	2023-10-04 17:41:22.983807453 +0200
-+++ oniguruma.h	2023-10-04 17:42:12.000480478 +0200
+--- oniguruma.h.ori	2026-09-24 11:27:39.266716174 +0200
++++ oniguruma.h	2026-09-24 11:28:57.317745052 +0200
 @@ -53,6 +53,10 @@
  #endif
  
@@ -11,7 +11,7 @@
  #ifndef ONIG_EXTERN
  #if defined(_WIN32) && !defined(__GNUC__)
  #if defined(ONIGURUMA_EXPORT)
-@@ -155,68 +159,14 @@
+@@ -155,68 +159,12 @@
  typedef OnigEncodingType* OnigEncoding;
  
  ONIG_EXTERN OnigEncodingType OnigEncodingASCII;
@@ -32,7 +32,7 @@
 -ONIG_EXTERN OnigEncodingType OnigEncodingISO_8859_16;
  ONIG_EXTERN OnigEncodingType OnigEncodingUTF8;
 -ONIG_EXTERN OnigEncodingType OnigEncodingUTF16_BE;
- ONIG_EXTERN OnigEncodingType OnigEncodingUTF16_LE;
+-ONIG_EXTERN OnigEncodingType OnigEncodingUTF16_LE;
 -ONIG_EXTERN OnigEncodingType OnigEncodingUTF32_BE;
  ONIG_EXTERN OnigEncodingType OnigEncodingUTF32_LE;
 -ONIG_EXTERN OnigEncodingType OnigEncodingEUC_JP;
@@ -64,7 +64,7 @@
 -#define ONIG_ENCODING_ISO_8859_16  (&OnigEncodingISO_8859_16)
  #define ONIG_ENCODING_UTF8         (&OnigEncodingUTF8)
 -#define ONIG_ENCODING_UTF16_BE     (&OnigEncodingUTF16_BE)
- #define ONIG_ENCODING_UTF16_LE     (&OnigEncodingUTF16_LE)
+-#define ONIG_ENCODING_UTF16_LE     (&OnigEncodingUTF16_LE)
 -#define ONIG_ENCODING_UTF32_BE     (&OnigEncodingUTF32_BE)
  #define ONIG_ENCODING_UTF32_LE     (&OnigEncodingUTF32_LE)
 -#define ONIG_ENCODING_EUC_JP       (&OnigEncodingEUC_JP)

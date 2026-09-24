@@ -1,15 +1,15 @@
---- regint.h.ori	2023-09-29 16:42:24.377227323 +0200
-+++ regint.h	2023-09-29 23:15:50.075119315 +0200
-@@ -61,7 +61,7 @@
+--- regint.h.ori	2026-09-24 11:25:30.736562671 +0200
++++ regint.h	2026-09-24 11:27:03.511196643 +0200
+@@ -73,7 +73,7 @@
  /* spec. config */
  #define USE_REGSET
  #define USE_CALL
 -#define USE_CALLOUT
 +// #define USE_CALLOUT
+ #define USE_SKIP_SEARCH
  #define USE_BACKREF_WITH_LEVEL        /* \k<name+n>, \k<name-n> */
  #define USE_WHOLE_OPTIONS
- #define USE_RIGID_CHECK_CAPTURES_IN_EMPTY_REPEAT        /* /(?:()|())*\2/ */
-@@ -288,11 +288,7 @@
+@@ -301,11 +301,7 @@
  #endif
  #endif /* _WIN32 */
  

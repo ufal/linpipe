@@ -2,7 +2,7 @@
   regcomp.c -  Oniguruma (regular expression library)
 **********************************************************************/
 /*-
- * Copyright (c) 2002-2023  K.Kosako
+ * Copyright (c) 2002-2024  K.Kosako
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -2005,8 +2005,9 @@ compile_anchor_look_behind_node(AnchorNode* node, regex_t* reg, ParseEnv* env)
     COP(reg)->cut_to_mark.restore_pos = FALSE;
   }
   else {
-    MemNumType mid1, mid2, mid3;
     OnigLen diff;
+    MemNumType mid1, mid2;
+    MemNumType mid3 = 0; /* ignore uninitialized warning */
 
     if (IS_NOT_NULL(node->lead_node)) {
       MinMaxCharLen ci;
@@ -2144,8 +2145,9 @@ compile_anchor_look_behind_not_node(AnchorNode* node, regex_t* reg,
     r = add_op(reg, OP_POP);
   }
   else {
-    MemNumType mid1, mid2, mid3;
     OnigLen diff;
+    MemNumType mid1, mid2;
+    MemNumType mid3 = 0; /* ignore uninitialized warning */
 
     ID_ENTRY(env, mid1);
     r = add_op(reg, OP_SAVE_VAL);
@@ -5195,11 +5197,17 @@ check_call_reference(CallNode* cn, ParseEnv* env, int state)
 
 #ifdef USE_WHOLE_OPTIONS
 static int
-check_whole_options_position(Node* node /* root */)
+check_whole_options_position(Node* node /* root */, ParseEnv* env)
 {
   int is_list;
 
   is_list = FALSE;
+
+#ifdef USE_CALL
+  if ((env->flags & PE_FLAG_HAS_CALL_ZERO) != 0) {
+    node = ND_BODY(node);
+  }
+#endif
 
  start:
   switch (ND_TYPE(node)) {
@@ -7392,7 +7400,7 @@ static int parse_and_tune(regex_t* reg, const UChar* pattern,
 
 #ifdef USE_WHOLE_OPTIONS
   if ((scan_env->flags & PE_FLAG_HAS_WHOLE_OPTIONS) != 0) {
-    r = check_whole_options_position(root);
+    r = check_whole_options_position(root, scan_env);
     if (r != 0) goto err;
   }
 #endif
@@ -8043,9 +8051,9 @@ detect_can_be_slow(Node* node, SlowElementCount* ct, int ncall, int calls[])
 
   case ND_QUANT:
     {
-      int prev_heavy_element;
       QuantNode* qn;
       Node* body;
+      int prev_heavy_element = 0;
 
       qn = QUANT_(node);
       body = ND_BODY(node);
