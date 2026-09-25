@@ -7,15 +7,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "operations/ne_recognizer/ne_recognizer_toy.h"
+#pragma once
 
-namespace linpipe::operations {
+#include "common.h"
 
-void NERecognizerToy::recognize(ModelManager* /*model_manager*/, const TokenView& /*token_view*/, std::vector<std::pair<unsigned, unsigned>>& /*spans*/) {
-  /* Toy NE Recognizer class with model. */
+namespace linpipe {
 
-  //Model* model = model_manager->load(model_names_[0]);
-  // TODO: Use model to recognize named entities.
+class View {
+  public:
+    virtual ~View() {}
+
+  private:
+
 };
 
-} // namespace linpipe::operations
+} // namespace linpipe

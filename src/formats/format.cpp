@@ -22,7 +22,7 @@ std::unique_ptr<Format> Format::create(const std::string description) {
     return std::make_unique<formats::Lif>();
   }
   if (description == "conll") {
-    return std::make_unique<formats::Conll>("conll(1=tokens)");
+    return std::make_unique<formats::Conll>("conll(1=token_layer)");
   }
   if (description.find("conll(") == 0) {
     return std::make_unique<formats::Conll>(description);

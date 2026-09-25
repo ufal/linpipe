@@ -18,7 +18,7 @@ class NERecognizerToy : public NERecognizer {
 
  public:
   NERecognizerToy(std::vector<std::string> model_names) : NERecognizer("ner_toy", model_names) {};
-  void recognize(ModelManager* model_manager, const std::vector<std::string>& tokens, std::vector<std::pair<unsigned, unsigned>>& spans) override;
+  void recognize(ModelManager* model_manager, const TokenView& token_view, std::vector<std::pair<unsigned, unsigned>>& spans) override;
 };
 
 } // namespace linpipe::operations

@@ -69,7 +69,7 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
   while (getline(input, line)) {
     if (line.empty()) { // end of sentence
       for (size_t i = 0; i < types_.size(); i++) {
-        if (types_[i] == "tokens") {
+        if (types_[i] == "token_layer") {
           document->get_layer<layers::TokenLayer>(names_[i]).sentences.push_back(ntokens);
         }
       }
@@ -107,7 +107,7 @@ void Conll::save(Document& document, std::ostream& output) {
   const std::vector<std::unique_ptr<Layer>>& layers = document.layers();
   if (layers.size()) {
     if (layers[0]->type() == "token_layer") {
-      n = dynamic_cast<layers::TokenLayer*>(layers[0].get())->tokens.size();
+      n = dynamic_cast<layers::TokenLayer*>(layers[0].get())->token_view()->size();
     }
   }
 
@@ -123,6 +123,13 @@ void Conll::save(Document& document, std::ostream& output) {
   }
 
   // Print the lines.
+  std::vector<std::unique_ptr<TokenView>> token_views(types_.size());
+  for (size_t i = 0; i < types_.size(); i++) {
+    if (types_[i] == "token_layer") {
+      token_views[i] = document.get_layer<layers::TokenLayer>(names_[i]).token_view();
+    }
+  }
+
   size_t sentence_index = 0;
   for (size_t i = 0; i < n; i++) {  // token lines
     bool sentence_printed = false;
@@ -132,7 +139,7 @@ void Conll::save(Document& document, std::ostream& output) {
         output << layer.lemmas[i];
       }
 
-      if (types_[j] == "tokens") {
+      if (types_[j] == "token_layer") {
         auto& layer = document.get_layer<layers::TokenLayer>(names_[j]);
 
         // Print end of sentence.
@@ -143,7 +150,7 @@ void Conll::save(Document& document, std::ostream& output) {
         }
 
         // Print token.
-        output << layer.tokens[i];
+        output << token_views[i]->text(i);
       }
 
       if (types_[j] == "spans") {
@@ -151,7 +158,7 @@ void Conll::save(Document& document, std::ostream& output) {
       }
 
       // Print delimiter.
-      if (j != n-1) output << "\t";
+      if (j != types_.size() - 1) output << "\t";
     }
     output << std::endl;
   }

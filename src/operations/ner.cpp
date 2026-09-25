@@ -39,7 +39,7 @@ void NER::apply(Corpus& corpus, PipelineState& state) {
     auto& source = doc->get_layer<layers::TokenLayer>(source_);
     auto target = std::make_unique<layers::Spans>(target_);
 
-    ne_recognizer_->recognize(state.model_manager, source.tokens, target->spans);
+    ne_recognizer_->recognize(state.model_manager, *source.token_view(), target->spans);
 
     doc->add_layer(std::move(target));
   }
