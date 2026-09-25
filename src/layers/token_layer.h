@@ -20,7 +20,7 @@ class TokenLayerTokenView : public TokenView {
     explicit TokenLayerTokenView(const std::vector<std::string>& tokens) : tokens_(tokens) {}
 
     size_t size() const override { return tokens_.size(); }
-    const std::string& text(size_t i) const override { return tokens_[i]; }
+    const std::string_view text(size_t i) const override { return tokens_[i]; }
 
   private:
     const std::vector<std::string>& tokens_;
