@@ -52,6 +52,13 @@ TEST_CASE("Arguments::parse_operations") {
     CHECK(parsed == gold);
   }
 
+  SUBCASE("parses two operations with '=' arguments") {
+    gold.push_back(" --load -format=text test.in");
+    gold.push_back(" --save -format=lif test.out");
+    CHECK_NOTHROW(args.parse_operations(parsed, " --load -format=text test.in --save -format=lif test.out"));
+    CHECK(parsed == gold);
+  }
+
   SUBCASE("throws on single-hyphen operation") {
     CHECK_THROWS_AS(args.parse_operations(parsed, " -load"), LinpipeError);
   }
@@ -101,11 +108,70 @@ TEST_CASE("Arguments::parse_arguments") {
     CHECK(gold_kwargs == kwargs);
   }
 
+  SUBCASE("parses 2 args and 2 kwargs in 1 operation") {
+    gold_args["format"] = "conll-2003";
+    gold_args["batch_size"] = "32";
+    gold_kwargs.push_back("first.in");
+    gold_kwargs.push_back("second.in");
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load first.in -format conll-2003 second.in -batch_size 32"));
+    CHECK(gold_args == args);
+    CHECK(gold_kwargs == kwargs);
+  }
+
   SUBCASE("accepts negative number as arg value") {
     gold_args["threshold"] = "-1";
     CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --tag -threshold -1"));
     CHECK(gold_args == args);
     CHECK(kwargs.empty());
+  }
+
+  SUBCASE("parses arg with value after '='") {
+    gold_args["format"] = "text";
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load -format=text"));
+    CHECK(gold_args == args);
+    CHECK(kwargs.empty());
+  }
+
+  SUBCASE("parses args with and without '=' and kwargs") {
+    gold_args["format"] = "text";
+    gold_args["batch_size"] = "32";
+    gold_kwargs.push_back("test.in");
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load -format=text test.in -batch_size 32"));
+    CHECK(gold_args == args);
+    CHECK(gold_kwargs == kwargs);
+  }
+
+  SUBCASE("splits arg on first '=' only") {
+    gold_args["format"] = "conll(1=name:type,4_encoding=bio)";
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load -format=conll(1=name:type,4_encoding=bio)"));
+    CHECK(gold_args == args);
+    CHECK(kwargs.empty());
+  }
+
+  SUBCASE("keeps '=' in value given as next token") {
+    gold_args["format"] = "conll(1=name:type)";
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load -format conll(1=name:type)"));
+    CHECK(gold_args == args);
+    CHECK(kwargs.empty());
+  }
+
+  SUBCASE("parses empty value after '='") {
+    gold_args["format"] = "";
+    gold_kwargs.push_back("test.in");
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --load -format= test.in"));
+    CHECK(gold_args == args);
+    CHECK(gold_kwargs == kwargs);
+  }
+
+  SUBCASE("accepts negative number as arg value after '='") {
+    gold_args["threshold"] = "-1";
+    CHECK_NOTHROW(parser.parse_arguments(args, kwargs, " --tag -threshold=-1"));
+    CHECK(gold_args == args);
+    CHECK(kwargs.empty());
+  }
+
+  SUBCASE("throws on '=' without arg name") {
+    CHECK_THROWS_AS(parser.parse_arguments(args, kwargs, " --load -=text"), LinpipeError);
   }
 }
 

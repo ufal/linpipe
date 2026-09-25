@@ -26,11 +26,15 @@ error.
 
 ### Named arguments
 
-Named arguments are written with a single hyphen, `-name value`, and the value
-is always the next token. For example, `-format text` or `-batch_size 32`.
+Named arguments are written with a single hyphen, either as `-name value` or
+as `-name=value`. For example, `-format text`, `-format=text` or
+`-batch_size 32`.
 
-Because the next token is always taken as the value, values may themselves
-start with a hyphen, e.g. `-threshold -1`.
+In the `-name value` form the next token is always taken as the value, so
+values may themselves start with a hyphen, e.g. `-threshold -1`. In the
+`-name=value` form the token is split on the first `=` only, so the value may
+contain further `=` characters (see format descriptions below), and it may be
+empty (`-name=`).
 
 If the same named argument is given twice for one operation, the later value
 wins.
@@ -52,6 +56,7 @@ The value of `-format` is either a predefined format name, such as
 
 ```
 -format conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
+-format=conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
 ```
 
 Settings are separated by `,`, and each key is separated from its value by `=`.
@@ -59,8 +64,7 @@ The whole description must be a single token, so it must not contain spaces.
 
 ### Current limitations
 
-- All tokens must be separated by spaces. The `-name=value` form is not
-  supported yet, so write `-format text`, not `-format=text`.
+- All tokens must be separated by spaces.
 - Quoting is not supported, so values cannot contain spaces.
 - A positional argument starting with a hyphen (e.g. `-1`) is read as the name
   of a named argument. This does not affect values of named arguments

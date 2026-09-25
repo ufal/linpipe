@@ -35,9 +35,10 @@ void Arguments::parse_operations(std::vector<std::string>& descriptions, const s
 
 void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description) {
   // Everything must be separated by space.
-  // Named arguments start with a single "-" (-format text), operation names
-  // start with "--" and are skipped here.
-  // TODO: Add values separated by "=" (-format="text") and quotes.
+  // Named arguments start with a single "-" and their value is either the
+  // next token (-format text), or follows the first "=" (-format=text).
+  // Operation names start with "--" and are skipped here.
+  // TODO: Add quotes.
 
   size_t start = 1; // skip leading space
   size_t pos = 0;
@@ -52,7 +53,16 @@ void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& ar
         argument = "";
       }
       else if (token.size() > 1 && token[0] == '-' && token[1] != '-') { // argument found
-        argument = token.substr(1);
+        size_t eq = token.find('=');
+        if (eq == std::string::npos) { // value is the next token
+          argument = token.substr(1);
+        }
+        else { // -name=value, split on the first '=' only (values may contain '=')
+          if (eq == 1) {
+            throw LinpipeError{"Arguments::parse_arguments: Argument name expected before '=' in '", token, "' in description '", description, "'"};
+          }
+          args[token.substr(1, eq-1)] = token.substr(eq+1);
+        }
       }
       else {
         kwargs.push_back(token);
