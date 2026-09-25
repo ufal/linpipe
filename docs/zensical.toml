@@ -66,6 +66,7 @@ nav = [
       { "Overview" = "dev/architecture.md" }, {"Segmentation and Tokenization" = "dev/segmentation_tokenization.md" }
     ] },
     "dev/codestyle.md",
+    "dev/commandline.md",
     "dev/notes.md",
   ] },
 ]
