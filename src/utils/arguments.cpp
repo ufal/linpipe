@@ -13,6 +13,8 @@
 namespace linpipe {
 
 void Arguments::parse_operations(std::vector<std::string>& descriptions, const std::string description) {
+  // Operations start with "--" (e.g., " --tag"), named arguments of an
+  // operation start with a single "-" (e.g., " -batch_size 32").
   size_t start = 0;
 
   while (start < description.length()) {
@@ -23,8 +25,8 @@ void Arguments::parse_operations(std::vector<std::string>& descriptions, const s
       throw LinpipeError{"Arguments::parse_operations: Operation name expected in description at position '", description.substr(start), "'"};
     }
 
-    // Find next operation
-    size_t next = find_next_operation_(description, op+2);
+    // Find next operation, skipping the leading " --" of the current one
+    size_t next = find_next_operation_(description, op+3);
     descriptions.push_back(description.substr(op, next-op));
 
     start = next;
@@ -33,7 +35,9 @@ void Arguments::parse_operations(std::vector<std::string>& descriptions, const s
 
 void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description) {
   // Everything must be separated by space.
-  // TODO: Add values separated by "=" (--format="text") and quotes.
+  // Named arguments start with a single "-" (-format text), operation names
+  // start with "--" and are skipped here.
+  // TODO: Add values separated by "=" (-format="text") and quotes.
 
   size_t start = 1; // skip leading space
   size_t pos = 0;
@@ -43,17 +47,15 @@ void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& ar
     std::string token = description.substr(start, pos-start);
 
     if (start > 1) { // skip operation name
-      if (token.find("--") == 0) { // argument found
-        argument = token.substr(2);
+      if (!argument.empty()) { // value of the preceding argument (may start with '-', e.g. -1)
+        args[argument] = token;
+        argument = "";
+      }
+      else if (token.size() > 1 && token[0] == '-' && token[1] != '-') { // argument found
+        argument = token.substr(1);
       }
       else {
-        if (argument.empty()) {
-          kwargs.push_back(token);
-        }
-        else {
-          args[argument] = token;
-          argument = "";
-        }
+        kwargs.push_back(token);
       }
     }
 
@@ -67,7 +69,7 @@ void Arguments::parse_format(std::unordered_map<std::string, std::string>& args,
   Receives:
     description: structured format string description with key-value pairs,
       separated by a ',', key separated from value by a '='.
-      For example --format conll-2003 translates as conll with the following
+      For example -format conll-2003 translates as conll with the following
       setting:
       conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
 
@@ -97,27 +99,25 @@ void Arguments::parse_format(std::unordered_map<std::string, std::string>& args,
 }
 
 size_t Arguments::find_next_operation_(const std::string description, size_t offset) {
+  // Returns the position of the space preceding the next operation
+  // (" --name"), or std::string::npos if there is none.
 
   while (offset < description.length()) {
-    size_t op = description.find(" -", offset);
+    size_t op = description.find(" --", offset);
 
     if (op == std::string::npos) { // not found
       return std::string::npos;
     }
 
-    if (op + 2 == std::string::npos) { // description too short
-      return std::string::npos;
+    if (op + 3 >= description.length() || description[op+3] == ' ') { // "--" without operation name
+      throw LinpipeError{"Arguments::find_next_operation_: Operation name expected after '--' in description '", description, "'"};
     }
 
-    if (description[op+2] == ' ') { // invalid description
-      return std::string::npos;
-    }
-
-    if (description[op+2] != '-') { // operation found
+    if (description[op+3] != '-') { // operation found
       return op;
     }
 
-    offset = op+2; // argument found, search further
+    offset = op+3; // "---" is not an operation, search further
   }
 
   return std::string::npos;

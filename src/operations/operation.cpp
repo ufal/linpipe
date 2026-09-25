@@ -32,13 +32,18 @@ std::unique_ptr<Operation> Operation::create(const std::string description) {
     return std::make_unique<operations::Composite>(description);
   }
   else {  // simple (leaf) operations
-    if (description.find(" -load", 0) == 0) { // Load
+    // The description starts with " --name" (checked by parse_operations),
+    // followed by a space or the end of the string.
+    size_t name_end = description.find(' ', 3);
+    std::string name = description.substr(3, name_end == std::string::npos ? std::string::npos : name_end - 3);
+
+    if (name == "load") {
       return std::make_unique<operations::Load>(description);
     }
-    if (description.find(" -save", 0) == 0) { // Save
+    if (name == "save") {
       return std::make_unique<operations::Save>(description);
     }
-    if (description.find(" -tokenize", 0) == 0) { // Tokenize
+    if (name == "tokenize") {
       return std::make_unique<operations::Tokenize>(description);
     }
   }
