@@ -2,7 +2,7 @@
 all: site
 
 PREREQUISITIES := Makefile zensical.toml $(wildcard src/* src/*/* src/*/*/*)
-site: get_assets $(PREREQUISITIES)
+site: $(PREREQUISITIES)
 	venv/bin/zensical build
 	@rm -rf site/assets/images site/assets/stylesheets/classic site/partials
 
