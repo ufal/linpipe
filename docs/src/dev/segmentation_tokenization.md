@@ -36,7 +36,7 @@
 ``` mermaid
 classDiagram
   class PlainText {
-    +text string_view
+    +text string
   }
 ```
 
@@ -52,6 +52,8 @@ classDiagram
     class IndexSpan {
         +begin int
         +end int
+        +size() size_t
+        +empty() bool
     }
 ```
 
@@ -79,9 +81,9 @@ classDiagram
     class CharSegmentationView {
         <<abstract>>
 
-        +size(): size_t
-        +span(i): IndexSpan
-        +text(i): string_view
+        +size() size_t
+        +span(i) IndexSpan
+        +text(i) string_view
     }
 
     class PlainTextCharSegmentationView {
@@ -128,8 +130,8 @@ tokenized text by a `Load` operation (e.g., using a `CoNLL-U` format).
 ```mermaid
 classDiagram
     class Token {
-        +range optional~IndexSpan~
-        +text string_view
+        +span IndexSpan
+        +text string
     }
 
     class TokenSegmentationView {
@@ -151,7 +153,7 @@ classDiagram
         +tokens vector~Token~
         +sentences TokenSegmentation
         +paragraphs TokenSegmentation
-        +plain_text PlainText   // optional
+        +plain_text optional~PlainText~
         token_layer_sentence_view() TokenSegmentationView
         token_layer_paragraph_view() TokenSegmentationView
     }
