@@ -40,14 +40,23 @@ Conll::Conll(const std::string description) {
     i++;
   }
 
+  for (auto& type : types_)
+    if (type != "token_layer" && type != "lemmas" && type != "spans")
+      throw LinpipeError{"Conll::Conll: Unsupported column type '", type, "' in format description '", description, "'"};
+
   encodings_.resize(names_.size());
   for (size_t i = 0; i < encodings_.size(); i++) {
     std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i+1) + "_encoding");
     if (it != args_.end()) {
       encodings_[i] = it->second;
     }
-  }
+    else if (types_[i] == "spans") {
+      encodings_[i] = "BIO";  // default span encoding
+    }
 
+    if (types_[i] == "spans")
+      layers::SpanEncoding::create(encodings_[i]);  // fail early on an unknown encoding
+  }
 }
 
 std::unique_ptr<Document> Conll::load(std::istream& input, const std::string source_path) {
@@ -56,45 +65,55 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
 
   auto document = std::make_unique<Document>();
 
-  // Create layers.
+  // Create layers, one per column.
+  std::vector<Layer*> columns(types_.size());
   for (size_t i = 0; i < types_.size(); i++) {
-    document->add_layer(Layer::create(types_[i], names_[i]));
+    columns[i] = &document->add_layer(Layer::create(types_[i], names_[i]));
     // Document may have changed the name of the added layer to unique name.
-    names_[i] = document->get_layer().name();
+    names_[i] = columns[i]->name();
   }
+
+  // Record a sentence boundary in all token layers, ignoring empty sentences.
+  unsigned ntokens = 0;
+  auto end_sentence = [&]() {
+    for (size_t i = 0; i < types_.size(); i++)
+      if (types_[i] == "token_layer") {
+        auto& sentences = static_cast<layers::TokenLayer*>(columns[i])->sentences;
+        if (ntokens > (sentences.empty() ? 0 : sentences.back()))
+          sentences.push_back(ntokens);
+      }
+  };
 
   // Read content.
   std::string line;
-  unsigned ntokens = 0;
+  std::vector<std::string_view> cols;
   while (getline(input, line)) {
-    if (line.empty()) { // end of sentence
-      for (size_t i = 0; i < types_.size(); i++) {
-        if (types_[i] == "token_layer") {
-          document->get_layer<layers::TokenLayer>(names_[i]).sentences.push_back(ntokens);
-        }
-      }
-    }
-    else { // line with cols
-      std::vector<std::string_view> cols;
-      if (split(line, '\t', cols) != types_.size())
-        throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
+    if (!line.empty() && line.back() == '\r')
+      line.pop_back();
 
-      for (size_t i = 0; i < types_.size(); i++) {
-        if (types_[i] == "lemmas") {
-          document->get_layer<layers::Lemmas>(names_[i]).lemmas.emplace_back(cols[i]);
-        }
-        if (types_[i] == "spans") {
-          document->get_layer<layers::Spans>(names_[i]).decode(cols[i],
-                                                               ntokens,
-                                                               linpipe::layers::SpanEncoding::create(encodings_[i]));
-        }
-        if (types_[i] == "token_layer") {
-          document->get_layer<layers::TokenLayer>(names_[i]).tokens.emplace_back(std::string(cols[i]));
-        }
-      }
-      ntokens += 1;
+    if (line.empty()) { // end of sentence
+      end_sentence();
+      continue;
     }
+
+    // line with cols
+    if (split(line, '\t', cols) != types_.size())
+      throw LinpipeError{"Conll::load: Number of columns does not match number of columns in format description on line '", line, "'"};
+
+    for (size_t i = 0; i < types_.size(); i++) {
+      if (types_[i] == "lemmas") {
+        static_cast<layers::Lemmas*>(columns[i])->lemmas.emplace_back(cols[i]);
+      }
+      if (types_[i] == "spans") {
+        static_cast<layers::Spans*>(columns[i])->decode(cols[i], ntokens, layers::SpanEncoding::create(encodings_[i]));
+      }
+      if (types_[i] == "token_layer") {
+        static_cast<layers::TokenLayer*>(columns[i])->tokens.emplace_back(std::string(cols[i]));
+      }
+    }
+    ntokens += 1;
   }
+  end_sentence(); // the last sentence need not be followed by an empty line
 
   document->set_source_path(source_path);
 
@@ -102,66 +121,72 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
 }
 
 void Conll::save(Document& document, std::ostream& output) {
-  // Peek in first layer to find out the number of tokens.
-  size_t n = 0; // number of token lines
-  const std::vector<std::unique_ptr<Layer>>& layers = document.layers();
-  if (layers.size()) {
-    if (layers[0]->type() == "token_layer") {
-      n = dynamic_cast<layers::TokenLayer*>(layers[0].get())->token_view()->size();
+  // Gather the printed values of all columns.
+  std::vector<std::vector<std::string>> columns(types_.size());
+  const std::vector<unsigned>* sentences = nullptr;  // taken from the first token layer
+
+  for (size_t j = 0; j < types_.size(); j++) {
+    if (types_[j] == "token_layer") {
+      auto& layer = document.get_layer<layers::TokenLayer>(names_[j]);
+      auto token_view = layer.token_view();
+      columns[j].reserve(token_view->size());
+      for (size_t i = 0; i < token_view->size(); i++)
+        columns[j].emplace_back(token_view->text(i));
+      if (!sentences)
+        sentences = &layer.sentences;
+    }
+    if (types_[j] == "lemmas") {
+      columns[j] = document.get_layer<layers::Lemmas>(names_[j]).lemmas;
     }
   }
 
-  // Preprocess the columns that need preprocessing,
-  // e.g. encoding named entities.
-  std::vector<std::vector<std::string>> encoded_columns(layers.size());
-  for (size_t i = 0; i < encoded_columns.size(); i++) {
-    if (types_[i] == "spans") { // encode spans
-      encoded_columns[i].resize(n);
-      document.get_layer<layers::Spans>(names_[i]).encode(encoded_columns[i],
-                                                          linpipe::layers::SpanEncoding::create(encodings_[i]));
+  // Find out the number of token lines; all token and lemma columns must agree.
+  size_t n = 0;
+  bool n_known = false;
+  for (size_t j = 0; j < types_.size(); j++) {
+    if (types_[j] == "spans") continue;
+    if (!n_known) {
+      n = columns[j].size();
+      n_known = true;
+    }
+    else if (columns[j].size() != n) {
+      throw LinpipeError{"Conll::save: Column ", std::to_string(j + 1), " has ", std::to_string(columns[j].size()),
+                         " values, but ", std::to_string(n), " were expected"};
+    }
+  }
+  if (!n_known)
+    throw LinpipeError{"Conll::save: At least one token_layer or lemmas column is required"};
+
+  // Encode the spans, e.g., named entities.
+  for (size_t j = 0; j < types_.size(); j++) {
+    if (types_[j] == "spans") {
+      auto& layer = document.get_layer<layers::Spans>(names_[j]);
+      if (layer.tags.size() != layer.spans.size())
+        throw LinpipeError{"Conll::save: Spans layer '", layer.name(), "' has different number of spans and tags"};
+      for (auto& span : layer.spans)
+        if (span.first > span.second || span.second >= n)
+          throw LinpipeError{"Conll::save: Spans layer '", layer.name(), "' contains a span out of token range"};
+      columns[j].resize(n);
+      layer.encode(columns[j], layers::SpanEncoding::create(encodings_[j]));
     }
   }
 
-  // Print the lines.
-  std::vector<std::unique_ptr<TokenView>> token_views(types_.size());
-  for (size_t i = 0; i < types_.size(); i++) {
-    if (types_[i] == "token_layer") {
-      token_views[i] = document.get_layer<layers::TokenLayer>(names_[i]).token_view();
-    }
-  }
-
+  // Print the lines, with an empty line after every sentence.
   size_t sentence_index = 0;
-  for (size_t i = 0; i < n; i++) {  // token lines
-    bool sentence_printed = false;
-    for (size_t j = 0; j < types_.size(); j++) {  // columns
-      if (types_[j] == "lemmas") {
-        auto& layer = document.get_layer<layers::Lemmas>(names_[j]);
-        output << layer.lemmas[i];
-      }
-
-      if (types_[j] == "token_layer") {
-        auto& layer = document.get_layer<layers::TokenLayer>(names_[j]);
-
-        // Print end of sentence.
-        if (layer.sentences[sentence_index] == i && !sentence_printed) {
-          output << std::endl;
-          sentence_index += 1;
-          sentence_printed = true;
-        }
-
-        // Print token.
-        output << token_views[i]->text(i);
-      }
-
-      if (types_[j] == "spans") {
-        output << encoded_columns[j][i];
-      }
-
-      // Print delimiter.
-      if (j != types_.size() - 1) output << "\t";
+  for (size_t i = 0; i < n; i++) {
+    if (sentences && i > 0) {
+      while (sentence_index < sentences->size() && (*sentences)[sentence_index] < i) sentence_index++;
+      if (sentence_index < sentences->size() && (*sentences)[sentence_index] == i)
+        output << '\n';
     }
-    output << std::endl;
+
+    for (size_t j = 0; j < types_.size(); j++) {
+      if (j) output << '\t';
+      output << columns[j][i];
+    }
+    output << '\n';
   }
+  if (n) output << '\n';
 }
 
 } // namespace linpipe::formats
