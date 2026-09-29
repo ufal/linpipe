@@ -17,8 +17,8 @@
 - Tokens, their overrides and the multiword tokens may be produced once either
   by reading from a file (e.g., a `Load` operation with a `CoNLL-U` format), or
   gradually by a sequence of operations (e.g., `Tokenize`).
-- All token-like layers must express a token iterator, an accessor to the i-th
-  token text and a `size_t` (number of tokens) method.
+- All token-like layers must express a token view, a non-owning accessor to the
+  i-th token text and a `size_t` (number of tokens) method.
 - Segmentation is (typically sentence segmentation) can exist and without
   tokenization, i.e, when loading line-separated sentences of raw text.
 - In other contexts, segmentation is understood as segmentation of tokens.
@@ -82,8 +82,6 @@ classDiagram
         +size(): size_t
         +span(i): IndexSpan
         +text(i): string_view
-        +begin(): const_iterator
-        +end(): const_iterator
     }
 
     class PlainTextCharSegmentationView {
@@ -138,15 +136,11 @@ classDiagram
         +size() size_t
         +span(i) IndexSpan
         +text(i) string_view
-        +begin() const_iterator
-        +end() const_iterator
     }
 
     class TokenView {
         +size() size_t
         +text(i) string_view
-        +begin() const_iterator
-        +end() const_iterator
     }
 
     class TokenSegmentation {
