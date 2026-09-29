@@ -25,6 +25,11 @@ TEST_CASE("Operation::create") {
     CHECK(dynamic_cast<operations::Load*>(op.get()) != nullptr);
   }
 
+  SUBCASE("creates load operation with quoted path") {
+    CHECK_NOTHROW(op = Operation::create(" --load -format text \"/tmp/my file.txt\""));
+    CHECK(dynamic_cast<operations::Load*>(op.get()) != nullptr);
+  }
+
   SUBCASE("creates save operation") {
     CHECK_NOTHROW(op = Operation::create(" --save -format lif test.out"));
     CHECK(dynamic_cast<operations::Save*>(op.get()) != nullptr);
@@ -33,6 +38,10 @@ TEST_CASE("Operation::create") {
   SUBCASE("creates composite operation from two operations") {
     CHECK_NOTHROW(op = Operation::create(" --load -format text test.in --save -format lif test.out"));
     CHECK(dynamic_cast<operations::Composite*>(op.get()) != nullptr);
+  }
+
+  SUBCASE("throws on no operation") {
+    CHECK_THROWS_AS(Operation::create(""), LinpipeError);
   }
 
   SUBCASE("throws on unknown operation") {

@@ -22,8 +22,6 @@ std::unique_ptr<Operation> Operation::create(const std::string description) {
   Arguments args;
   args.parse_operations(descriptions, description);
 
-  // Not sure if this can actually happen, probably will be already detected
-  // and thrown inside parse_operations.
   if (descriptions.size() == 0) {
     throw LinpipeError{"Operation::create: No operation specified in description '", description, "'"};
   }
@@ -32,10 +30,10 @@ std::unique_ptr<Operation> Operation::create(const std::string description) {
     return std::make_unique<operations::Composite>(description);
   }
   else {  // simple (leaf) operations
-    // The description starts with " --name" (checked by parse_operations),
-    // followed by a space or the end of the string.
-    size_t name_end = description.find(' ', 3);
-    std::string name = description.substr(3, name_end == std::string::npos ? std::string::npos : name_end - 3);
+    // The first token is "--name" (checked by parse_operations).
+    std::vector<std::string> tokens;
+    Arguments::tokenize(tokens, description);
+    const std::string name = tokens[0].substr(2);
 
     if (name == "load") {
       return std::make_unique<operations::Load>(description);

@@ -49,6 +49,33 @@ the order of positional arguments is preserved:
 ./linpipe --load first.in -format text second.in
 ```
 
+### Values with spaces
+
+On the command line, values containing spaces are written with the usual shell
+quoting:
+
+```
+./linpipe --load "/tmp/my file.txt" --save -title="My corpus" out.txt
+```
+
+LinPipe can also be given the whole pipeline as a single description string,
+e.g. from Python or through the web server. The description is split into
+tokens on whitespace, with the following quoting rules:
+
+- Double quotes group characters, including whitespace, into one token, e.g.
+  `"/tmp/my file.txt"`. Quotes may appear anywhere in a token, so
+  `-title="My corpus"` is the single token `-title=My corpus`.
+- Inside or outside quotes, `\"` is a literal quote and `\\` is a literal
+  backslash. Any other backslash is kept as is, so `C:\dir` needs no escaping.
+- `""` is an empty token.
+- A missing closing quote is an error.
+
+The command-line example above corresponds to this description:
+
+```
+--load "/tmp/my file.txt" --save -title="My corpus" out.txt
+```
+
 ### Format descriptions
 
 The value of `-format` is either a predefined format name, such as
@@ -60,16 +87,17 @@ The value of `-format` is either a predefined format name, such as
 ```
 
 Settings are separated by `,`, and each key is separated from its value by `=`.
-The whole description must be a single token, so it must not contain spaces.
+If a description contains spaces, quote it in the shell.
 
 ### Current limitations
 
-- All tokens must be separated by spaces.
-- Quoting is not supported, so values cannot contain spaces.
+- Any token starting with `--` followed by a name starts a new operation, even
+  where a value is expected, and quoting does not change that. Such a value
+  must be written as `-name=--value`.
 - A positional argument starting with a hyphen (e.g. `-1`) is read as the name
   of a named argument. This does not affect values of named arguments
   (`-threshold -1` works).
-- A named argument at the end of an operation with no value after it is
-  silently ignored.
+- A named argument at the end of an operation with no value after it is an
+  error.
 - A `--` without an operation name after it (e.g. `--load -- test.in`) is an
   error.

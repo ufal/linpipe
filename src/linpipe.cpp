@@ -10,6 +10,7 @@
 #include "common.h"
 #include "core/corpus.h"
 #include "core/pipeline.h"
+#include "utils/arguments.h"
 
 using namespace linpipe;
 
@@ -17,10 +18,7 @@ int main(int argc, char* argv[]) {
   std::iostream::sync_with_stdio(false);
 
   // Concatenate commandline arguments into a string description
-  std::string description = "";
-  for (int i = 1; i < argc; i++) {
-    description.append(" ").append(argv[i]);
-  }
+  std::string description = " " + Arguments::join(std::vector<std::string>(argv + 1, argv + argc));
 
   // Create and apply pipeline
   try {

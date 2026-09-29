@@ -20,8 +20,11 @@ class Arguments {
   void parse_operations(std::vector<std::string>& descriptions, const std::string description);
   void parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description);
   void parse_format(std::unordered_map<std::string, std::string>& args, const std::string description);
+  static void tokenize(std::vector<std::string>& tokens, const std::string& description);
+  static std::string join(const std::vector<std::string>& tokens);
+
  private:
-  size_t find_next_operation_(const std::string description, size_t offset);
+  static bool is_operation_(const std::string& token);
 };
 
 } // namespace linpipe
