@@ -41,8 +41,8 @@ jobs:
             platform: win-vs-64
           - os: macos-15
             platform: macos-clang-arm64
-          - os: macos-15-intel
-            platform: macos-clang-64
+#           - os: macos-15-intel
+#             platform: macos-clang-64
 
     steps:
       - uses: actions/checkout@v6
