@@ -1,0 +1,33 @@
+Jana	B-PER
+Nováková	I-PER
+works	O
+for	O
+Charles	B-ORG
+University	I-ORG
+in	O
+Prague	B-LOC
+.	O
+
+Last	O
+spring	O
+she	O
+presented	O
+her	O
+research	O
+at	O
+the	O
+European	B-ORG
+Commission	I-ORG
+in	O
+Brussels	B-LOC
+.	O
+
+She	O
+speaks	O
+Czech	B-MISC
+,	O
+English	B-MISC
+and	O
+German	B-MISC
+.	O
+
