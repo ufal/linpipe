@@ -13,7 +13,7 @@
 
 namespace linpipe::operations {
 
-void RuleBasedTokenizer::tokenize(ModelManager* /*model_manager*/, const std::string& text, std::vector<std::string>& tokens) {
+void RuleBasedTokenizer::tokenize(ModelManager* /*model_manager*/, const std::string& text, std::vector<layers::Token>& tokens) {
   /* Generic rule-based tokenization. Splits on spaces.
 
     TODO: Split using regexp.
@@ -30,7 +30,7 @@ void RuleBasedTokenizer::tokenize(ModelManager* /*model_manager*/, const std::st
   size_t pos = 0;
   while (pos != std::string::npos && start < text.length()) {
     pos = text.find(" ", start);
-    tokens.push_back(text.substr(start, pos-start));
+    tokens.push_back(layers::Token(layers::IndexSpan(start, pos-start)));
     start = pos+1;
   }
 };

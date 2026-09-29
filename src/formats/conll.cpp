@@ -89,7 +89,7 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
                                                                linpipe::layers::SpanEncoding::create(encodings_[i]));
         }
         if (types_[i] == "token_layer") {
-          document->get_layer<layers::TokenLayer>(names_[i]).tokens.emplace_back(cols[i]);
+          document->get_layer<layers::TokenLayer>(names_[i]).tokens.emplace_back(std::string(cols[i]));
         }
       }
       ntokens += 1;

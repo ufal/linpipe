@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "layers/token.h"
 #include "models/model_manager.h"
 #include "operations/implementation.h"
 
@@ -18,7 +19,7 @@ namespace linpipe::operations {
 class Tokenizer : public Implementation {
  public:
   virtual ~Tokenizer() {};
-  virtual void tokenize(ModelManager* model_manager, const std::string& text, std::vector<std::string>& tokens) = 0;
+  virtual void tokenize(ModelManager* model_manager, const std::string& text, std::vector<layers::Token>& tokens) = 0;
 
  protected:
   Tokenizer(const std::string type, std::vector<std::string> model_names) : Implementation(type, model_names) {};

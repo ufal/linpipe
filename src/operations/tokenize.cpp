@@ -37,7 +37,7 @@ Tokenize::Tokenize(const std::string description) {
 void Tokenize::apply(Corpus& corpus, PipelineState& state) {
   for (auto& doc : corpus.documents) {
     auto& source = doc->get_layer<layers::PlainText>(source_);
-    auto target = std::make_unique<layers::TokenLayer>(target_);
+    auto target = std::make_unique<layers::TokenLayer>(target_, &source);
 
     tokenizer_->tokenize(state.model_manager, source.text, target->tokens);
 

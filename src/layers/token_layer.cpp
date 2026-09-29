@@ -14,15 +14,17 @@
 namespace linpipe::layers {
 
 void TokenLayer::from_json(const Json& json) {
-  json_assert_object("Text::from_json", json);
+  json_assert_object("TokenLayer::from_json", json);
 
-  json_get_string("Text::from_json", json, "type", type_);
-  json_get_string("Text::from_json", json, "name", name_);
+  json_get_string("TokenLayer::from_json", json, "type", type_);
+  json_get_string("TokenLayer::from_json", json, "name", name_);
 
-  json_get_string_vector("Text::from_json", json, "tokens", tokens);
+  if (!json.contains("tokens") || !json["tokens"].is_array())
+    throw LinpipeError("TokenLayer::from_json: Missing or non-array 'tokens'");
+  tokens = json["tokens"].get<std::vector<Token>>();
 
   if (json.contains("sentences"))
-    json_get_unsigned_vector("Text::from_json", json, "sentences", sentences);
+    json_get_unsigned_vector("TokenLayer::from_json", json, "sentences", sentences);
   else
     sentences.clear();
 }
