@@ -145,6 +145,11 @@ classDiagram
         +text(i) string_view
     }
 
+    class TokenLayerTokenView {
+        +size() size_t
+        +text(i) string_view
+    }
+
     class TokenSegmentation {
         +segmentation vector~IndexSpan~
     }
@@ -154,13 +159,15 @@ classDiagram
         +sentences TokenSegmentation
         +paragraphs TokenSegmentation
         +plain_text optional~PlainText~
-        token_layer_sentence_view() TokenSegmentationView
-        token_layer_paragraph_view() TokenSegmentationView
+        +token_view() TokenLayerTokenView
+        +sentence_view() TokenSegmentationView
+        +paragraph_view() TokenSegmentationView
     }
 
     TokenLayer *-- Token : owns tokens
     TokenLayer --> PlainText : refers to (optional)
     TokenLayer *-- TokenSegmentation : owns sentences/paragraphs
     TokenLayer ..> TokenSegmentationView : exposes
-    TokenLayer ..> TokenView : exposes
+    TokenLayer ..> TokenLayerTokenView : exposes
+    TokenLayerTokenView ..|> TokenView
 ```
