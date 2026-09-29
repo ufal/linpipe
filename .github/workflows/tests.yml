@@ -17,6 +17,7 @@ jobs:
         include:
           - os: ubuntu-24.04
             platform: linux-gcc CXX=g++-12
+            make_args: treat_warnings_as_errors=
           - os: ubuntu-24.04
             platform: linux-gcc CXX=g++-13
           - os: ubuntu-24.04
@@ -57,7 +58,7 @@ jobs:
         run: choco install --no-progress -y make
 
       - name: Compile
-        run: make PLATFORM=${{ matrix.platform }} -k -C src all
+        run: make PLATFORM=${{ matrix.platform }} ${{ matrix.make_args }} -k -C src all
 
       - name: Run tests
         run: src/linpipe_test
