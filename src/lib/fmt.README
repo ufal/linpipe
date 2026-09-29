@@ -1,0 +1,4 @@
+{fmt}
+- licence: MIT
+- source: https://github.com/fmtlib/fmt
+- version: 12.2.0

@@ -24,6 +24,7 @@
 #include <string_view>
 #include <vector>
 
+#include "lib/fmt/ranges.h"
 #include "lib/json_fwd.h"
 
 namespace linpipe {
@@ -65,6 +66,13 @@ class LinpipeError : public std::exception {
   virtual const char* what() const noexcept override { return text_.c_str(); }
  private:
   std::string text_;
+};
+
+// Additional formatters for {fmt}
+template <> struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
+  constexpr auto format(std::byte b, fmt::format_context& ctx) const {
+    return fmt::formatter<unsigned>::format(unsigned(b), ctx);
+  }
 };
 
 } // namespace linpipe
