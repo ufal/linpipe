@@ -20,6 +20,7 @@ test: test_compile
 all: default lib test_compile
 
 # Compilation flags
+C_FLAGS := $(patsubst -O3,-O2,$(C_FLAGS))
 C_FLAGS += $(call include_dir,.)
 C_FLAGS += $(treat_warnings_as_errors)
 C_FLAGS += $(if $(filter release,$(MODE)),$(disable_assert))
