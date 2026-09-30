@@ -46,7 +46,6 @@ class TokenLayer : public Layer {
     virtual Json to_json() override;
     virtual std::string to_html() override;
 
-    // The returned view references this layer, so it must not outlive it.
     std::unique_ptr<TokenView> token_view() const { return std::make_unique<TokenLayerTokenView>(tokens, plain_text); }
 
     std::vector<Token> tokens;
