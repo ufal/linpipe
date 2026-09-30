@@ -3,16 +3,19 @@
 [![Tests](https://github.com/ufal/linpipe/actions/workflows/tests.yml/badge.svg)](https://github.com/ufal/linpipe/actions/workflows/tests.yml)
 <img src="docs/src/images/linpipe_predecessors.svg" alt="LinPipe predecessors" align="right" style="width: 50%">
 
-LinPipe is a multilingual state-of-the-art text processing pipeline, currently
-in preparation stage.
+**LinPipe** is a state-of-the-art multilingual text processing pipeline, currently under development.
 
-It is a natural evolution of popular and shared-task-winning tools like UDPipe,
-NameTag, CorPipe, and MorphoDiTa. It provides seamless integration of various
-subtasks of NLP processing, including tokenization, segmentation, POS tagging,
-lemmatization, dependency parsing, semantic parsing, named entity recognition,
-named entity linking, privacy filtering, coreference resolution, and others.
+It is the natural evolution of popular, shared-task-winning tools such as [UDPipe](https://ufal.mff.cuni.cz/udpipe), [NameTag](https://ufal.mff.cuni.cz/nametag), [CorPipe](https://github.com/ufal/corpipe), and [MorphoDiTa](https://ufal.mff.cuni.cz/morphodita). LinPipe seamlessly integrates a wide range of NLP tasks, including:
 
-It provides easy to use and easy to deploy services for text processing,
-supporting both on-site and server-side processing.
+- tokenization and sentence segmentation,
+- part-of-speech tagging and lemmatization,
+- dependency parsing,
+- semantic parsing,
+- named entity recognition and linking,
+- privacy filtering,
+- coreference resolution,
+- and more.
 
-Stay tuned.
+LinPipe is designed to be easy to use and easy to deploy, supporting both local (on-premises) and server-side processing.
+
+*Stay tuned!*
