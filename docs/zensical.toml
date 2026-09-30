@@ -12,6 +12,7 @@ nav = [
   ] },
   { "Get Started" = [
     "get_started/installation.md",
+    {"Pipeline Description" = "get_started/pipeline_description.md"},
     { "Tutorials" = [
       { "Tutorial1" = "..." }, { "Tutorial2" = "..." }, { "Tutorial3" = "..." },
     ] },
@@ -66,7 +67,6 @@ nav = [
       { "Overview" = "dev/architecture.md" }, {"Segmentation and Tokenization" = "dev/segmentation_tokenization.md" }
     ] },
     "dev/codestyle.md",
-    "dev/commandline.md",
     "dev/notes.md",
   ] },
 ]

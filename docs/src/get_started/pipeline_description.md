@@ -1,4 +1,4 @@
-## Pipeline Description
+## Overview
 
 LinPipe runs a pipeline of operations. The pipeline is described with the same
 syntax regardless of how LinPipe is used:
