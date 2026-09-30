@@ -22,6 +22,9 @@ class IndexSpan {
     int size() const { return end - begin; }
     bool empty() const { return begin >= end; }
 
+    bool operator==(const IndexSpan& other) const { return begin == other.begin && end == other.end; }
+    bool operator!=(const IndexSpan& other) const { return !(*this == other); }
+
     int begin = 0;
     int end = 0;
 };

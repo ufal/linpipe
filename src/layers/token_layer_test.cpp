@@ -155,7 +155,7 @@ TEST_CASE("TokenLayer::from_json") {
 
   SUBCASE("loads mixed tokens and sentences") {
     Json json = layer_json(Json::parse(R"(["Hello", {"span": [6, 11]}, {"text": "!", "span": [11, 12]}])"));
-    json["sentences"] = Json::parse("[3]");
+    json["sentences"] = Json::parse("[[0, 3]]");
     layer.from_json(json);
 
     CHECK(layer.name() == "tokens");
@@ -163,7 +163,24 @@ TEST_CASE("TokenLayer::from_json") {
     check_token(layer.tokens[0], "Hello", 0, 0);
     check_token(layer.tokens[1], "", 6, 11);
     check_token(layer.tokens[2], "!", 11, 12);
-    CHECK(layer.sentences == std::vector<unsigned>{3});
+    CHECK(layer.sentences == std::vector<layers::IndexSpan>{{0, 3}});
+  }
+
+  SUBCASE("loads multiple sentences, possibly with gaps") {
+    Json json = layer_json(Json::array({"a", "b", "c", "d"}));
+    json["sentences"] = Json::parse("[[0, 2], [3, 4]]");
+    layer.from_json(json);
+    CHECK(layer.sentences == std::vector<layers::IndexSpan>{{0, 2}, {3, 4}});
+  }
+
+  SUBCASE("rejects invalid sentences") {
+    for (auto&& invalid : {R"(3)", R"([3])", R"([[0]])", R"([[0, 1, 2]])", R"([["0", "1"]])", R"([[-1, 2]])",
+                           R"([[2, 1]])", R"([[0, 4]])", R"([[0, 2], [1, 3]])", R"([[2, 3], [0, 1]])"}) {
+      CAPTURE(invalid);
+      Json json = layer_json(Json::array({"a", "b", "c"}));
+      json["sentences"] = Json::parse(invalid);
+      CHECK_THROWS_AS(layer.from_json(json), LinpipeError);
+    }
   }
 
   SUBCASE("accepts empty tokens") {
@@ -173,7 +190,7 @@ TEST_CASE("TokenLayer::from_json") {
 
   SUBCASE("replaces previous content") {
     layer.tokens.emplace_back("old");
-    layer.sentences = {1};
+    layer.sentences = {{0, 1}};
     layer.from_json(layer_json(Json::array({"new"})));
     REQUIRE(layer.tokens.size() == 1);
     CHECK(layer.tokens[0].text == "new");
@@ -186,14 +203,14 @@ TEST_CASE("TokenLayer::to_json") {
   layer.tokens.emplace_back("Hello");
   layer.tokens.emplace_back(layers::IndexSpan(6, 11));
   layer.tokens.emplace_back("!", layers::IndexSpan(11, 12));
-  layer.sentences = {3};
+  layer.sentences = {{0, 3}};
 
   SUBCASE("writes expected JSON") {
     CHECK(layer.to_json() == Json::parse(R"({
       "type": "token_layer",
       "name": "tokens",
       "tokens": ["Hello", {"span": [6, 11]}, {"text": "!", "span": [11, 12]}],
-      "sentences": [3]
+      "sentences": [[0, 3]]
     })"));
   }
 

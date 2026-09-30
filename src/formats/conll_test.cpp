@@ -77,7 +77,7 @@ TEST_CASE("formats::Conll::load") {
     REQUIRE(doc->layers().size() == 1);
     auto& layer = doc->get_layer<layers::TokenLayer>("token_layer");
     CHECK(texts(layer) == std::vector<std::string>{"Hello", "world", "Bye"});
-    CHECK(layer.sentences == std::vector<unsigned>{2, 3});
+    CHECK(layer.sentences == std::vector<layers::IndexSpan>{{0, 2}, {2, 3}});
   }
 
   SUBCASE("loaded tokens are text-only") {
@@ -104,19 +104,19 @@ TEST_CASE("formats::Conll::load") {
 
   SUBCASE("records last sentence without trailing empty line") {
     auto doc = load("conll", "a\nb\n\nc");
-    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<unsigned>{2, 3});
+    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<layers::IndexSpan>{{0, 2}, {2, 3}});
   }
 
   SUBCASE("ignores repeated and leading empty lines") {
     auto doc = load("conll", "\n\na\n\n\n\nb\n\n\n");
-    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<unsigned>{1, 2});
+    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<layers::IndexSpan>{{0, 1}, {1, 2}});
   }
 
   SUBCASE("handles CRLF line endings") {
     auto doc = load("conll(1=token_layer,2=lemmas)", "cats\tcat\r\n\r\n");
     CHECK(texts(doc->get_layer<layers::TokenLayer>()) == std::vector<std::string>{"cats"});
     CHECK(doc->get_layer<layers::Lemmas>().lemmas == std::vector<std::string>{"cat"});
-    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<unsigned>{1});
+    CHECK(doc->get_layer<layers::TokenLayer>().sentences == std::vector<layers::IndexSpan>{{0, 1}});
   }
 
   SUBCASE("rejects wrong number of columns") {
@@ -131,8 +131,27 @@ TEST_CASE("formats::Conll::save") {
     auto& layer = static_cast<layers::TokenLayer&>(doc.add_layer(std::make_unique<layers::TokenLayer>()));
     for (auto&& token : {"Hello", "world", "Bye"})
       layer.tokens.emplace_back(token);
-    layer.sentences = {2, 3};
+    layer.sentences = {{0, 2}, {2, 3}};
     CHECK(save("conll", doc) == "Hello\nworld\n\nBye\n\n");
+  }
+
+  SUBCASE("prints tokens outside sentences as separate sentences") {
+    Document doc;
+    auto& layer = static_cast<layers::TokenLayer&>(doc.add_layer(std::make_unique<layers::TokenLayer>()));
+    for (auto&& token : {"a", "b", "c", "d"})
+      layer.tokens.emplace_back(token);
+    layer.sentences = {{1, 3}};
+    CHECK(save("conll", doc) == "a\n\nb\nc\n\nd\n\n");
+  }
+
+  SUBCASE("rejects sentences out of token range") {
+    Document doc;
+    auto& layer = static_cast<layers::TokenLayer&>(doc.add_layer(std::make_unique<layers::TokenLayer>()));
+    layer.tokens.emplace_back("a");
+    layer.sentences = {{0, 2}};
+    CHECK_THROWS_AS(save("conll", doc), LinpipeError);
+    layer.sentences = {{-1, 1}};
+    CHECK_THROWS_AS(save("conll", doc), LinpipeError);
   }
 
   SUBCASE("treats a document without sentences as one sentence") {
@@ -168,7 +187,7 @@ TEST_CASE("formats::Conll::save") {
     lemmas.lemmas = {"cat", "sleep"};
     tokens.tokens.emplace_back("cats");
     tokens.tokens.emplace_back("sleep");
-    tokens.sentences = {1, 2};
+    tokens.sentences = {{0, 1}, {1, 2}};
     CHECK(save("conll(1=lemmas,2=token_layer)", doc) == "cat\tcats\n\nsleep\tsleep\n\n");
   }
 

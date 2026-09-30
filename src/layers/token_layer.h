@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "layers/index_span.h"
 #include "layers/layer.h"
 #include "layers/plain_text.h"
 #include "layers/token.h"
@@ -49,7 +50,7 @@ class TokenLayer : public Layer {
     std::unique_ptr<TokenView> token_view() const { return std::make_unique<TokenLayerTokenView>(tokens, plain_text); }
 
     std::vector<Token> tokens;
-    std::vector<unsigned> sentences;
+    std::vector<IndexSpan> sentences;
 
     const PlainText* plain_text = nullptr;
 };

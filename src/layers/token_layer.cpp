@@ -23,18 +23,36 @@ void TokenLayer::from_json(const Json& json) {
     throw LinpipeError("TokenLayer::from_json: Missing or non-array 'tokens'");
   tokens = json["tokens"].get<std::vector<Token>>();
 
-  if (json.contains("sentences"))
-    json_get_unsigned_vector("TokenLayer::from_json", json, "sentences", sentences);
-  else
-    sentences.clear();
+  std::vector<IndexSpan> new_sentences;
+  if (json.contains("sentences")) {
+    const Json& sentences_json = json["sentences"];
+    if (!sentences_json.is_array())
+      throw LinpipeError("TokenLayer::from_json: Non-array 'sentences'");
+
+    long long previous_end = 0;
+    for (const Json& sentence : sentences_json) {
+      if (!sentence.is_array() || sentence.size() != 2 || !sentence[0].is_number_integer() || !sentence[1].is_number_integer())
+        throw LinpipeError("TokenLayer::from_json: Each sentence must be an array of two integers");
+      long long begin = sentence[0].get<long long>(), end = sentence[1].get<long long>();
+      if (begin < previous_end || begin > end || end > static_cast<long long>(tokens.size()))
+        throw LinpipeError("TokenLayer::from_json: Sentences must be ordered, non-overlapping spans of tokens");
+      new_sentences.emplace_back(static_cast<int>(begin), static_cast<int>(end));
+      previous_end = end;
+    }
+  }
+  sentences = std::move(new_sentences);
 }
 
 Json TokenLayer::to_json() {
+  Json sentences_json = Json::array();
+  for (auto& sentence : sentences)
+    sentences_json.push_back(Json::array({sentence.begin, sentence.end}));
+
   return {
     {"type", type_},
     {"name", name_},
     {"tokens", tokens},
-    {"sentences", sentences},
+    {"sentences", sentences_json},
   };
 }
 

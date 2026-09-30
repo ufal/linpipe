@@ -73,15 +73,14 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
     names_[i] = columns[i]->name();
   }
 
-  // Record a sentence boundary in all token layers, ignoring empty sentences.
-  unsigned ntokens = 0;
+  // Record a sentence in all token layers, ignoring empty sentences.
+  unsigned ntokens = 0, sentence_start = 0;
   auto end_sentence = [&]() {
-    for (size_t i = 0; i < types_.size(); i++)
-      if (types_[i] == "token_layer") {
-        auto& sentences = static_cast<layers::TokenLayer*>(columns[i])->sentences;
-        if (ntokens > (sentences.empty() ? 0 : sentences.back()))
-          sentences.push_back(ntokens);
-      }
+    if (ntokens > sentence_start)
+      for (size_t i = 0; i < types_.size(); i++)
+        if (types_[i] == "token_layer")
+          static_cast<layers::TokenLayer*>(columns[i])->sentences.emplace_back(sentence_start, ntokens);
+    sentence_start = ntokens;
   };
 
   // Read content.
@@ -123,7 +122,7 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
 void Conll::save(Document& document, std::ostream& output) {
   // Gather the printed values of all columns.
   std::vector<std::vector<std::string>> columns(types_.size());
-  const std::vector<unsigned>* sentences = nullptr;  // taken from the first token layer
+  const std::vector<layers::IndexSpan>* sentences = nullptr;  // taken from the first token layer
 
   for (size_t j = 0; j < types_.size(); j++) {
     if (types_[j] == "token_layer") {
@@ -171,14 +170,19 @@ void Conll::save(Document& document, std::ostream& output) {
     }
   }
 
-  // Print the lines, with an empty line after every sentence.
-  size_t sentence_index = 0;
-  for (size_t i = 0; i < n; i++) {
-    if (sentences && i > 0) {
-      while (sentence_index < sentences->size() && (*sentences)[sentence_index] < i) sentence_index++;
-      if (sentence_index < sentences->size() && (*sentences)[sentence_index] == i)
-        output << '\n';
+  // Mark sentence boundaries; tokens outside any sentence form sentences of their own.
+  std::vector<bool> boundary(n + 1, false);
+  if (sentences)
+    for (auto& sentence : *sentences) {
+      if (sentence.begin < 0 || sentence.begin > sentence.end || static_cast<size_t>(sentence.end) > n)
+        throw LinpipeError{"Conll::save: Sentence spans out of token range"};
+      boundary[sentence.begin] = boundary[sentence.end] = true;
     }
+
+  // Print the lines, with an empty line after every sentence.
+  for (size_t i = 0; i < n; i++) {
+    if (i > 0 && boundary[i])
+      output << '\n';
 
     for (size_t j = 0; j < types_.size(); j++) {
       if (j) output << '\t';
