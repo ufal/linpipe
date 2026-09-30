@@ -12,6 +12,10 @@ syntax regardless of how LinPipe is used:
 The examples below mostly use the command line, but everything in this
 document applies equally to description strings.
 
+The command-line examples are run from the repository root, with LinPipe
+built in `src/`, and use the example inputs `examples/text.txt` (plain text)
+and `examples/ner.conll` (tokens with named entities in BIO encoding).
+
 ### Structure of a Pipeline
 
 Each operation starts with `--` followed by its name, and everything up to the
@@ -21,7 +25,7 @@ they appear.
 On the command line:
 
 ```
-./linpipe --operation [arguments...] --operation [arguments...] ...
+src/linpipe --operation [arguments...] --operation [arguments...] ...
 ```
 
 As a description string, the same without the program name:
@@ -33,18 +37,18 @@ As a description string, the same without the program name:
 For example, the command line
 
 ```
-./linpipe --load -format text test.in --save -format lif test.out
+src/linpipe --load -format text examples/text.txt --save -format lif text.lif
 ```
 
 and the description string
 
 ```
---load -format text test.in --save -format lif test.out
+--load -format text examples/text.txt --save -format lif text.lif
 ```
 
 both run two operations: `load` with the named argument `format=text` and the
-positional argument `test.in`, followed by `save` with `format=lif` and
-`test.out`.
+positional argument `examples/text.txt`, followed by `save` with
+`format=lif` and `text.lif`.
 
 ### Operations
 
@@ -74,7 +78,7 @@ input or output file name. Positional and named arguments may be interleaved;
 the order of positional arguments is preserved:
 
 ```
-./linpipe --load first.in -format text second.in
+src/linpipe --load first.in -format text second.in
 ```
 
 ### Tokenization
@@ -86,7 +90,7 @@ the entry point.
 containing spaces are written with the usual shell quoting:
 
 ```
-./linpipe --load "/tmp/my file.txt" --save -title="My corpus" out.txt
+src/linpipe --load "/tmp/my file.txt" --save -title="My corpus" out.txt
 ```
 
 **Description string** (library, REST service). LinPipe splits the string into
@@ -117,8 +121,8 @@ Settings are separated by `,`, and each key is separated from its value by `=`.
 In a description string, a format description can be written directly:
 
 ```
--format conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
--format=conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)
+-format conll(1=form:token_layer,2=ner:spans,2_encoding=BIO)
+-format=conll(1=form:token_layer,2=ner:spans,2_encoding=BIO)
 ```
 
 If it contains spaces, enclose it (or the part containing spaces) in double
@@ -128,7 +132,7 @@ On the command line, parentheses are special characters in most shells, so
 the whole format description should be quoted:
 
 ```
-./linpipe --load -format "conll(1=name:type,2=:lemmas,2_default=_,3=:chunks,3_default=_,4=:named_entities,4_encoding=bio)" input.conll
+src/linpipe --load -format "conll(1=form:token_layer,2=ner:spans,2_encoding=BIO)" examples/ner.conll
 ```
 
 ### Current Limitations
@@ -144,5 +148,5 @@ These limitations apply to all entry points.
   (`-threshold -1` works).
 - A named argument at the end of an operation with no value after it is an
   error.
-- A `--` without an operation name after it (e.g. `--load -- test.in`) is an
-  error.
+- A `--` without an operation name after it (e.g.
+  `--load -- examples/text.txt`) is an error.
