@@ -13,6 +13,21 @@
 
 namespace linpipe::layers {
 
+TokenLayerSentenceView::TokenLayerSentenceView(const std::vector<IndexSpan>& sentences, size_t ntokens) {
+  int end = 0;  // end of the covered tokens
+  for (auto& sentence : sentences) {
+    if (sentence.begin < end || sentence.begin > sentence.end || static_cast<size_t>(sentence.end) > ntokens)
+      throw LinpipeError("TokenLayerSentenceView: Sentences must be ordered, non-overlapping spans of tokens");
+    if (sentence.begin > end)
+      spans_.emplace_back(end, sentence.begin);  // tokens between sentences
+    if (!sentence.empty())
+      spans_.push_back(sentence);
+    end = sentence.end;
+  }
+  if (static_cast<size_t>(end) < ntokens)
+    spans_.emplace_back(end, static_cast<int>(ntokens));  // tokens after the last sentence
+}
+
 void TokenLayer::from_json(const Json& json) {
   json_assert_object("TokenLayer::from_json", json);
 

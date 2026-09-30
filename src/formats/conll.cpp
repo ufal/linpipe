@@ -122,7 +122,7 @@ std::unique_ptr<Document> Conll::load(std::istream& input, const std::string sou
 void Conll::save(Document& document, std::ostream& output) {
   // Gather the printed values of all columns.
   std::vector<std::vector<std::string>> columns(types_.size());
-  const std::vector<layers::IndexSpan>* sentences = nullptr;  // taken from the first token layer
+  std::unique_ptr<SentenceView> sentences;  // taken from the first token layer
 
   for (size_t j = 0; j < types_.size(); j++) {
     if (types_[j] == "token_layer") {
@@ -132,7 +132,7 @@ void Conll::save(Document& document, std::ostream& output) {
       for (size_t i = 0; i < token_view->size(); i++)
         columns[j].emplace_back(token_view->text(i));
       if (!sentences)
-        sentences = &layer.sentences;
+        sentences = layer.sentence_view();
     }
     if (types_[j] == "lemmas") {
       columns[j] = document.get_layer<layers::Lemmas>(names_[j]).lemmas;
@@ -170,27 +170,26 @@ void Conll::save(Document& document, std::ostream& output) {
     }
   }
 
-  // Mark sentence boundaries; tokens outside any sentence form sentences of their own.
-  std::vector<bool> boundary(n + 1, false);
-  if (sentences)
-    for (auto& sentence : *sentences) {
-      if (sentence.begin < 0 || sentence.begin > sentence.end || static_cast<size_t>(sentence.end) > n)
-        throw LinpipeError{"Conll::save: Sentence spans out of token range"};
-      boundary[sentence.begin] = boundary[sentence.end] = true;
-    }
+  // Print the lines, with an empty line after every sentence. Without
+  // a token layer, all lines form a single sentence.
+  std::vector<layers::IndexSpan> sentence_spans;
+  if (sentences) {
+    for (size_t s = 0; s < sentences->size(); s++)
+      sentence_spans.push_back(sentences->span(s));
+  } else if (n) {
+    sentence_spans.emplace_back(0, static_cast<int>(n));
+  }
 
-  // Print the lines, with an empty line after every sentence.
-  for (size_t i = 0; i < n; i++) {
-    if (i > 0 && boundary[i])
+  for (auto& sentence : sentence_spans) {
+    for (int i = sentence.begin; i < sentence.end; i++) {
+      for (size_t j = 0; j < types_.size(); j++) {
+        if (j) output << '\t';
+        output << columns[j][i];
+      }
       output << '\n';
-
-    for (size_t j = 0; j < types_.size(); j++) {
-      if (j) output << '\t';
-      output << columns[j][i];
     }
     output << '\n';
   }
-  if (n) output << '\n';
 }
 
 } // namespace linpipe::formats

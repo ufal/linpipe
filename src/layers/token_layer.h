@@ -14,6 +14,7 @@
 #include "layers/layer.h"
 #include "layers/plain_text.h"
 #include "layers/token.h"
+#include "views/sentence_view.h"
 #include "views/token_view.h"
 
 namespace linpipe::layers {
@@ -39,6 +40,17 @@ class TokenLayerTokenView : public TokenView {
     const PlainText* plain_text = nullptr;
 };
 
+class TokenLayerSentenceView : public SentenceView {
+  public:
+    TokenLayerSentenceView(const std::vector<IndexSpan>& sentences, size_t ntokens);
+
+    size_t size() const override { return spans_.size(); }
+    IndexSpan span(size_t i) const override { return spans_[i]; }
+
+  private:
+    std::vector<IndexSpan> spans_;
+};
+
 class TokenLayer : public Layer {
   public:
     TokenLayer(const std::string& name = {}, const PlainText* plain_text = nullptr) : Layer("token_layer", name.empty() ? "token_layer" : name), plain_text(plain_text) {}
@@ -48,6 +60,7 @@ class TokenLayer : public Layer {
     virtual std::string to_html() override;
 
     std::unique_ptr<TokenView> token_view() const { return std::make_unique<TokenLayerTokenView>(tokens, plain_text); }
+    std::unique_ptr<SentenceView> sentence_view() const { return std::make_unique<TokenLayerSentenceView>(sentences, tokens.size()); }
 
     std::vector<Token> tokens;
     std::vector<IndexSpan> sentences;

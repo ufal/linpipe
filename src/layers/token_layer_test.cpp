@@ -26,6 +26,24 @@ Json layer_json(const Json& tokens) {
   return Json{{"type", "token_layer"}, {"name", "tokens"}, {"tokens", tokens}};
 }
 
+std::vector<layers::IndexSpan> spans(const SentenceView& view) {
+  std::vector<layers::IndexSpan> result;
+  for (size_t i = 0; i < view.size(); i++)
+    result.push_back(view.span(i));
+  return result;
+}
+
+std::vector<std::string> texts(const TokenView& view) {
+  std::vector<std::string> result;
+  for (size_t i = 0; i < view.size(); i++)
+    result.emplace_back(view.text(i));
+  return result;
+}
+
+std::vector<layers::IndexSpan> normalize(size_t ntokens, const std::vector<layers::IndexSpan>& sentences) {
+  return spans(layers::TokenLayerSentenceView(sentences, ntokens));
+}
+
 } // namespace
 
 TEST_CASE("TokenLayer::TokenLayer") {
@@ -110,6 +128,69 @@ TEST_CASE("TokenLayer::token_view") {
     layers::TokenLayer layer("tokens", &plain_text);
     layer.tokens.emplace_back(layers::IndexSpan(0, 12));
     CHECK(layer.token_view()->text(0) == "Hello world!");
+  }
+}
+
+TEST_CASE("TokenLayerSentenceView") {
+  using Spans = std::vector<layers::IndexSpan>;
+
+  SUBCASE("no tokens means no sentences") {
+    CHECK(normalize(0, {}).empty());
+  }
+
+  SUBCASE("keeps sentences covering all tokens") {
+    CHECK(normalize(3, {{0, 2}, {2, 3}}) == Spans{{0, 2}, {2, 3}});
+  }
+
+  SUBCASE("no sentences means one sentence") {
+    CHECK(normalize(3, {}) == Spans{{0, 3}});
+  }
+
+  SUBCASE("tokens outside sentences form implicit sentences") {
+    CHECK(normalize(6, {{1, 2}, {4, 5}}) == Spans{{0, 1}, {1, 2}, {2, 4}, {4, 5}, {5, 6}});
+  }
+
+  SUBCASE("skips empty sentences") {
+    CHECK(normalize(2, {{0, 0}, {0, 1}, {1, 1}}) == Spans{{0, 1}, {1, 2}});
+  }
+
+  SUBCASE("rejects invalid sentences") {
+    for (auto&& invalid : {Spans{{-1, 1}}, Spans{{2, 1}}, Spans{{0, 4}}, Spans{{0, 2}, {1, 3}}, Spans{{2, 3}, {0, 1}}})
+      CHECK_THROWS_AS(normalize(3, invalid), LinpipeError);
+  }
+}
+
+TEST_CASE("TokenLayer::sentence_view and TokenViewSlice") {
+  layers::TokenLayer layer;
+  for (auto&& token : {"a", "b", "c", "d", "e"})
+    layer.tokens.emplace_back(token);
+  layer.sentences = {{0, 2}, {2, 5}};
+  auto tokens = layer.token_view();
+
+  SUBCASE("sentence view reflects the layer") {
+    CHECK(spans(*layer.sentence_view()) == std::vector<layers::IndexSpan>{{0, 2}, {2, 5}});
+    layer.sentences = {{0, 3}};
+    CHECK(spans(*layer.sentence_view()) == std::vector<layers::IndexSpan>{{0, 3}, {3, 5}});
+  }
+
+  SUBCASE("slice gives tokens of the span") {
+    CHECK(texts(TokenViewSlice(*tokens, layers::IndexSpan(1, 4))) == std::vector<std::string>{"b", "c", "d"});
+    CHECK(TokenViewSlice(*tokens, layers::IndexSpan(2, 2)).size() == 0);
+    CHECK(texts(TokenViewSlice(*tokens, layers::IndexSpan(0, 5))) == texts(*tokens));
+  }
+
+  SUBCASE("iterates tokens by sentences") {
+    auto sentences = layer.sentence_view();
+    std::vector<std::vector<std::string>> result;
+    for (size_t s = 0; s < sentences->size(); s++)
+      result.push_back(texts(TokenViewSlice(*tokens, sentences->span(s))));
+    CHECK(result == std::vector<std::vector<std::string>>{{"a", "b"}, {"c", "d", "e"}});
+  }
+
+  SUBCASE("slice rejects span out of range") {
+    CHECK_THROWS_AS((void)TokenViewSlice(*tokens, layers::IndexSpan(-1, 2)), LinpipeError);
+    CHECK_THROWS_AS((void)TokenViewSlice(*tokens, layers::IndexSpan(3, 2)), LinpipeError);
+    CHECK_THROWS_AS((void)TokenViewSlice(*tokens, layers::IndexSpan(4, 6)), LinpipeError);
   }
 }
 
