@@ -27,7 +27,10 @@ Tokenize::Tokenize(const std::string description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "rule_based") tokenizer_ = std::make_unique<RuleBasedTokenizer>(std::vector<std::string>{args["model"]});
+  if (args["model"] == "rule_based")
+    tokenizer_ = std::make_unique<RuleBasedTokenizer>(std::vector<std::string>{args["model"]});
+  else
+    throw LinpipeError{"Tokenize::Tokenize: Unknown tokenizer model '", args["model"], "' in description '", description, "'"};
 
   model_names_ = tokenizer_->model_names();
   source_ = args["source"];
@@ -39,7 +42,7 @@ void Tokenize::apply(Corpus& corpus, PipelineState& state) {
     auto& source = doc->get_layer<layers::PlainText>(source_);
     auto target = std::make_unique<layers::TokenLayer>(target_, &source);
 
-    tokenizer_->tokenize(state.model_manager, source.text, target->tokens);
+    tokenizer_->tokenize(state.model_manager, source.text, target->tokens, target->sentences);
 
     doc->add_layer(std::move(target));
   }

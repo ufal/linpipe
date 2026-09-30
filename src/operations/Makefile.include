@@ -12,5 +12,8 @@ LINPIPE_OBJECTS += operations/implementation
 LINPIPE_OBJECTS += operations/load
 LINPIPE_OBJECTS += operations/ner
 LINPIPE_OBJECTS += operations/operation
+LINPIPE_OBJECTS += operations/tokenizer/rule_based_tokenizer
 LINPIPE_OBJECTS += operations/save
 LINPIPE_OBJECTS += operations/tokenize
+
+LINPIPE_TESTS += operations/tokenizer/rule_based_tokenizer

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "common.h"
+#include "layers/index_span.h"
 #include "layers/token.h"
 #include "models/model_manager.h"
 #include "operations/implementation.h"
@@ -19,7 +20,14 @@ namespace linpipe::operations {
 class Tokenizer : public Implementation {
  public:
   virtual ~Tokenizer() {};
-  virtual void tokenize(ModelManager* model_manager, const std::string& text, std::vector<layers::Token>& tokens) = 0;
+  // Tokenizes the text, appending to the given (normally empty) vectors:
+  // - tokens: tokens anchored in the text by their index spans;
+  // - sentences: sentences as half-open spans of indices into tokens,
+  //   ordered and non-overlapping. A tokenizer that does no sentence
+  //   segmentation may leave it empty; SentenceView then treats all
+  //   tokens as a single sentence.
+  virtual void tokenize(ModelManager* model_manager, const std::string& text,
+                        std::vector<layers::Token>& tokens, std::vector<layers::IndexSpan>& sentences) = 0;
 
  protected:
   Tokenizer(const std::string type, std::vector<std::string> model_names) : Implementation(type, model_names) {};
