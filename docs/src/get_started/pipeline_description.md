@@ -94,13 +94,22 @@ src/linpipe --load "/tmp/my file.txt" --save -title="My corpus" out.txt
 ```
 
 **Description string** (library, REST service). LinPipe splits the string into
-tokens on whitespace, with the following quoting rules:
+tokens on whitespace (space, tab, newline and carriage return), with the
+following quoting rules:
 
 - Double quotes group characters, including whitespace, into one token, e.g.
   `"/tmp/my file.txt"`. Quotes may appear anywhere in a token, so
-  `-title="My corpus"` is the single token `-title=My corpus`.
-- Inside or outside quotes, `\"` is a literal quote and `\\` is a literal
-  backslash. Any other backslash is kept as is, so `C:\dir` needs no escaping.
+  `-title="My corpus"` is the single token `-title=My corpus`, and
+  `a"b c"d` is the single token `ab cd`.
+- A backslash is an escape character only when it is followed by `"` or `\`:
+  `\"` is a literal quote and `\\` is a literal backslash. This holds both
+  inside and outside double quotes, and an escaped quote never opens or closes
+  a quoted part, e.g. `-title="say \"hi\""` is the token `-title=say "hi"`.
+- Any other backslash is kept as is, so `C:\dir` needs no escaping.
+- Because `\\` and `\"` are escapes, a literal backslash must be doubled when it is followed by another backslash or by a double quote:
+    - Consecutive backslashes are interpreted in pairs. For example, `\\server\share` is read as `\server\share`; write `\\\\server\share` to obtain two consecutive literal backslashes.
+    - A backslash immediately before a quote must be escaped if the backslash is intended to be literal. For example, to represent a literal `\"`, write `\\\"`.
+    - A backslash at the end of a quoted part escapes the closing quote, so `"C:\my dir\"` is an error; write `"C:\my dir\\"` instead. Outside quotes, a trailing backslash needs no escaping (`C:\dir\` is fine).
 - `""` is an empty token.
 - A missing closing quote is an error.
 
@@ -128,6 +137,17 @@ In a description string, a format description can be written directly:
 If it contains spaces, enclose it (or the part containing spaces) in double
 quotes.
 
+The settings are parsed as follows:
+
+- Everything before the first `(` is the format name.
+- The settings are split on every `,`, and each setting is split on its first
+  `=` only, so values may contain `=`. There is no escaping, so neither keys
+  nor values can contain `,`.
+- Every setting must contain `=`, otherwise it is an error. Keys and values
+  may be empty (e.g. `2_default=`).
+- If a key is given more than once, the first value wins (unlike named
+  arguments, where the later value wins).
+
 On the command line, parentheses are special characters in most shells, so
 the whole format description should be quoted:
 
@@ -143,10 +163,15 @@ These limitations apply to all entry points.
   where a value is expected. Quoting does not change that, neither shell
   quoting nor double quotes in a description string. Such a value must be
   written as `-name=--value`.
-- A positional argument starting with a hyphen (e.g. `-1`) is read as the name
-  of a named argument. This does not affect values of named arguments
-  (`-threshold -1` works).
+- A positional argument starting with a single hyphen followed by another
+  character (e.g. `-1`) is read as the name of a named argument. This does not
+  affect values of named arguments (`-threshold -1` works). A lone `-` and
+  tokens starting with `---` are positional arguments.
 - A named argument at the end of an operation with no value after it is an
   error.
 - A `--` without an operation name after it (e.g.
   `--load -- examples/text.txt`) is an error.
+- In a format description, the closing `)` is not checked: the last character
+  after the `(` is always removed. A missing `)` is therefore not reported, and
+  the last character of the final value is silently lost, e.g.
+  `conll(1=form` gives the setting `1=for`.
