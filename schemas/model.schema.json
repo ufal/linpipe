@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/model.schema.json",
+  "title": "model",
+  "description": "Configuration of a single LinPipe model. Besides the fields listed here, a model may carry any number of model-specific parameters (e.g. 'tagsets').",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this config was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "description": "Model name; should match its key in models.json.",
+      "type": "string",
+      "minLength": 1
+    },
+    "family": {
+      "description": "The model family this model belongs to.",
+      "type": "string",
+      "minLength": 1
+    },
+    "languages": {
+      "description": "Languages the model supports.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "operations": {
+      "description": "Kinds of operations the model can respond to.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    },
+    "depends_on": {
+      "description": "Names of other models that this model depends on.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "files": {
+      "description": "Files that belong to the model, usually a single archive to download and unpack.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/file"
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["timestamp", "name", "files"],
+  "additionalProperties": true,
+
+  "$defs": {
+    "file": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "File name, as stored locally after download.",
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "description": "Where to download the file from.",
+          "type": "string",
+          "format": "uri"
+        },
+        "unpack": {
+          "description": "Whether the file is an archive that should be unpacked after download.",
+          "type": "boolean",
+          "default": false
+        },
+        "sha256": {
+          "description": "SHA-256 checksum of the file, as 64 hex characters.",
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "size": {
+          "description": "File size in bytes.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["name", "url", "sha256", "size"],
+      "additionalProperties": false
+    }
+  }
+}

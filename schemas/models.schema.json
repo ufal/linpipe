@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/models.schema.json",
+  "title": "models",
+  "description": "A timestamped collection of LinPipe models, keyed by model name.",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this document was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "models": {
+      "description": "Map of model name to model details.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/model"
+      }
+    }
+  },
+  "required": [
+    "timestamp",
+    "models"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "model": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Link to the model's JSON config.",
+          "type": "string",
+          "format": "uri"
+        },
+        "family": {
+          "description": "The model family this model belongs to.",
+          "type": "string",
+          "minLength": 1
+        },
+        "languages": {
+          "description": "Languages the model supports.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "date": {
+          "description": "Release date of the model (ISO 8601 date, YYYY-MM-DD).",
+          "type": "string",
+          "format": "date"
+        },
+        "operations": {
+          "description": "Operations the model can respond to.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "depends_on": {
+          "description": "Names of other models (keys in the top-level 'models' map) that this model depends on.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      },
+      "required": [
+        "url",
+        "date"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
