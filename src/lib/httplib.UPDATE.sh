@@ -17,7 +17,7 @@ git clone --depth=1 --branch=v0.56.0 https://github.com/yhirose/cpp-httplib cpp-
 (cd cpp-httplib && python3 split.py -e cpp)
 
 for e in cpp h; do
-  sed "s/namespace httplib/namespace linpipe::httplib/" cpp-httplib/out/httplib.$e >httplib.$e
+  sed "s/namespace httplib/namespace linpipe::httplib/" cpp-httplib/out/httplib.$e >httplib/httplib.$e
 done
 
 sed '
@@ -27,8 +27,8 @@ sed '
   /^#define CPPHTTPLIB_HTTPLIB_H$/a #endif
 
   s@^#include <\(mbedtls\|psa\)\(/[^>]*\)>@#include "lib/mbedtls/include/\1\2"@;
-' -i httplib.h
+' -i httplib/httplib.h
 
-sed 's@#include "httplib.h"@#include "lib/httplib.h"@' -i httplib.cpp
+sed 's@#include "httplib.h"@#include "lib/httplib/httplib.h"@' -i httplib/httplib.cpp
 
 rm -rf cpp-httplib

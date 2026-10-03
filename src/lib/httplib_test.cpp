@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "lib/doctest/doctest.h"
-#include "lib/httplib.h"
+#include "lib/httplib/httplib.h"
 
 namespace linpipe {
 
