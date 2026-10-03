@@ -1,0 +1,25 @@
+Checks:
+  - bugprone-*
+  -  -bugprone-easily-swappable-parameters
+  - clang-analyzer-*
+  - modernize-*
+  -  -modernize-avoid-c-arrays
+  -  -modernize-return-braced-init-list
+  -  -modernize-use-nodiscard
+  -  -modernize-use-trailing-return-type
+  - performance-*
+  -  -performance-enum-size
+  - portability-*
+  - readability-*
+  -  -readability-braces-around-statements
+  -  -readability-function-cognitive-complexity
+  -  -readability-identifier-length
+  -  -readability-isolate-declaration
+  -  -readability-magic-numbers
+
+CheckOptions:
+  readability-implicit-bool-conversion.AllowPointerConditions: true
+  readability-implicit-bool-conversion.AllowIntegerConditions: true
+
+HeaderFilterRegex: ".*"
+ExcludeHeaderFilterRegex: "./lib/.*/"

@@ -1,0 +1,48 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# No line width is enforced, but 140 is recommended.
+ColumnLimit: 0
+
+# Basic indentation consistent with .editorconfig.
+IndentWidth: 2
+BracedInitializerIndentWidth: 2
+ContinuationIndentWidth: 4
+TabWidth: 8
+UseTab: Never
+
+# Vim-based style.
+AccessModifierOffset: -1  # cino=g.5s,h.5s
+AlignAfterOpenBracket: Align  # cino=(0
+IndentCaseLabels: true  # cino=:s
+NamespaceIndentation: None  # cino=N-s
+
+# Braces and short statements.
+AllowShortBlocksOnASingleLine: Never
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+BraceWrapping:
+  BeforeCatch: true
+BreakBeforeBraces: Custom
+BreakTemplateDeclarations: Leave
+
+# Alignment and spaces.
+AlignTrailingComments:
+  Kind: Leave
+BreakBeforeBinaryOperators: NonAssignment
+PointerAlignment: Left
+SpaceAfterTemplateKeyword: false
+
+# Sort the includes as system headers - "common.h" - local headers.
+SortIncludes: true
+IncludeIsMainRegex: '$.'
+IncludeCategories:
+- Regex: '^"'
+  Priority: 1
+- Regex: '^"common\.h"$'
+  Priority: 2
+- Regex: '.*'
+  Priority: 3

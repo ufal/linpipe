@@ -49,10 +49,41 @@ $(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
 	$(filter-out -std=% -stdlib=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
 endif
 
+# Sources for linging and style checks
+our-sources-filter = $(strip $(foreach f,$1,$(if $(filter lib/%/,$(dir $f)),,$f)))
+CHANGED_SOURCES_HEADERS = $(call our-sources-filter,$(filter %.cpp %.h,$(shell git diff --name-only --relative --diff-filter=d HEAD)))
+CHANGED_SOURCES = $(filter %.cpp,$(CHANGED_SOURCES_HEADERS))
+CHANGED_HEADERS = $(filter %.h,$(CHANGED_SOURCES_HEADERS))
+ALL_SOURCES_HEADERS = $(call our-sources-filter,$(shell git ls-files -- "*.cpp" "*.h"))
+
 # Linting
-.PHONY: lint
+.PHONY: FORCE lint lint/all  # lint/path
 lint:
-	clang-tidy $(strip $(foreach f,$(LINPIPE_OBJECTS:%=%.cpp),$(if $(filter-out lib/%,$f)$(filter lib/,$(dir $f)),$f))) -- $(C_FLAGS)
+	$(if $(CHANGED_SOURCES),clang-tidy $(CHANGED_SOURCES) -- $(C_FLAGS))
+	$(if $(CHANGED_HEADERS),clang-tidy $(CHANGED_HEADERS) -- -x c++-header $(C_FLAGS))
+	$(if $(CHANGED_SOURCES_HEADERS),,@echo "No changed files to lint.")
+lint/all:
+	clang-tidy $(filter %.cpp,$(ALL_SOURCES_HEADERS)) -- $(C_FLAGS)
+lint/%: FORCE
+	clang-tidy $* -- $(if $(filter %.h,$*),-x c++-header )$(C_FLAGS)
+
+# Style checking and formating (both show diff and perform in-place)
+.PHONY: style reformat  # style/all style/path format/path reformat/all reformat/path
+style:
+	$(if $(CHANGED_SOURCES_HEADERS),clang-format --dry-run --Werror $(CHANGED_SOURCES_HEADERS),@echo "No changed files to stylecheck.")
+style/%: FORCE
+	clang-format --dry-run --Werror $(if $(filter all,$*),$(ALL_SOURCES_HEADERS),$*)
+format/%: FORCE
+	clang-format $* | git diff --no-index $* -
+reformat:
+	$(if $(CHANGED_SOURCES_HEADERS),clang-format -i $(CHANGED_SOURCES_HEADERS),@echo "No changed files to format.")
+reformat/%: FORCE
+	clang-format -i $(if $(filter all,$*),$(ALL_SOURCES_HEADERS),$*)
+
+# Combined style checking and linting
+.PHONY: check  # check/all check/path
+check: style lint
+check/%: style/% lint/% ;
 
 # Cleaning
 .PHONY: clean
