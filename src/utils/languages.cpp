@@ -16100,12 +16100,13 @@ const std::array<std::pair<const char*, uint16_t>, 8140> code_to_language = {{
 }
 
 const Language* Languages::language_by_code(std::string_view code) {
-  auto it = std::lower_bound(code_to_language.begin(), code_to_language.end(), code,
-    [](const std::pair<const char*, uint16_t>& pair, std::string_view code) {
-      return std::string_view(pair.first) < code;
-    });
+  auto it = std::lower_bound(
+      code_to_language.begin(), code_to_language.end(), code,
+      [](const std::pair<const char*, uint16_t>& pair, std::string_view code) {
+        return code.compare(pair.first) > 0;
+      });
 
-  return it != code_to_language.end() && std::string_view(it->first) == code ? &languages[it->second] : nullptr;
+  return it != code_to_language.end() && code.compare(it->first) == 0 ? &languages[it->second] : nullptr;
 }
 
 } // namespace linpipe
