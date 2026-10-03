@@ -10,7 +10,7 @@
 #include "layers/plain_text.h"
 #include "layers/token_layer.h"
 #include "lib/doctest/doctest.h"
-#include "lib/json.h"
+#include "lib/json/json.h"
 
 namespace linpipe {
 

@@ -9,7 +9,8 @@
 
 #include "common.h"
 #include "layers/lemmas.h"
-#include "lib/json.h"
+#include "lib/json/json.h"
+#include "utils/json_utils.h"
 
 namespace linpipe::layers {
 

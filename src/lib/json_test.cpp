@@ -9,7 +9,7 @@
 
 #include "common.h"
 #include "lib/doctest/doctest.h"
-#include "lib/json.h"
+#include "lib/json/json.h"
 
 namespace linpipe {
 

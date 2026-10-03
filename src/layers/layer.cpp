@@ -12,7 +12,6 @@
 #include "layers/spans.h"
 #include "layers/plain_text.h"
 #include "layers/token_layer.h"
-#include "lib/json.h"
 
 namespace linpipe {
 

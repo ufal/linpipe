@@ -12,7 +12,6 @@
 #include "layers/lemmas.h"
 #include "layers/spans.h"
 #include "layers/token_layer.h"
-#include "lib/json.h"
 #include "utils/arguments.h"
 #include "utils/split.h"
 

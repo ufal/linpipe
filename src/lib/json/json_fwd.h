@@ -107,14 +107,14 @@
 
 #ifndef NLOHMANN_JSON_NAMESPACE
 #define NLOHMANN_JSON_NAMESPACE               \
-    nlohmann::NLOHMANN_JSON_NAMESPACE_CONCAT( \
+    linpipe::nlohmann::NLOHMANN_JSON_NAMESPACE_CONCAT( \
             NLOHMANN_JSON_ABI_TAGS,           \
             NLOHMANN_JSON_NAMESPACE_VERSION)
 #endif
 
 #ifndef NLOHMANN_JSON_NAMESPACE_BEGIN
 #define NLOHMANN_JSON_NAMESPACE_BEGIN                \
-    namespace nlohmann                               \
+    namespace linpipe::nlohmann                               \
     {                                                \
     inline namespace NLOHMANN_JSON_NAMESPACE_CONCAT( \
                 NLOHMANN_JSON_ABI_TAGS,              \
@@ -180,7 +180,7 @@ struct ordered_map;
 
 /// @brief specialization that maintains the insertion order of object keys
 /// @sa https://json.nlohmann.me/api/ordered_json/
-using ordered_json = basic_json<nlohmann::ordered_map>;
+using ordered_json = basic_json<linpipe::nlohmann::ordered_map>;
 
 NLOHMANN_JSON_NAMESPACE_END
 

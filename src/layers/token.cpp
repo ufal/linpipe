@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "layers/token.h"
-#include "lib/json.h"
+#include "lib/json/json.h"
 #include "utils/json_utils.h"
 
 namespace linpipe::layers {
