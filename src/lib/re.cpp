@@ -244,7 +244,7 @@ size_t RE::sub(std::string_view str, std::string_view replacement, std::string& 
 }
 
 // RE32 declarations
-RE32::RE32(std::string_view pattern, int options) : RE32([pattern]{ std::u32string u32; unilib::utf::decode(pattern, u32); return u32; }(), options) {}
+RE32::RE32(std::string_view pattern, int options) : RE32(unilib::utf::decoded(pattern), options) {}
 
 RE32::RE32(std::u32string_view pattern, int options) : re_(nullptr) {
   REInit::initialize();
@@ -259,8 +259,7 @@ RE32::RE32(std::u32string_view pattern, int options) : re_(nullptr) {
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str((UChar*)s, r, &einfo);
-    std::string u8pattern; unilib::utf::encode(pattern, u8pattern);
-    throw LinpipeError{"RE::RE: Cannot parse regular expression '", u8pattern, "': ", s};
+    throw LinpipeError{"RE::RE: Cannot parse regular expression '", unilib::utf::encoded(pattern), "': ", s};
   }
 }
 
