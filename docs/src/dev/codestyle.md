@@ -27,7 +27,7 @@
 
 - The include paths should be preferably absolute from the project root.
 
-- All code must be in the `linpipe` namespace (note that `std` is opened in it).
+- All code must be in the `linpipe` namespace.
 
 - Right now we use a single exception type `LinpipeError` to throw LinPipe
   errors (of course, library functions throw `std` exceptions).
