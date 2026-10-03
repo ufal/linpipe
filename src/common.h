@@ -43,33 +43,47 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 #endif
 
 // Logging
-enum { LOGGING_TRACE=0, LOGGING_INFO=1, LOGGING_PROGRESS=2, LOGGING_WARN=3, LOGGING_ERROR=4, LOGGING_FATAL=5, };
+enum {
+  LOGGING_TRACE = 0,
+  LOGGING_INFO = 1,
+  LOGGING_PROGRESS = 2,
+  LOGGING_WARN = 3,
+  LOGGING_ERROR = 4,
+  LOGGING_FATAL = 5,
+};
 extern int logging_level;
 extern bool logging_to_file;
-std::ostream& logging_start(int level, const char* file, int line);
+std::ostream& logging_start(int level, const char* source, int line);
 
-#define LOG(level, message) do { \
-    if constexpr (linpipe::LOGGING_##level == linpipe::LOGGING_PROGRESS) { \
-      if (linpipe::logging_level <= linpipe::LOGGING_PROGRESS && !linpipe::logging_to_file) \
-        linpipe::logging_start(linpipe::LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r'; \
-    } else { \
-      if (linpipe::logging_level <= linpipe::LOGGING_##level) \
+// NOLINTBEGIN(bugprone-macro-parentheses,performance-avoid-endl)
+#define LOG(level, message)                                                                           \
+  do {                                                                                                \
+    if constexpr (linpipe::LOGGING_##level == linpipe::LOGGING_PROGRESS) {                            \
+      if (linpipe::logging_level <= linpipe::LOGGING_PROGRESS && !linpipe::logging_to_file)           \
+        linpipe::logging_start(linpipe::LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r';     \
+    } else {                                                                                          \
+      if (linpipe::logging_level <= linpipe::LOGGING_##level)                                         \
         linpipe::logging_start(linpipe::LOGGING_##level, __FILE__, __LINE__) << message << std::endl; \
-    } \
-  } while(false)
+    }                                                                                                 \
+  } while (false)
+// NOLINTEND(bugprone-macro-parentheses,performance-avoid-endl)
 
 // Errors
 class LinpipeError : public std::exception {
  public:
   LinpipeError(const std::string_view text) : text_(text) {}
-  LinpipeError(std::initializer_list<std::string_view> texts) {for (auto&& text : texts) text_ += text; }
-  virtual const char* what() const noexcept override { return text_.c_str(); }
+  LinpipeError(std::initializer_list<std::string_view> texts) {
+    for (auto&& text : texts) text_ += text;
+  }
+  const char* what() const noexcept override { return text_.c_str(); }
+
  private:
   std::string text_;
 };
 
 // Additional formatters for {fmt}
-template <> struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
+template<>
+struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
   constexpr auto format(std::byte b, fmt::format_context& ctx) const {
     return fmt::formatter<unsigned>::format(unsigned(b), ctx);
   }
