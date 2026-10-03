@@ -1,3 +1,10 @@
+Version 4.4.0 [03 Oct 2026]
+---------------------------
+- Add `utf::decoded` and `utf::encoded` returning the new string,
+  instead of modifying an existing one. Reusing `decode` name is
+  impossible, so we take inspiration from `sort`/`sorted` in Python.
+
+
 Version 4.3.0 [02 Oct 2026]
 ---------------------------
 - Avoid false-positive warning on clang-21.

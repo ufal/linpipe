@@ -9,7 +9,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-git clone --depth=1 --branch=stable https://github.com/ufal/unilib
-mv unilib/unilib/*.h unilib/unilib/*.cpp unilib/AUTHORS unilib/CHANGES.md unilib/LICENSE unilib/README.md .
-rm -rf unilib
-sed 's/namespace unilib/namespace linpipe::unilib/' -i *.h *.cpp
+set -e
+
+git clone --depth=1 --branch=v4.4.0 https://github.com/ufal/unilib unilib_git
+
+mv unilib_git/unilib/*.h unilib_git/unilib/*.cpp unilib_git/AUTHORS unilib_git/CHANGES.md unilib_git/LICENSE unilib_git/README.md unilib
+sed 's/namespace unilib/namespace linpipe::unilib/' -i unilib/*.cpp unilib/*.h
+
+rm -rf unilib_git
