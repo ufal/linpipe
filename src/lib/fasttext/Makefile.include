@@ -9,6 +9,7 @@
 
 $(call obj,lib/fasttext/%): C_FLAGS := $(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
 $(call obj,lib/fasttext/%): C_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),/wd4244 /wd4267)
+$(call obj,lib/fasttext/meter): C_FLAGS += $(if $(filter linux-gcc-aarch64,$(PLATFORM)),-Wno-psabi)
 
 LINPIPE_OBJECTS += lib/fasttext/args
 LINPIPE_OBJECTS += lib/fasttext/autotune
