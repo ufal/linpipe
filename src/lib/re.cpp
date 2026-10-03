@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <array>
 
+#include "lib/oniguruma/oniguruma.h"
 #include "lib/re.h"
-#include "oniguruma/oniguruma.h"
-#include "unilib/utf.h"
+#include "lib/unilib/utf.h"
 
 // Right now, only UTF32-LE encoding is supported, even if Oniguruma does provide UTF32-BE.
 #ifdef __BYTE_ORDER__
