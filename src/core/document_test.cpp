@@ -11,7 +11,7 @@
 #include "layers/layer.h"
 #include "layers/plain_text.h"
 #include "layers/token_layer.h"
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 
 namespace linpipe {
 

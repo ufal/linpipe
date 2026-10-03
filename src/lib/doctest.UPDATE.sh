@@ -16,6 +16,6 @@ git clone --depth=1 --branch=v2.5.3 https://github.com/doctest/doctest github_do
 
 sed '
  1i#define DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
-' github_doctest/doctest/doctest.h >doctest.h
+' github_doctest/doctest/doctest.h >doctest/doctest.h
 
 rm -rf github_doctest

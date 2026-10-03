@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 #include "operations/composite.h"
 #include "operations/load.h"
 #include "operations/operation.h"

@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "layers/layer.h"
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 
 namespace linpipe {
 

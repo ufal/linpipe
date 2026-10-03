@@ -9,7 +9,7 @@
 
 #include <unordered_map>
 
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 #include "utils/arguments.h"
 
 namespace linpipe {

@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "core/pipeline.h"
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 
 namespace linpipe {
 

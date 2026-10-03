@@ -12,7 +12,7 @@
 #include "core/document.h"
 #include "formats/text.h"
 #include "layers/plain_text.h"
-#include "lib/doctest.h"
+#include "lib/doctest/doctest.h"
 #include "lib/json.h"
 
 namespace linpipe {
