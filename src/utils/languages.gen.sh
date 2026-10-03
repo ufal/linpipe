@@ -22,8 +22,8 @@ awk '
   /  flag:/ { flag = $2; gsub(/'"'"'/, "", flag) }
   /  iso3:/ { iso3 = $2; gsub(/'"'"'/, "", iso3); print name "\t" flag "\t" iso3 }
 ' docs-automation/codes_and_flags.yaml | while IFS=$(printf '\t') read name flag iso3; do
-  inkscape docs/flags/svg/$flag.svg -o flags/$iso3.png -h 32
-  optipng -clobber -o7 -strip all flags/$iso3.png
+  inkscape docs/flags/svg/$flag.svg -o flags/$iso3.png -h 32  # version 1.4
+  optipng -clobber -o7 -strip all flags/$iso3.png  # version 0.7.8
   grep -q "^$iso3" iso-639-3.tab || echo "$iso3$(printf '\t\t\t\t\t\t')$name" >>iso-639-3.tab
 done
 
