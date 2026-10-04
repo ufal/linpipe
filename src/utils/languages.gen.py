@@ -48,7 +48,7 @@ for language in languages:
     language.append(maybe_empty(flag_data))
 
 # Load languages.cpp for future generation.
-lines_before, lines_after = [], []
+lines_before, lines_middle, lines_after = [], [], []
 with open("languages.cpp", "r", encoding="utf-8") as languages_file:
     for line in languages_file:
         if "Languages::languages = {" in line:
@@ -56,7 +56,16 @@ with open("languages.cpp", "r", encoding="utf-8") as languages_file:
         lines_before.append(line.rstrip("\n"))
 
     for line in languages_file:
-        if line.rstrip("\n") == "}":
+        if line.rstrip("\n") == "}};":
+            break
+
+    for line in languages_file:
+        if "code_to_language = {" in line:
+            break
+        lines_middle.append(line.rstrip("\n"))
+
+    for line in languages_file:
+        if line.rstrip("\n") == "}};":
             break
 
     for line in languages_file:
@@ -70,12 +79,13 @@ with open("languages.cpp", "w", encoding="utf-8") as languages_file:
     for i, language in enumerate(sorted(languages, key=lambda x: x[0])):
         iso_3, iso_2b, iso_1, name, flag = language
         print(f'  {{"{escape_c_string(name)}", {maybe_empty(iso_1)}, {maybe_empty(iso_2b)}, "{iso_3}", {flag}}},', file=languages_file)
-    print("}};\n", file=languages_file)
+    print("}};", file=languages_file)
 
-    print("namespace {\n", file=languages_file)
+    print(*lines_middle, file=languages_file, sep="\n")
+
     print(f"const std::array<std::pair<const char*, uint16_t>, {len(code_to_language)}> code_to_language = {{{{", file=languages_file)
     for code, index in sorted(code_to_language.items()):
         print(f'  {{"{code}", {index}}},', file=languages_file)
-    print("}};\n\n}", file=languages_file)
+    print("}};", file=languages_file)
 
     print(*lines_after, file=languages_file, sep="\n")
