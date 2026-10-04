@@ -23,8 +23,8 @@ bool logging_sources = false;
 
 namespace {
 
-static bool logging_last_progress = false;
-static std::ofstream logging_file;
+bool logging_last_progress = false;
+std::ofstream logging_file;
 
 class LoggingInit {
  private:
@@ -41,7 +41,7 @@ class LoggingInit {
 };
 LoggingInit LoggingInit::singleton;
 
-}
+} // namespace
 
 void logging_set_level(std::string_view level) {
   logging_sources = false;
@@ -69,7 +69,7 @@ void logging_set_level(std::string_view level) {
     LOG(WARN, "logging_set_level: Cannot parse logging level '" << level << "'");
 }
 
-void logging_set_file(std::filesystem::path path) {
+void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
     throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_utf8(path), "'"};
