@@ -81,6 +81,17 @@ TEST_CASE("RE::sub") {
   CHECK(RE("").sub("bcd", "_", result) == 4); CHECK(result == "_b_c_d_");
 }
 
+TEST_CASE("RE::options") {
+  CHECK(RE("A+").search("aA") == "A");
+  CHECK(RE("A+", RE::IGNORECASE).search("aA") == "aA");
+
+  CHECK(RE("A.*B").search("AB\nAB") == "AB");
+  CHECK(RE("A.*B", RE::DOTALL).search("AB\nAB") == "AB\nAB");
+
+  CHECK(RE("^B").search("A\nB").data() == nullptr);
+  CHECK(RE("^B", RE::MULTILINE).search("A\nB") == "B");
+}
+
 TEST_CASE("RE32::RE32") {
   CHECK_NOTHROW(RE32("^$"));
   CHECK_NOTHROW(RE32(U"^$"));
@@ -150,6 +161,17 @@ TEST_CASE("RE32::sub") {
   CHECK(RE32("(\\d)").sub(U"a1b2c3d", U"\\1\\\\", result) == 3); CHECK(result == U"a1\\b2\\c3\\d");
 
   CHECK(RE32("").sub(U"bcd", U"_", result) == 4); CHECK(result == U"_b_c_d_");
+}
+
+TEST_CASE("RE32::options") {
+  CHECK(RE32("A+").search(U"aA") == U"A");
+  CHECK(RE32("A+", RE32::IGNORECASE).search(U"aA") == U"aA");
+
+  CHECK(RE32("A.*B").search(U"AB\nAB") == U"AB");
+  CHECK(RE32("A.*B", RE32::DOTALL).search(U"AB\nAB") == U"AB\nAB");
+
+  CHECK(RE32("^B").search(U"A\nB").data() == nullptr);
+  CHECK(RE32("^B", RE32::MULTILINE).search(U"A\nB") == U"B");
 }
 
 } // namespace linpipe
