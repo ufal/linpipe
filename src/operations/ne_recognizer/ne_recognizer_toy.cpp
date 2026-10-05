@@ -11,10 +11,13 @@
 
 namespace linpipe::operations {
 
-void NERecognizerToy::recognize(ModelManager* /*model_manager*/, const TokenView& /*token_view*/, std::vector<std::pair<unsigned, unsigned>>& /*spans*/) {
+void NERecognizerToy::recognize(ModelManager* model_manager, const TokenView& /*token_view*/, std::vector<std::pair<unsigned, unsigned>>& /*spans*/) {
   /* Toy NE Recognizer class with model. */
 
-  // Model* model = model_manager->load(model_names_[0]);
+  // Request the model from the model manager
+  Model* model = model_manager->load(model_names_[0]);
+  (void)model;
+
   // TODO: Use model to recognize named entities.
 };
 

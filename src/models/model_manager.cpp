@@ -35,8 +35,7 @@ Model* ModelManager::load(std::string_view name) {
 
   // Load if capacity permits
   if (!capacity_ || models_.size() < capacity_) {
-    // TODO: Search for model in paths, open the istream, have the model loaded.
-    return nullptr;
+    return model_hub.get_model(std::string(name));
   } else { // capacity exceeded
     // TODO: What to do?
     return nullptr;

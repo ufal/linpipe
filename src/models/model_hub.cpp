@@ -98,7 +98,8 @@ std::string ModelHub::default_dir() {
   return path_to_utf8(base / "linpipe" / "model_hub");
 }
 
-Model* ModelHub::get_model([[maybe_unused]] const std::string& name) {
+Model* ModelHub::get_model(const std::string& name) {
+  LOG(INFO, "ModelHub: model '" << name << "' requested");
   ensure_local_repo();
 
   // TODO: Find the model in the repository JSON, download it if needed, and load it.
@@ -109,13 +110,17 @@ void ModelHub::ensure_local_repo() {
   auto dir_path = path_from_utf8(dir);
 
   std::error_code ec;
-  std::filesystem::create_directories(dir_path, ec);
+  bool created = std::filesystem::create_directories(dir_path, ec);
   if (ec || !std::filesystem::is_directory(dir_path, ec))
     throw LinpipeError{"Cannot create ModelHub directory '", dir, "'", ec ? ": " : "", ec ? ec.message() : ""};
+  if (created)
+    LOG(INFO, "ModelHub: created a new model hub in '" << dir << "'");
 
   auto repo_json = dir_path / repo_json_name;
-  if (!std::filesystem::exists(repo_json, ec))
+  if (!std::filesystem::exists(repo_json, ec)) {
     download(repo_url, repo_json);
+    LOG(INFO, "ModelHub: downloaded the model overview from '" << repo_url << "' to '" << path_to_utf8(repo_json) << "'");
+  }
 }
 
 } // namespace linpipe
