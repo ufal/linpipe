@@ -374,7 +374,7 @@ TEST_CASE("ModelHub model JSON") {
   auto model_dir = [&](const std::string& name) { return dir.path() / path_from_utf8(name); };
   auto model_file = [&](const std::string& name) { return model_dir(name) / ModelHub::model_json_name; };
 
-  const std::string name = "NERToy-261015";
+  const std::string name = "nertoy-261015";
   server.serve("/nertoy.json", model_json(server, name));
   serve_overview({{name, {{"url", server.url("/nertoy.json")}, {"date", "2026-10-15"}}}});
 
@@ -473,7 +473,7 @@ TEST_CASE("ModelHub model files") {
   TempDir dir;
   TestServer server;
 
-  const std::string name = "NERToy-261015";
+  const std::string name = "nertoy-261015";
   auto model_dir = dir.path() / name;
 
   // Serves the overview and a model JSON with the given files.

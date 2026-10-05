@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-10-05T12:00:00Z",
-  "name": "NERToy",
-  "family": "ner_toy",
+  "name": "nertoy-261005",
+  "family": "NERToy",
   "operations": ["ner"],
   "depends_on": [],
   "files": [
