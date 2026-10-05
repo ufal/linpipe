@@ -27,6 +27,7 @@ class ModelHub {
     ~ModelHub();
 
     Model* get_model(const std::string& name);
+    const std::string& get_dir() const { return dir; }
 
   private:
     static std::string default_dir();
