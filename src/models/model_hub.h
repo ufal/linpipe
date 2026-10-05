@@ -33,7 +33,8 @@ class ModelHub {
   private:
     static std::string default_dir();
     void ensure_local_repo();
-    void ensure_local_model(const std::string& name);
+    Json ensure_local_model(const std::string& name);
+    void ensure_local_files(const std::string& name, const Json& model);
 
     const std::string dir;       // Local cache directory (UTF-8).
     const std::string repo_url;  // URL of the repository overview JSON.

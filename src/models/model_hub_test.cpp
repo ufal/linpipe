@@ -139,10 +139,13 @@ class TestServer {
   std::map<std::string, int> requests_;
 };
 
-// Returns a model JSON of the given model.
-std::string model_json(const std::string& name) {
+// Returns a model JSON of the given model with a single file, serving the file
+// content by the given server.
+std::string model_json(TestServer& server, const std::string& name) {
   Json json = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json::array()}};
-  json["files"].push_back({{"name", name + ".zip"}, {"url", "https://example.com/" + name + ".zip"},
+  auto file_path = "/files/" + name + ".zip";
+  server.serve(file_path, "Content of " + name + ".zip");
+  json["files"].push_back({{"name", name + ".zip"}, {"url", server.url(file_path)},
                            {"sha256", std::string(64, '0')}, {"size", 0}});
   return json.dump();
 }
@@ -153,7 +156,7 @@ std::string overview(TestServer& server, const std::string& timestamp, int model
   Json json = {{"timestamp", timestamp}, {"models", Json::object()}};
   for (int i = 0; i < models; i++) {
     auto name = "model_" + std::to_string(i);
-    server.serve("/" + name + ".json", model_json(name));
+    server.serve("/" + name + ".json", model_json(server, name));
     json["models"][name] = {{"url", server.url("/" + name + ".json")}, {"date", "2026-10-05"}};
   }
   return json.dump();
@@ -372,23 +375,23 @@ TEST_CASE("ModelHub model JSON") {
   auto model_file = [&](const std::string& name) { return model_dir(name) / ModelHub::model_json_name; };
 
   const std::string name = "NERToy-261015";
-  server.serve("/nertoy.json", model_json(name));
+  server.serve("/nertoy.json", model_json(server, name));
   serve_overview({{name, {{"url", server.url("/nertoy.json")}, {"date", "2026-10-15"}}}});
 
   SUBCASE("creates the model directory and downloads the model JSON") {
     ModelHub hub(dir.utf8(), server.url("/models.json"));
     CHECK_NOTHROW(hub.get_model(name));
     CHECK(std::filesystem::is_directory(model_dir(name)));
-    CHECK(read(model_file(name)) == model_json(name));
+    CHECK(read(model_file(name)) == model_json(server, name));
   }
 
   SUBCASE("supports model names with dots and plus signs") {
     const std::string other = "NameTag-en-CNEC2.0+ud-261005";
-    server.serve("/nametag.json", model_json(other));
+    server.serve("/nametag.json", model_json(server, other));
     serve_overview({{other, {{"url", server.url("/nametag.json")}, {"date", "2026-10-05"}}}});
     ModelHub hub(dir.utf8(), server.url("/models.json"));
     CHECK_NOTHROW(hub.get_model(other));
-    CHECK(read(model_file(other)) == model_json(other));
+    CHECK(read(model_file(other)) == model_json(server, other));
   }
 
   SUBCASE("uses a cached model JSON without downloading it") {
@@ -408,12 +411,12 @@ TEST_CASE("ModelHub model JSON") {
   }
 
   SUBCASE("replaces an invalid cached model JSON") {
-    for (auto content : {std::string("garbage"), model_json("OtherModel")}) {
+    for (auto content : {std::string("garbage"), model_json(server, "OtherModel")}) {
       CAPTURE(content);
       write(model_file(name), content);
       ModelHub hub(dir.utf8(), server.url("/models.json"));
       CHECK_NOTHROW(hub.get_model(name));
-      CHECK(read(model_file(name)) == model_json(name));
+      CHECK(read(model_file(name)) == model_json(server, name));
     }
   }
 
@@ -433,7 +436,7 @@ TEST_CASE("ModelHub model JSON") {
     std::vector<std::string> unsafe = {"../escaped", "a/b", "a\\b", ".hidden", "..", "C:model", "bad name"};
     Json models = Json::object();
     for (auto& unsafe_name : unsafe) {
-      server.serve("/" + std::to_string(models.size()) + ".json", model_json(unsafe_name));
+      server.serve("/" + std::to_string(models.size()) + ".json", model_json(server, unsafe_name));
       models[unsafe_name] = {{"url", server.url("/" + std::to_string(models.size()) + ".json")}, {"date", "2026-10-15"}};
     }
     serve_overview(models);
@@ -450,7 +453,7 @@ TEST_CASE("ModelHub model JSON") {
 
   SUBCASE("throws when the model JSON cannot be obtained, creating no directory") {
     server.serve("/portal.json", "<html>Please log in</html>");
-    server.serve("/wrong_name.json", model_json("OtherModel"));
+    server.serve("/wrong_name.json", model_json(server, "OtherModel"));
     server.serve("/no_files.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json::array()}}.dump());
     for (auto path : {"/portal.json", "/wrong_name.json", "/no_files.json", "/missing.json"}) {
       CAPTURE(path);
@@ -462,6 +465,93 @@ TEST_CASE("ModelHub model JSON") {
   }
 
   auto tmp = model_file(name); tmp += ".tmp";
+  CHECK(!std::filesystem::exists(tmp));
+}
+
+TEST_CASE("ModelHub model files") {
+  LoggingGuard logging_guard(LOGGING_FATAL);
+  TempDir dir;
+  TestServer server;
+
+  const std::string name = "NERToy-261015";
+  auto model_dir = dir.path() / name;
+
+  // Serves the overview and a model JSON with the given files.
+  auto serve_model = [&](const std::vector<Json>& files) {
+    Json model = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json(files)}};
+    server.serve("/model.json", model.dump());
+    Json models = {{name, {{"url", server.url("/model.json")}, {"date", "2026-10-15"}}}};
+    server.serve("/models.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"models", models}}.dump());
+  };
+  auto file = [&](const std::string& file_name, const std::string& path) {
+    return Json{{"name", file_name}, {"url", server.url(path)}, {"sha256", std::string(64, '0')}, {"size", 0}};
+  };
+
+  server.serve("/weights.bin", "weights");
+  server.serve("/vocab.txt", "vocabulary");
+  serve_model({file("weights.bin", "/weights.bin"), file("vocab.txt", "/vocab.txt")});
+
+  SUBCASE("downloads all files into the model directory") {
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_NOTHROW(hub.get_model(name));
+    CHECK(read(model_dir / "weights.bin") == "weights");
+    CHECK(read(model_dir / "vocab.txt") == "vocabulary");
+  }
+
+  SUBCASE("does not download files already present") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    hub.get_model(name);
+    CHECK(server.requests("/weights.bin") == 1);
+    CHECK(server.requests("/vocab.txt") == 1);
+  }
+
+  SUBCASE("downloads only the missing files") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    std::filesystem::remove(model_dir / "vocab.txt");
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    CHECK(server.requests("/weights.bin") == 1);
+    CHECK(server.requests("/vocab.txt") == 2);
+    CHECK(read(model_dir / "vocab.txt") == "vocabulary");
+  }
+
+  SUBCASE("uses the files when offline") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    auto url = server.url("/models.json");
+    server.stop();
+    CHECK_NOTHROW(ModelHub(dir.utf8(), url).get_model(name));
+  }
+
+  SUBCASE("throws when a file cannot be downloaded, keeping the other files") {
+    serve_model({file("weights.bin", "/weights.bin"), file("vocab.txt", "/missing.txt")});
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("ModelHub::ensure_local_files: Cannot obtain the file 'vocab.txt'"), LinpipeError);
+    CHECK(read(model_dir / "weights.bin") == "weights");
+    CHECK(!std::filesystem::exists(model_dir / "vocab.txt"));
+  }
+
+  SUBCASE("rejects a model JSON with unusable file names") {
+    for (auto file_name : {"../escaped.bin", "a/b.bin", "a\\b.bin", ".hidden", ModelHub::model_json_name.data()}) {
+      CAPTURE(file_name);
+      serve_model({file(file_name, "/weights.bin")});
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_THROWS_AS(hub.get_model(name), LinpipeError);
+    }
+    CHECK(!std::filesystem::exists(dir.path() / "escaped.bin"));
+    CHECK(!std::filesystem::exists(model_dir));
+  }
+
+  SUBCASE("rejects a model JSON with a file without a name or URL") {
+    for (auto bad : {Json{{"url", server.url("/weights.bin")}}, Json{{"name", "weights.bin"}}, Json("weights.bin")}) {
+      CAPTURE(bad.dump());
+      serve_model({bad});
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("Cannot obtain the JSON of model"), LinpipeError);
+    }
+    CHECK(!std::filesystem::exists(model_dir));
+  }
+
+  auto tmp = model_dir / "vocab.txt"; tmp += ".tmp";
   CHECK(!std::filesystem::exists(tmp));
 }
 

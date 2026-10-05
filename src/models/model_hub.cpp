@@ -76,9 +76,6 @@ std::string fetch(const std::string& url) {
 void write_atomically(const std::filesystem::path& target, std::string_view content) {
   /* Writes the content into the target file atomically.
 
-  The data are first written to a temporary file, which is then renamed, so
-  that an interrupted write never leaves a partial target file behind.
-
   Receives:
     target: path of the file to write
     content: data to write
@@ -110,8 +107,7 @@ void write_atomically(const std::filesystem::path& target, std::string_view cont
 }
 
 bool is_valid_timestamp(const std::string& timestamp) {
-  /* Checks that a timestamp has exactly the form YYYY-MM-DDTHH:MM:SSZ, so that
-  two timestamps can be ordered by plain string comparison.
+  /* Checks that a timestamp has exactly the form YYYY-MM-DDTHH:MM:SSZ.
 
   Receives:
     timestamp: the timestamp to check
@@ -129,8 +125,7 @@ bool is_valid_timestamp(const std::string& timestamp) {
 }
 
 Json parse_repo_json(std::string_view content, std::string_view source) {
-  /* Parses the repository overview JSON and checks its basic structure: a JSON
-  object with a valid 'timestamp' string and a 'models' object.
+  /* Parses the repository overview JSON.
 
   Receives:
     content: the JSON text
@@ -158,6 +153,24 @@ Json parse_repo_json(std::string_view content, std::string_view source) {
     throw LinpipeError{"parse_repo_json: The model overview from '", source, "' has no 'models' object"};
 
   return repo;
+}
+
+bool is_safe_name(std::string_view name) {
+  /* Checks that a model or file name can be safely used as a directory or file.
+
+  Receives:
+    name: the name to check
+
+  Returns:
+    true if the name can be used as a directory or file name
+  */
+
+  if (name.empty() || name[0] == '.') return false;
+  for (char c : name)
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+          c == '-' || c == '_' || c == '.' || c == '+'))
+      return false;
+  return true;
 }
 
 Json parse_model_json(std::string_view content, std::string_view source, std::string_view name) {
@@ -189,25 +202,17 @@ Json parse_model_json(std::string_view content, std::string_view source, std::st
   if (!model.contains("files") || !model["files"].is_array() || model["files"].empty())
     throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no non-empty 'files' array"};
 
+  for (const auto& file : model["files"]) {
+    if (!file.is_object() || !file.contains("name") || !file["name"].is_string())
+      throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has a file without a 'name'"};
+    auto file_name = file["name"].get<std::string>();
+    if (!is_safe_name(file_name) || file_name == ModelHub::model_json_name)
+      throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has a file name '", file_name, "' that cannot be used as a file name"};
+    if (!file.contains("url") || !file["url"].is_string())
+      throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no 'url' for the file '", file_name, "'"};
+  }
+
   return model;
-}
-
-bool is_valid_model_name(std::string_view name) {
-  /* Checks that a model name can be safely used as a directory name.
-
-  Receives:
-    name: the model name to check
-
-  Returns:
-    true if the name can be used as a directory name
-  */
-
-  if (name.empty() || name[0] == '.') return false;
-  for (char c : name)
-    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
-          c == '-' || c == '_' || c == '.' || c == '+'))
-      return false;
-  return true;
 }
 
 std::optional<std::string> read_file(const std::filesystem::path& path) {
@@ -299,14 +304,16 @@ Model* ModelHub::get_model(const std::string& name) {
 
   Throws:
     LinpipeError if no usable repository overview is available, or if the
-      model JSON cannot be obtained, see ensure_local_model().
+      model JSON or the model files cannot be obtained, see
+      ensure_local_model() and ensure_local_files().
   */
 
   LOG(INFO, "ModelHub: model '" << name << "' requested");
   ensure_local_repo();
-  ensure_local_model(name);
+  auto model = ensure_local_model(name);
+  ensure_local_files(name, model);
 
-  // TODO: Download the model files if needed, and load the model.
+  // TODO: Check the size and SHA-256 of the files, unpack them, and load the model.
   return nullptr;
 }
 
@@ -369,11 +376,14 @@ void ModelHub::ensure_local_repo() {
       << " and " << (*repo)["models"].size() << " model(s)");
 }
 
-void ModelHub::ensure_local_model(const std::string& name) {
+Json ModelHub::ensure_local_model(const std::string& name) {
   /* Makes sure the directory of the given model contains its model JSON.
 
   Receives:
     name: model name, a key of the 'models' object in the overview JSON
+
+  Returns:
+    the parsed model JSON
 
   Throws:
     LinpipeError if the model is not in the repository overview, its name
@@ -384,7 +394,7 @@ void ModelHub::ensure_local_model(const std::string& name) {
   const auto& models = (*repo)["models"];
   if (!models.contains(name))
     throw LinpipeError{"ModelHub::ensure_local_model: Model '", name, "' was not found in the model overview"};
-  if (!is_valid_model_name(name))
+  if (!is_safe_name(name))
     throw LinpipeError{"ModelHub::ensure_local_model: Model name '", name, "' cannot be used as a directory name"};
   const auto& entry = models[name];
   if (!entry.is_object() || !entry.contains("url") || !entry["url"].is_string())
@@ -400,8 +410,7 @@ void ModelHub::ensure_local_model(const std::string& name) {
   if (std::filesystem::exists(model_json, ec)) {
     if (auto content = read_file(model_json)) {
       try {
-        parse_model_json(*content, model_json_utf8, name);
-        return;
+        return parse_model_json(*content, model_json_utf8, name);
       } catch (LinpipeError& e) {
         LOG(WARN, "ModelHub: ignoring the cached model JSON: " << e.what());
       }
@@ -412,9 +421,10 @@ void ModelHub::ensure_local_model(const std::string& name) {
 
   // Download and validate the model JSON before creating anything on disk.
   std::string content;
+  Json model;
   try {
     content = fetch(url);
-    parse_model_json(content, url, name);
+    model = parse_model_json(content, url, name);
   } catch (LinpipeError& e) {
     throw LinpipeError{"ModelHub::ensure_local_model: Cannot obtain the JSON of model '", name, "': ", e.what()};
   }
@@ -425,6 +435,41 @@ void ModelHub::ensure_local_model(const std::string& name) {
 
   write_atomically(model_json, content);
   LOG(INFO, "ModelHub: downloaded the JSON of model '" << name << "' to '" << model_json_utf8 << "'");
+  return model;
+}
+
+void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
+  /* Makes sure the directory of the given model contains all its files.
+
+  Receives:
+    name: model name, whose directory already exists
+    model: the parsed model JSON, see parse_model_json()
+
+  Throws:
+    LinpipeError if a file cannot be downloaded or stored.
+  */
+
+  auto model_dir = path_from_utf8(dir) / path_from_utf8(name);
+
+  for (const auto& file : model["files"]) {
+    auto file_name = file["name"].get<std::string>();
+    auto file_path = model_dir / path_from_utf8(file_name);
+
+    std::error_code ec;
+    if (std::filesystem::exists(file_path, ec))
+      continue;
+
+    auto url = file["url"].get<std::string>();
+    std::string content;
+    try {
+      content = fetch(url);
+    } catch (LinpipeError& e) {
+      throw LinpipeError{"ModelHub::ensure_local_files: Cannot obtain the file '", file_name, "' of model '", name, "': ", e.what()};
+    }
+
+    write_atomically(file_path, content);
+    LOG(INFO, "ModelHub: downloaded the file '" << file_name << "' of model '" << name << "'");
+  }
 }
 
 } // namespace linpipe
