@@ -7,12 +7,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 
 #include "lib/httplib/httplib.h"
 #include "lib/json/json.h"
+#include "lib/mbedtls/include/psa/crypto.h"
 #include "models/model_hub.h"
 #include "utils/getenv_utf8.h"
 #include "utils/path_utf8.h"
@@ -155,6 +158,50 @@ Json parse_repo_json(std::string_view content, std::string_view source) {
   return repo;
 }
 
+bool is_valid_sha256(std::string_view sha256) {
+  /* Checks that a SHA-256 checksum consists of exactly 64 hex characters.
+
+  Receives:
+    sha256: the checksum to check
+
+  Returns:
+    true if the checksum has the required form
+  */
+
+  if (sha256.size() != 64) return false;
+  for (char c : sha256)
+    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+      return false;
+  return true;
+}
+
+std::string sha256_hex(std::string_view data) {
+  /* Computes the SHA-256 checksum of the data.
+
+  Receives:
+    data: the data to hash
+
+  Returns:
+    the checksum as 64 lowercase hex characters
+
+  Throws:
+    LinpipeError if the checksum cannot be computed.
+  */
+
+  psa_status_t status = psa_crypto_init();
+  if (status != PSA_SUCCESS)
+    throw LinpipeError{"sha256_hex: Cannot initialize PSA crypto, error ", std::to_string(status)};
+
+  uint8_t hash[PSA_HASH_LENGTH(PSA_ALG_SHA_256)];
+  size_t hash_length = 0;
+  status = psa_hash_compute(PSA_ALG_SHA_256, reinterpret_cast<const uint8_t*>(data.data()), data.size(),
+                            hash, sizeof(hash), &hash_length);
+  if (status != PSA_SUCCESS || hash_length != sizeof(hash))
+    throw LinpipeError{"sha256_hex: Cannot compute SHA-256, error ", std::to_string(status)};
+
+  return fmt::format("{:02x}", fmt::join(hash, ""));
+}
+
 bool is_safe_name(std::string_view name) {
   /* Checks that a model or file name can be safely used as a directory or file.
 
@@ -212,6 +259,8 @@ Json parse_model_json(std::string_view content, std::string_view source, std::st
       throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no 'url' for the file '", file_name, "'"};
     if (!file.contains("size") || !file["size"].is_number_integer() || file["size"].get<int64_t>() < 0)
       throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no non-negative integer 'size' for the file '", file_name, "'"};
+    if (!file.contains("sha256") || !file["sha256"].is_string() || !is_valid_sha256(file["sha256"].get<std::string>()))
+      throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no 'sha256' of 64 hex characters for the file '", file_name, "'"};
   }
 
   return model;
@@ -449,7 +498,7 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
 
   Throws:
     LinpipeError if a file cannot be downloaded, does not have the expected
-      size, or cannot be stored.
+      size or SHA-256, or cannot be stored.
   */
 
   auto model_dir = path_from_utf8(dir) / path_from_utf8(name);
@@ -479,6 +528,14 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
     if (content.size() != size)
       throw LinpipeError{"ModelHub::ensure_local_files: The file '", file_name, "' of model '", name, "' downloaded from '", url,
                          "' has size ", std::to_string(content.size()), " instead of the expected ", std::to_string(size)};
+
+    auto expected_sha256 = file["sha256"].get<std::string>();
+    std::transform(expected_sha256.begin(), expected_sha256.end(), expected_sha256.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    auto sha256 = sha256_hex(content);
+    if (sha256 != expected_sha256)
+      throw LinpipeError{"ModelHub::ensure_local_files: The file '", file_name, "' of model '", name, "' downloaded from '", url,
+                         "' has SHA-256 ", sha256, " instead of the expected ", expected_sha256};
 
     write_atomically(file_path, content);
     LOG(INFO, "ModelHub: downloaded the file '" << file_name << "' of model '" << name << "'");

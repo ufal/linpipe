@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -17,6 +19,7 @@
 #include "lib/doctest/doctest.h"
 #include "lib/httplib/httplib.h"
 #include "lib/json/json.h"
+#include "lib/mbedtls/include/psa/crypto.h"
 #include "models/model_hub.h"
 #include "utils/path_utf8.h"
 
@@ -139,6 +142,15 @@ class TestServer {
   std::map<std::string, int> requests_;
 };
 
+// Returns the SHA-256 of the data as lowercase hex.
+std::string sha256(std::string_view data) {
+  REQUIRE(psa_crypto_init() == PSA_SUCCESS);
+  uint8_t hash[32];
+  size_t length = 0;
+  REQUIRE(psa_hash_compute(PSA_ALG_SHA_256, reinterpret_cast<const uint8_t*>(data.data()), data.size(), hash, 32, &length) == PSA_SUCCESS);
+  return fmt::format("{:02x}", fmt::join(hash, ""));
+}
+
 // Returns a model JSON of the given model with a single file, serving the file
 // content by the given server.
 std::string model_json(TestServer& server, const std::string& name) {
@@ -147,7 +159,7 @@ std::string model_json(TestServer& server, const std::string& name) {
   auto content = "Content of " + name + ".zip";
   server.serve(file_path, content);
   json["files"].push_back({{"name", name + ".zip"}, {"url", server.url(file_path)},
-                           {"sha256", std::string(64, '0')}, {"size", content.size()}});
+                           {"sha256", sha256(content)}, {"size", content.size()}});
   return json.dump();
 }
 
@@ -484,8 +496,12 @@ TEST_CASE("ModelHub model files") {
     Json models = {{name, {{"url", server.url("/model.json")}, {"date", "2026-10-15"}}}};
     server.serve("/models.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"models", models}}.dump());
   };
-  auto file = [&](const std::string& file_name, const std::string& path, size_t size) {
-    return Json{{"name", file_name}, {"url", server.url(path)}, {"sha256", std::string(64, '0')}, {"size", size}};
+  // SHA-256 of the served contents, computed independently by `printf ... | sha256sum`.
+  const std::string weights_sha256 = "9a129038d9a00aed0cf6a7ea059ca50a813449061ab87848cf1a13eafdf33b2c";
+  const std::string vocab_sha256 = "0c7e0de28a70f3c4f8d98ff2d64cbfbbe4c49c80a79096f5edc783417d8edc27";
+  auto file = [&](const std::string& file_name, const std::string& path, size_t size, std::string sha256 = {}) {
+    if (sha256.empty()) sha256 = path == "/weights.bin" ? weights_sha256 : vocab_sha256;
+    return Json{{"name", file_name}, {"url", server.url(path)}, {"sha256", sha256}, {"size", size}};
   };
 
   server.serve("/weights.bin", "weights");
@@ -576,6 +592,49 @@ TEST_CASE("ModelHub model files") {
     }
     CHECK(server.requests("/weights.bin") == 4);
     CHECK(server.requests("/vocab.txt") == 1);
+  }
+
+  SUBCASE("the test helper computes SHA-256 matching an independent implementation") {
+    CHECK(sha256("weights") == weights_sha256);
+    CHECK(sha256("vocabulary") == vocab_sha256);
+  }
+
+  SUBCASE("accepts an uppercase SHA-256") {
+    auto upper = weights_sha256;
+    std::transform(upper.begin(), upper.end(), upper.begin(), [](unsigned char c) { return std::toupper(c); });
+    serve_model({file("weights.bin", "/weights.bin", 7, upper)});
+    CHECK_NOTHROW(ModelHub(dir.utf8(), server.url("/models.json")).get_model(name));
+    CHECK(read(model_dir / "weights.bin") == "weights");
+  }
+
+  SUBCASE("throws when a downloaded file has an unexpected SHA-256, storing nothing") {
+    auto wrong = weights_sha256;
+    wrong[0] = wrong[0] == '0' ? '1' : '0';
+    serve_model({file("weights.bin", "/weights.bin", 7, wrong)});
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("has SHA-256 " + weights_sha256 + " instead of the expected " + wrong), LinpipeError);
+    CHECK(!std::filesystem::exists(model_dir / "weights.bin"));
+  }
+
+  SUBCASE("rejects a model JSON with an invalid SHA-256") {
+    auto url = server.url("/weights.bin");
+    for (auto bad : {Json(nullptr), Json(42), Json(weights_sha256.substr(1)), Json(weights_sha256 + "0"),
+                     Json("g" + weights_sha256.substr(1))}) {
+      CAPTURE(bad.dump());
+      Json entry = {{"name", "weights.bin"}, {"url", url}, {"size", 7}};
+      if (!bad.is_null()) entry["sha256"] = bad;
+      serve_model({entry});
+      std::filesystem::remove_all(model_dir);
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("has no 'sha256' of 64 hex characters"), LinpipeError);
+    }
+  }
+
+  SUBCASE("does not hash a present file with the expected size") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    write(model_dir / "weights.bin", "WEIGHTS");
+    CHECK_NOTHROW(ModelHub(dir.utf8(), server.url("/models.json")).get_model(name));
+    CHECK(read(model_dir / "weights.bin") == "WEIGHTS");
   }
 
   auto tmp = model_dir / "vocab.txt"; tmp += ".tmp";
