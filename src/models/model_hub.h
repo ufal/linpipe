@@ -9,28 +9,32 @@
 
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <unordered_map>
-
 #include "common.h"
 #include "models/model.h"
 
 namespace linpipe {
 
 class ModelHub {
+  /* Provides LinPipe models by name, downloading them from a remote repository
+     and keeping them in a local cache directory.
+  */
+
   public:
     static constexpr std::string_view default_repo_url = "https://ufal.mff.cuni.cz/~strakova/linpipe_repo/models.json";
     static constexpr std::string_view repo_json_name = "models.json";
 
     explicit ModelHub(const std::string& dir = {}, const std::string& repo_url = {});
+    ~ModelHub();
+
     Model* get_model(const std::string& name);
+
   private:
     static std::string default_dir();
     void ensure_local_repo();
 
-    const std::string dir;
-    const std::string repo_url;
+    const std::string dir;       // Local cache directory (UTF-8).
+    const std::string repo_url;  // URL of the repository overview JSON.
+    std::unique_ptr<Json> repo;  // Loaded overview, nullptr until ensure_local_repo() succeeds.
 };
 
 } // namespace linpipe
