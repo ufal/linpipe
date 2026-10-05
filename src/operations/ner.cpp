@@ -7,10 +7,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "layers/token_layer.h"
 #include "layers/spans.h"
-#include "operations/ner.h"
+#include "layers/token_layer.h"
 #include "operations/ne_recognizer/ne_recognizer_toy.h"
+#include "operations/ner.h"
 #include "utils/arguments.h"
 
 namespace linpipe::operations {

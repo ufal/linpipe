@@ -7,7 +7,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "common.h"
 #include "layers/lemmas.h"
 #include "lib/json/json.h"
 #include "utils/json_utils.h"

@@ -15,7 +15,8 @@ namespace linpipe {
 Json json_parse(const std::string_view caller, const std::string_view input) {
   try {
     return Json::parse(input);
-  } catch (Json::parse_error& error) {
+  }
+  catch (Json::parse_error& error) {
     throw LinpipeError{caller, ": Cannot parse JSON: ", error.what()};
   }
 }

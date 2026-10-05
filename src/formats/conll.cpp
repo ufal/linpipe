@@ -22,7 +22,7 @@ Conll::Conll(const std::string description) {
   args.parse_format(args_, description);
 
   int i = 1;
-  while(true) { // see how many columns requested
+  while (true) { // see how many columns requested
     std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i));
     if (it == args_.end()) break; // no more columns
 
@@ -30,8 +30,7 @@ Conll::Conll(const std::string description) {
     if (size_t index = it->second.find(':'); index != std::string::npos) {
       names_.emplace_back(it->second, 0, index);
       types_.emplace_back(it->second, index + 1);
-    }
-    else { // if without ':', assume the description is a type
+    } else { // if without ':', assume the description is a type
       names_.emplace_back();
       types_.emplace_back(it->second);
     }
@@ -45,11 +44,10 @@ Conll::Conll(const std::string description) {
 
   encodings_.resize(names_.size());
   for (size_t i = 0; i < encodings_.size(); i++) {
-    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i+1) + "_encoding");
+    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i + 1) + "_encoding");
     if (it != args_.end()) {
       encodings_[i] = it->second;
-    }
-    else if (types_[i] == "spans") {
+    } else if (types_[i] == "spans") {
       encodings_[i] = "BIO";  // default span encoding
     }
 
@@ -146,8 +144,7 @@ void Conll::save(Document& document, std::ostream& output) {
     if (!n_known) {
       n = columns[j].size();
       n_known = true;
-    }
-    else if (columns[j].size() != n) {
+    } else if (columns[j].size() != n) {
       throw LinpipeError{"Conll::save: Column ", std::to_string(j + 1), " has ", std::to_string(columns[j].size()),
                          " values, but ", std::to_string(n), " were expected"};
     }

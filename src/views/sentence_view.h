@@ -23,11 +23,11 @@ namespace linpipe {
 //
 // Combine with TokenViewSlice to iterate the tokens of each sentence.
 class SentenceView : public View {
-  public:
-    virtual ~SentenceView() = default;
+ public:
+  virtual ~SentenceView() = default;
 
-    virtual size_t size() const = 0;
-    virtual layers::IndexSpan span(size_t i) const = 0;
+  virtual size_t size() const = 0;
+  virtual layers::IndexSpan span(size_t i) const = 0;
 };
 
 } // namespace linpipe

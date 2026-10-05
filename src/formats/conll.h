@@ -22,6 +22,7 @@ class Conll : public Format {
 
   virtual std::unique_ptr<Document> load(std::istream& input, const std::string source_path) override;
   virtual void save(Document& document, std::ostream& output) override;
+
  private:
   std::unordered_map<std::string, std::string> args_;
   std::vector<std::string> types_;  // layer types corresponding to columns

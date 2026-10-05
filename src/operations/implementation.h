@@ -14,9 +14,8 @@
 namespace linpipe::operations {
 
 class Implementation {
- /* Abstract implementation ancestor.
-  TODO: Maybe implementations should have their own directory.
- */
+ // Abstract implementation ancestor.
+ // TODO: Maybe implementations should have their own directory.
 
  public:
   virtual ~Implementation() {};

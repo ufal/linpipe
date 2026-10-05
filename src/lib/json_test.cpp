@@ -20,10 +20,7 @@ TEST_CASE("json") {
     {"integer", 42},
     {"float", 3.14},
     {"list", {1, 2, 3}},
-    {"object", {
-      {"k", "v"},
-      {"key", "value"},
-    }},
+    {"object", {{"k", "v"}, {"key", "value"}}},
   };
 
   SUBCASE("parsing json from string") {

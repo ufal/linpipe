@@ -31,7 +31,6 @@ TEST_CASE("formats::Text::load") {
     auto& layer = doc->get_layer<layers::PlainText>("plain_text");
     CHECK(layer.text == "Hello world!\n");
   }
-
 }
 
 } // namespace linpipe

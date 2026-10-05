@@ -31,8 +31,7 @@ Load::Load(const std::string description) {
 void Load::apply(Corpus& corpus, PipelineState& state) {
   if (source_paths_.empty()) {  // default input
     read_from_handle_(corpus, *state.default_input, "");
-  }
-  else {  // file inputs
+  } else {  // file inputs
     for (std::string source_path : source_paths_) {
       std::ifstream input_file;
       input_file.open(std::string(source_path));

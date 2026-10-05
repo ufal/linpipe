@@ -9,8 +9,8 @@
 
 #include "layers/layer.h"
 #include "layers/lemmas.h"
-#include "layers/spans.h"
 #include "layers/plain_text.h"
+#include "layers/spans.h"
 #include "layers/token_layer.h"
 
 namespace linpipe {

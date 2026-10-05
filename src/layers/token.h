@@ -15,13 +15,13 @@
 namespace linpipe::layers {
 
 class Token {
-  public:
-    Token() = default;
-    explicit Token(std::string text, IndexSpan index_span = {}) : index_span(index_span), text(std::move(text)) {}
-    explicit Token(IndexSpan index_span) : index_span(index_span) {}
+ public:
+  Token() = default;
+  explicit Token(std::string text, IndexSpan index_span = {}) : index_span(index_span), text(std::move(text)) {}
+  explicit Token(IndexSpan index_span) : index_span(index_span) {}
 
-    IndexSpan index_span;
-    std::string text;
+  IndexSpan index_span;
+  std::string text;
 };
 
 void to_json(Json& json, const Token& token);

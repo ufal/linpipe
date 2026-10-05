@@ -20,8 +20,8 @@ class Document {
  public:
   // The responsibility of the Document is to guarantee that layers
   // have unique name.
-  template<std::derived_from<Layer> T=Layer> T& get_layer(std::string_view name={});
-  Layer& add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_duplicate=true);
+  template<std::derived_from<Layer> T = Layer> T& get_layer(std::string_view name = {});
+  Layer& add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_duplicate = true);
   void del_layer(const std::string_view name);
 
   const std::vector<std::unique_ptr<Layer>>& layers();

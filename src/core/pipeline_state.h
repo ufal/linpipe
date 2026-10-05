@@ -14,7 +14,10 @@
 
 namespace linpipe {
 
-enum class Server { LOCAL = 0, WEB = 1 };
+enum class Server {
+  LOCAL = 0,
+  WEB = 1,
+};
 
 class PipelineState {
  public:

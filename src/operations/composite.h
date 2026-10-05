@@ -17,6 +17,7 @@ class Composite : public Operation {
  public:
   Composite(const std::string description);
   virtual void apply(Corpus& corpus, PipelineState& state) override;
+
  private:
   std::vector<std::unique_ptr<Operation>> operations_;
 };

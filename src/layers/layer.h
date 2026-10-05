@@ -19,7 +19,7 @@ class Layer {
  public:
   virtual ~Layer() {}
 
-  static std::unique_ptr<Layer> create(const std::string type, const std::string name={});
+  static std::unique_ptr<Layer> create(const std::string type, const std::string name = {});
 
   virtual void from_json(const Json& json) = 0;
   virtual Json to_json() = 0;

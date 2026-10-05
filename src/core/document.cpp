@@ -67,5 +67,4 @@ void Document::set_source_path(const std::string_view source_path) {
   source_path_ = source_path;
 }
 
-
 } // namespace linpipe

@@ -20,8 +20,7 @@ void ModelManager::reserve(const std::string name) {
   if (it == reservations_.end()) {
     reserved_models_.push_back(name);
     reservations_.insert(std::pair<std::string, unsigned>(name, 1));
-  }
-  else {
+  } else {
     it->second += 1;
   }
 
@@ -39,8 +38,7 @@ Model* ModelManager::load(const std::string name) {
   if (!capacity_ || models_.size() < capacity_) {
     // TODO: Search for model in paths, open the istream, have the model loaded.
     return NULL;
-  }
-  else { // capacity exceeded
+  } else { // capacity exceeded
     // TODO: What to do?
     return NULL;
   }

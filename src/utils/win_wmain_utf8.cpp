@@ -23,8 +23,7 @@ static void restore_console() {
   SetConsoleOutputCP(console_output_cp);
 }
 
-int wmain(int argc, wchar_t* argv[])
-{
+int wmain(int argc, wchar_t* argv[]) {
   console_cp = GetConsoleCP();
   console_output_cp = GetConsoleOutputCP();
   atexit(restore_console);
@@ -36,11 +35,11 @@ int wmain(int argc, wchar_t* argv[])
     nbytes += WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, NULL, 0, NULL, NULL);
 
   HANDLE heap = GetProcessHeap();
-  char** args = (char**) HeapAlloc(heap, 0, nbytes);
+  char** args = (char**)HeapAlloc(heap, 0, nbytes);
 
   args[0] = (char*)(args + argc + 1);
   for (int i = 0; i < argc; ++i)
-    args[i+1] = args[i] + WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, args[i], nbytes, NULL, NULL);
+    args[i + 1] = args[i] + WideCharToMultiByte(CP_UTF8, 0, argv[i], -1, args[i], nbytes, NULL, NULL);
   args[argc] = NULL;
 
   int ret = main(argc, args);

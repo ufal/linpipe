@@ -16,7 +16,7 @@ namespace linpipe::layers {
 
 class Lemmas : public Layer {
  public:
-  Lemmas(const std::string name={}) : Layer("lemmas", name.empty() ? "lemmas" : name) {};
+  Lemmas(const std::string name = {}) : Layer("lemmas", name.empty() ? "lemmas" : name) {};
 
   virtual void from_json(const Json& json) override;
   virtual Json to_json() override;

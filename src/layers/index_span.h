@@ -15,18 +15,18 @@ namespace linpipe::layers {
 
 // A half-open span [begin, end) of indices, e.g., offsets into the source text.
 class IndexSpan {
-  public:
-    IndexSpan() = default;
-    IndexSpan(int begin, int end) : begin(begin), end(end) {}
+ public:
+  IndexSpan() = default;
+  IndexSpan(int begin, int end) : begin(begin), end(end) {}
 
-    int size() const { return end - begin; }
-    bool empty() const { return begin >= end; }
+  int size() const { return end - begin; }
+  bool empty() const { return begin >= end; }
 
-    bool operator==(const IndexSpan& other) const { return begin == other.begin && end == other.end; }
-    bool operator!=(const IndexSpan& other) const { return !(*this == other); }
+  bool operator==(const IndexSpan& other) const { return begin == other.begin && end == other.end; }
+  bool operator!=(const IndexSpan& other) const { return !(*this == other); }
 
-    int begin = 0;
-    int end = 0;
+  int begin = 0;
+  int end = 0;
 };
 
 } // namespace linpipe::layers

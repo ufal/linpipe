@@ -43,8 +43,7 @@ void Save::apply(Corpus& corpus, PipelineState& state) {
     for (size_t i = 0; i < corpus.documents.size(); i++) {
       if (corpus.documents[i]->source_path().empty()) {
         target_paths.push_back(corpus.documents[i]->source_path());
-      }
-      else {
+      } else {
         // TODO: decide on the exact default output extension
         // TODO: the addition ".out" should go BEFORE the actual extension
         target_paths.push_back(corpus.documents[i]->source_path() + ".out");
@@ -56,14 +55,14 @@ void Save::apply(Corpus& corpus, PipelineState& state) {
   std::ostream* os = state.default_output;
   std::ofstream os_file;
   for (size_t i = 0; i < corpus.documents.size(); i++) {
-    if (i == 0 || target_paths[i] != target_paths[i-1]) {
+    if (i == 0 || target_paths[i] != target_paths[i - 1]) {
 
       // finish writing into previous handle
       if (i > 0) {
-        if (target_paths[i] != target_paths[i-1]) {
+        if (target_paths[i] != target_paths[i - 1]) {
           format_->save_corpus_end(*os);
         }
-        if (!target_paths[i-1].empty()) { // close previous if not cout
+        if (!target_paths[i - 1].empty()) { // close previous if not cout
           dynamic_cast<std::ofstream*>(os)->close();
         }
       }

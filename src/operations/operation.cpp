@@ -28,8 +28,7 @@ std::unique_ptr<Operation> Operation::create(const std::string description) {
 
   if (descriptions.size() > 1) {  // Composite
     return std::make_unique<operations::Composite>(description);
-  }
-  else {  // simple (leaf) operations
+  } else {  // simple (leaf) operations
     // The first token is "--name" (checked by parse_operations).
     std::vector<std::string> tokens;
     Arguments::tokenize(tokens, description);

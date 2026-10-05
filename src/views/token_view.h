@@ -16,26 +16,26 @@
 namespace linpipe {
 
 class TokenView : public View {
-  public:
-    virtual ~TokenView() = default;
+ public:
+  virtual ~TokenView() = default;
 
-    virtual size_t size() const = 0;
-    virtual const std::string_view text(size_t i) const = 0;
+  virtual size_t size() const = 0;
+  virtual const std::string_view text(size_t i) const = 0;
 };
 
 class TokenViewSlice : public TokenView {
-  public:
-    TokenViewSlice(const TokenView& base, layers::IndexSpan span) : base_(base), span_(span) {
-      if (span.begin < 0 || span.begin > span.end || static_cast<size_t>(span.end) > base.size())
-        throw LinpipeError("TokenViewSlice::TokenViewSlice: Span out of token range");
-    }
+ public:
+  TokenViewSlice(const TokenView& base, layers::IndexSpan span) : base_(base), span_(span) {
+    if (span.begin < 0 || span.begin > span.end || static_cast<size_t>(span.end) > base.size())
+      throw LinpipeError("TokenViewSlice::TokenViewSlice: Span out of token range");
+  }
 
-    size_t size() const override { return span_.size(); }
-    const std::string_view text(size_t i) const override { return base_.text(span_.begin + i); }
+  size_t size() const override { return span_.size(); }
+  const std::string_view text(size_t i) const override { return base_.text(span_.begin + i); }
 
-  private:
-    const TokenView& base_;
-    layers::IndexSpan span_;
+ private:
+  const TokenView& base_;
+  layers::IndexSpan span_;
 };
 
 } // namespace linpipe

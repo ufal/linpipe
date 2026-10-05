@@ -15,7 +15,7 @@ namespace linpipe {
 TEST_CASE("lzma_roundtrip") {
   auto input = "Testing LZMA compression in LinPipe"s;
   std::vector<std::byte> compressed;
-  CHECK(lzma_compress((const std::byte*) input.data(), input.size(), compressed));
+  CHECK(lzma_compress((const std::byte*)input.data(), input.size(), compressed));
 
   std::vector<std::byte> decompressed;
   CHECK(lzma_decompress_all(compressed.data(), compressed.size(), decompressed));

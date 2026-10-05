@@ -14,11 +14,10 @@
 namespace linpipe {
 
 class View {
-  public:
-    virtual ~View() {}
+ public:
+  virtual ~View() {}
 
-  private:
-
+ private:
 };
 
 } // namespace linpipe

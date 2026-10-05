@@ -31,7 +31,6 @@ TEST_CASE("Layer::create") {
     CHECK(layer->name() == "token_layer");
     CHECK(layer->type() == "token_layer");
   }
-
 }
 
 } // namespace linpipe

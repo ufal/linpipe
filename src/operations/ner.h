@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "operations/operation.h"
 #include "operations/ne_recognizer/ne_recognizer.h"
+#include "operations/operation.h"
 
 namespace linpipe::operations {
 
@@ -18,6 +18,7 @@ class NER : public Operation {
  public:
   NER(const std::string description);
   virtual void apply(Corpus& corpus, PipelineState& state) override;
+
  private:
   std::unique_ptr<NERecognizer> ne_recognizer_;
 };

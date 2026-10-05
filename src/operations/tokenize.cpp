@@ -7,11 +7,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include "layers/plain_text.h"
+#include "layers/token_layer.h"
 #include "operations/tokenize.h"
 #include "operations/tokenizer/rule_based_tokenizer.h"
 #include "utils/arguments.h"
-#include "layers/plain_text.h"
-#include "layers/token_layer.h"
 
 namespace linpipe::operations {
 

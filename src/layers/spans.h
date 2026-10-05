@@ -16,7 +16,10 @@ namespace linpipe::layers {
 
 class SpanEncoding {
  public:
-  enum { BIO = 0, IOB = 1 };
+  enum {
+    BIO = 0,
+    IOB = 1,
+  };
   int type;
 
   SpanEncoding(int type) : type(type) {}
@@ -27,7 +30,7 @@ class SpanEncoding {
 
 class Spans : public Layer {
  public:
-  Spans(const std::string name={}) : Layer("spans", name.empty() ? "spans" : name) {};
+  Spans(const std::string name = {}) : Layer("spans", name.empty() ? "spans" : name) {};
 
   virtual void from_json(const Json& json) override;
   virtual Json to_json() override;

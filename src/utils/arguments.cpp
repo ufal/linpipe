@@ -29,8 +29,7 @@ void Arguments::parse_operations(std::vector<std::string>& descriptions, const s
         descriptions.push_back(" " + join(operation));
         operation.clear();
       }
-    }
-    else if (operation.empty()) {
+    } else if (operation.empty()) {
       throw LinpipeError{"Arguments::parse_operations: Operation name expected at '", token, "' in description '", description, "'"};
     }
 
@@ -60,20 +59,17 @@ void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& ar
     if (!argument.empty()) { // value of the preceding argument (may start with '-', e.g. -1)
       args[argument] = token;
       argument = "";
-    }
-    else if (token.size() > 1 && token[0] == '-' && token[1] != '-') { // argument found
+    } else if (token.size() > 1 && token[0] == '-' && token[1] != '-') { // argument found
       size_t eq = token.find('=');
       if (eq == std::string::npos) { // value is the next token
         argument = token.substr(1);
-      }
-      else { // -name=value, split on the first '=' only (values may contain '=')
+      } else { // -name=value, split on the first '=' only (values may contain '=')
         if (eq == 1) {
           throw LinpipeError{"Arguments::parse_arguments: Argument name expected before '=' in '", token, "' in description '", description, "'"};
         }
-        args[token.substr(1, eq-1)] = token.substr(eq+1);
+        args[token.substr(1, eq - 1)] = token.substr(eq + 1);
       }
-    }
-    else {
+    } else {
       kwargs.push_back(token);
     }
   }
@@ -98,7 +94,7 @@ void Arguments::parse_format(std::unordered_map<std::string, std::string>& args,
   std::string format_description = description;
   size_t pos = description.find("(");
   if (pos != std::string::npos) {
-    format_description = description.substr(pos+1); // remove format name & opening bracket
+    format_description = description.substr(pos + 1); // remove format name & opening bracket
     if (format_description.empty()) {
       throw LinpipeError{"Arguments::parse_format: Closing bracket missing in format description '", description, "'"};
     }
@@ -123,22 +119,19 @@ void Arguments::tokenize(std::vector<std::string>& tokens, const std::string& de
   for (size_t i = 0; i < description.length(); i++) {
     char c = description[i];
 
-    if (c == '\\' && i + 1 < description.length() && (description[i+1] == '"' || description[i+1] == '\\')) {
+    if (c == '\\' && i + 1 < description.length() && (description[i + 1] == '"' || description[i + 1] == '\\')) {
       token.push_back(description[++i]); // escaped quote or backslash
       in_token = true;
-    }
-    else if (c == '"') {
+    } else if (c == '"') {
       in_quotes = !in_quotes;
       in_token = true;
-    }
-    else if (!in_quotes && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
+    } else if (!in_quotes && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
       if (in_token) {
         tokens.push_back(token);
         token.clear();
         in_token = false;
       }
-    }
-    else {
+    } else {
       token.push_back(c);
       in_token = true;
     }
@@ -165,8 +158,7 @@ std::string Arguments::join(const std::vector<std::string>& tokens) {
 
     if (!token.empty() && token.find_first_of(" \t\n\r\"\\") == std::string::npos) {
       joined.append(token);
-    }
-    else { // quote and escape
+    } else { // quote and escape
       joined.push_back('"');
       for (char c : token) {
         if (c == '"' || c == '\\') {
