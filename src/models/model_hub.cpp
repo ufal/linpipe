@@ -210,6 +210,8 @@ Json parse_model_json(std::string_view content, std::string_view source, std::st
       throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has a file name '", file_name, "' that cannot be used as a file name"};
     if (!file.contains("url") || !file["url"].is_string())
       throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no 'url' for the file '", file_name, "'"};
+    if (!file.contains("size") || !file["size"].is_number_integer() || file["size"].get<int64_t>() < 0)
+      throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no non-negative integer 'size' for the file '", file_name, "'"};
   }
 
   return model;
@@ -446,7 +448,8 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
     model: the parsed model JSON, see parse_model_json()
 
   Throws:
-    LinpipeError if a file cannot be downloaded or stored.
+    LinpipeError if a file cannot be downloaded, does not have the expected
+      size, or cannot be stored.
   */
 
   auto model_dir = path_from_utf8(dir) / path_from_utf8(name);
@@ -455,9 +458,16 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
     auto file_name = file["name"].get<std::string>();
     auto file_path = model_dir / path_from_utf8(file_name);
 
+    auto size = file["size"].get<uint64_t>();
+
     std::error_code ec;
-    if (std::filesystem::exists(file_path, ec))
-      continue;
+    if (std::filesystem::exists(file_path, ec)) {
+      auto local_size = std::filesystem::file_size(file_path, ec);
+      if (!ec && local_size == size)
+        continue;
+      LOG(WARN, "ModelHub: the file '" << file_name << "' of model '" << name << "' has size "
+          << (ec ? "unknown" : std::to_string(local_size)) << " instead of " << size << ", downloading it again");
+    }
 
     auto url = file["url"].get<std::string>();
     std::string content;
@@ -466,6 +476,9 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
     } catch (LinpipeError& e) {
       throw LinpipeError{"ModelHub::ensure_local_files: Cannot obtain the file '", file_name, "' of model '", name, "': ", e.what()};
     }
+    if (content.size() != size)
+      throw LinpipeError{"ModelHub::ensure_local_files: The file '", file_name, "' of model '", name, "' downloaded from '", url,
+                         "' has size ", std::to_string(content.size()), " instead of the expected ", std::to_string(size)};
 
     write_atomically(file_path, content);
     LOG(INFO, "ModelHub: downloaded the file '" << file_name << "' of model '" << name << "'");

@@ -144,9 +144,10 @@ class TestServer {
 std::string model_json(TestServer& server, const std::string& name) {
   Json json = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json::array()}};
   auto file_path = "/files/" + name + ".zip";
-  server.serve(file_path, "Content of " + name + ".zip");
+  auto content = "Content of " + name + ".zip";
+  server.serve(file_path, content);
   json["files"].push_back({{"name", name + ".zip"}, {"url", server.url(file_path)},
-                           {"sha256", std::string(64, '0')}, {"size", 0}});
+                           {"sha256", std::string(64, '0')}, {"size", content.size()}});
   return json.dump();
 }
 
@@ -483,13 +484,13 @@ TEST_CASE("ModelHub model files") {
     Json models = {{name, {{"url", server.url("/model.json")}, {"date", "2026-10-15"}}}};
     server.serve("/models.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"models", models}}.dump());
   };
-  auto file = [&](const std::string& file_name, const std::string& path) {
-    return Json{{"name", file_name}, {"url", server.url(path)}, {"sha256", std::string(64, '0')}, {"size", 0}};
+  auto file = [&](const std::string& file_name, const std::string& path, size_t size) {
+    return Json{{"name", file_name}, {"url", server.url(path)}, {"sha256", std::string(64, '0')}, {"size", size}};
   };
 
   server.serve("/weights.bin", "weights");
   server.serve("/vocab.txt", "vocabulary");
-  serve_model({file("weights.bin", "/weights.bin"), file("vocab.txt", "/vocab.txt")});
+  serve_model({file("weights.bin", "/weights.bin", 7), file("vocab.txt", "/vocab.txt", 10)});
 
   SUBCASE("downloads all files into the model directory") {
     ModelHub hub(dir.utf8(), server.url("/models.json"));
@@ -523,7 +524,7 @@ TEST_CASE("ModelHub model files") {
   }
 
   SUBCASE("throws when a file cannot be downloaded, keeping the other files") {
-    serve_model({file("weights.bin", "/weights.bin"), file("vocab.txt", "/missing.txt")});
+    serve_model({file("weights.bin", "/weights.bin", 7), file("vocab.txt", "/missing.txt", 10)});
     ModelHub hub(dir.utf8(), server.url("/models.json"));
     CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("ModelHub::ensure_local_files: Cannot obtain the file 'vocab.txt'"), LinpipeError);
     CHECK(read(model_dir / "weights.bin") == "weights");
@@ -533,7 +534,7 @@ TEST_CASE("ModelHub model files") {
   SUBCASE("rejects a model JSON with unusable file names") {
     for (auto file_name : {"../escaped.bin", "a/b.bin", "a\\b.bin", ".hidden", ModelHub::model_json_name.data()}) {
       CAPTURE(file_name);
-      serve_model({file(file_name, "/weights.bin")});
+      serve_model({file(file_name, "/weights.bin", 7)});
       ModelHub hub(dir.utf8(), server.url("/models.json"));
       CHECK_THROWS_AS(hub.get_model(name), LinpipeError);
     }
@@ -541,14 +542,40 @@ TEST_CASE("ModelHub model files") {
     CHECK(!std::filesystem::exists(model_dir));
   }
 
-  SUBCASE("rejects a model JSON with a file without a name or URL") {
-    for (auto bad : {Json{{"url", server.url("/weights.bin")}}, Json{{"name", "weights.bin"}}, Json("weights.bin")}) {
+  SUBCASE("rejects a model JSON with a file without a name, URL, or valid size") {
+    auto url = server.url("/weights.bin");
+    for (auto bad : {Json{{"url", url}, {"size", 7}}, Json{{"name", "weights.bin"}, {"size", 7}}, Json("weights.bin"),
+                     Json{{"name", "weights.bin"}, {"url", url}}, Json{{"name", "weights.bin"}, {"url", url}, {"size", -1}},
+                     Json{{"name", "weights.bin"}, {"url", url}, {"size", 7.5}}, Json{{"name", "weights.bin"}, {"url", url}, {"size", "7"}}}) {
       CAPTURE(bad.dump());
       serve_model({bad});
       ModelHub hub(dir.utf8(), server.url("/models.json"));
       CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("Cannot obtain the JSON of model"), LinpipeError);
     }
     CHECK(!std::filesystem::exists(model_dir));
+  }
+
+  SUBCASE("throws when a downloaded file has an unexpected size, storing nothing") {
+    for (size_t size : {6, 8, 0}) {
+      CAPTURE(size);
+      serve_model({file("weights.bin", "/weights.bin", size)});
+      std::filesystem::remove_all(model_dir);  // A cached model JSON would be used otherwise.
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("has size 7 instead of the expected " + std::to_string(size)), LinpipeError);
+      CHECK(!std::filesystem::exists(model_dir / "weights.bin"));
+    }
+  }
+
+  SUBCASE("downloads again a present file with a wrong size") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    for (auto content : {"weigh", "weights and more", ""}) {
+      CAPTURE(content);
+      write(model_dir / "weights.bin", content);
+      CHECK_NOTHROW(ModelHub(dir.utf8(), server.url("/models.json")).get_model(name));
+      CHECK(read(model_dir / "weights.bin") == "weights");
+    }
+    CHECK(server.requests("/weights.bin") == 4);
+    CHECK(server.requests("/vocab.txt") == 1);
   }
 
   auto tmp = model_dir / "vocab.txt"; tmp += ".tmp";
