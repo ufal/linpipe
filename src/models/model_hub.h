@@ -22,6 +22,7 @@ class ModelHub {
   public:
     static constexpr std::string_view default_repo_url = "https://ufal.mff.cuni.cz/~strakova/linpipe_repo/models.json";
     static constexpr std::string_view repo_json_name = "models.json";
+    static constexpr std::string_view model_json_name = "model.json";
 
     explicit ModelHub(const std::string& dir = {}, const std::string& repo_url = {});
     ~ModelHub();
@@ -32,6 +33,7 @@ class ModelHub {
   private:
     static std::string default_dir();
     void ensure_local_repo();
+    void ensure_local_model(const std::string& name);
 
     const std::string dir;       // Local cache directory (UTF-8).
     const std::string repo_url;  // URL of the repository overview JSON.

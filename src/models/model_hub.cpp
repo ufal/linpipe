@@ -160,6 +160,56 @@ Json parse_repo_json(std::string_view content, std::string_view source) {
   return repo;
 }
 
+Json parse_model_json(std::string_view content, std::string_view source, std::string_view name) {
+  /* Parses the JSON of a single model.
+
+  Receives:
+    content: the JSON text
+    source: file or URL the content comes from, used in error messages
+    name: the expected model name
+
+  Returns:
+    the parsed model JSON
+
+  Throws:
+    LinpipeError if the content is not a valid JSON of the given model.
+  */
+
+  Json model;
+  try {
+    model = Json::parse(content);
+  } catch (Json::exception& e) {
+    throw LinpipeError{"parse_model_json: The model JSON from '", source, "' is not valid JSON: ", e.what()};
+  }
+
+  if (!model.is_object())
+    throw LinpipeError{"parse_model_json: The model JSON from '", source, "' is not a JSON object"};
+  if (!model.contains("name") || !model["name"].is_string() || model["name"].get<std::string>() != name)
+    throw LinpipeError{"parse_model_json: The model JSON from '", source, "' does not have the expected name '", name, "'"};
+  if (!model.contains("files") || !model["files"].is_array() || model["files"].empty())
+    throw LinpipeError{"parse_model_json: The model JSON from '", source, "' has no non-empty 'files' array"};
+
+  return model;
+}
+
+bool is_valid_model_name(std::string_view name) {
+  /* Checks that a model name can be safely used as a directory name.
+
+  Receives:
+    name: the model name to check
+
+  Returns:
+    true if the name can be used as a directory name
+  */
+
+  if (name.empty() || name[0] == '.') return false;
+  for (char c : name)
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+          c == '-' || c == '_' || c == '.' || c == '+'))
+      return false;
+  return true;
+}
+
 std::optional<std::string> read_file(const std::filesystem::path& path) {
   /* Reads the whole file into a string.
 
@@ -240,8 +290,6 @@ std::string ModelHub::default_dir() {
 Model* ModelHub::get_model(const std::string& name) {
   /* Gets the model with the given name.
 
-  On the first call, loads the repository overview, see ensure_local_repo().
-
   Receives:
     name: model name, a key of the 'models' object in the overview JSON
 
@@ -250,23 +298,20 @@ Model* ModelHub::get_model(const std::string& name) {
     implemented yet
 
   Throws:
-    LinpipeError if no usable repository overview is available.
+    LinpipeError if no usable repository overview is available, or if the
+      model JSON cannot be obtained, see ensure_local_model().
   */
 
   LOG(INFO, "ModelHub: model '" << name << "' requested");
   ensure_local_repo();
+  ensure_local_model(name);
 
-  // TODO: Find the model in the repository JSON, download it if needed, and load it.
+  // TODO: Download the model files if needed, and load the model.
   return nullptr;
 }
 
 void ModelHub::ensure_local_repo() {
   /* Loads the repository overview into repo, once per instance.
-
-  Creates the cache directory if needed, loads the cached overview if it is
-  valid, and fetches the remote one. The newer of the two is used, and the
-  remote one is stored in the cache if it wins. When the remote overview cannot
-  be obtained, the cached one is used with a warning.
 
   Throws:
     LinpipeError if the cache directory cannot be created, or if neither
@@ -322,6 +367,64 @@ void ModelHub::ensure_local_repo() {
   repo = std::make_unique<Json>(std::move(*local));
   LOG(INFO, "ModelHub: loaded the model overview with timestamp " << (*repo)["timestamp"].get<std::string>()
       << " and " << (*repo)["models"].size() << " model(s)");
+}
+
+void ModelHub::ensure_local_model(const std::string& name) {
+  /* Makes sure the directory of the given model contains its model JSON.
+
+  Receives:
+    name: model name, a key of the 'models' object in the overview JSON
+
+  Throws:
+    LinpipeError if the model is not in the repository overview, its name
+      cannot be used as a directory name, it has no URL, or its model JSON
+      cannot be downloaded, is not valid, or cannot be stored.
+  */
+
+  const auto& models = (*repo)["models"];
+  if (!models.contains(name))
+    throw LinpipeError{"ModelHub::ensure_local_model: Model '", name, "' was not found in the model overview"};
+  if (!is_valid_model_name(name))
+    throw LinpipeError{"ModelHub::ensure_local_model: Model name '", name, "' cannot be used as a directory name"};
+  const auto& entry = models[name];
+  if (!entry.is_object() || !entry.contains("url") || !entry["url"].is_string())
+    throw LinpipeError{"ModelHub::ensure_local_model: Model '", name, "' has no 'url' in the model overview"};
+  auto url = entry["url"].get<std::string>();
+
+  auto model_dir = path_from_utf8(dir) / path_from_utf8(name);
+  auto model_json = model_dir / model_json_name;
+  auto model_json_utf8 = path_to_utf8(model_json);
+
+  // Use the cached model JSON, if there is a valid one.
+  std::error_code ec;
+  if (std::filesystem::exists(model_json, ec)) {
+    if (auto content = read_file(model_json)) {
+      try {
+        parse_model_json(*content, model_json_utf8, name);
+        return;
+      } catch (LinpipeError& e) {
+        LOG(WARN, "ModelHub: ignoring the cached model JSON: " << e.what());
+      }
+    } else {
+      LOG(WARN, "ModelHub: ignoring the cached model JSON, cannot read '" << model_json_utf8 << "'");
+    }
+  }
+
+  // Download and validate the model JSON before creating anything on disk.
+  std::string content;
+  try {
+    content = fetch(url);
+    parse_model_json(content, url, name);
+  } catch (LinpipeError& e) {
+    throw LinpipeError{"ModelHub::ensure_local_model: Cannot obtain the JSON of model '", name, "': ", e.what()};
+  }
+
+  std::filesystem::create_directories(model_dir, ec);
+  if (ec || !std::filesystem::is_directory(model_dir, ec))
+    throw LinpipeError{"ModelHub::ensure_local_model: Cannot create model directory '", path_to_utf8(model_dir), "'", ec ? ": " : "", ec ? ec.message() : ""};
+
+  write_atomically(model_json, content);
+  LOG(INFO, "ModelHub: downloaded the JSON of model '" << name << "' to '" << model_json_utf8 << "'");
 }
 
 } // namespace linpipe

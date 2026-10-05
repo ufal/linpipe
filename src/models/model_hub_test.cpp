@@ -7,7 +7,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <atomic>
 #include <filesystem>
 #include <fstream>
 #include <map>
@@ -86,13 +85,13 @@ class TempDir {
 };
 
 // A local HTTP server running in a background thread, serving given contents
-// on given paths and counting the requests; any other path returns 404.
+// on given paths and counting the requests per path; any other path returns 404.
 class TestServer {
  public:
   TestServer() {
     server_.Get(".*", [this](const httplib::Request& req, httplib::Response& res) {
       std::lock_guard<std::mutex> lock(mutex_);
-      requests_++;
+      requests_[req.path]++;
       auto it = contents_.find(req.path);
       if (it == contents_.end()) {
         res.status = 404;
@@ -118,7 +117,10 @@ class TestServer {
 
   std::string url(const std::string& path) const { return "http://127.0.0.1:" + std::to_string(port_) + path; }
 
-  int requests() const { return requests_; }
+  int requests(const std::string& path) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return requests_[path];
+  }
 
   // Stops the server; afterwards, connections to its port are refused.
   void stop() {
@@ -134,14 +136,26 @@ class TestServer {
   int port_ = -1;
   std::mutex mutex_;
   std::map<std::string, std::string> contents_;
-  std::atomic<int> requests_ = 0;
+  std::map<std::string, int> requests_;
 };
 
-// Returns an overview JSON with the given timestamp and number of models.
-std::string overview(const std::string& timestamp, int models = 1) {
+// Returns a model JSON of the given model.
+std::string model_json(const std::string& name) {
+  Json json = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json::array()}};
+  json["files"].push_back({{"name", name + ".zip"}, {"url", "https://example.com/" + name + ".zip"},
+                           {"sha256", std::string(64, '0')}, {"size", 0}});
+  return json.dump();
+}
+
+// Returns an overview JSON with the given timestamp and the models model_0,
+// model_1, ..., whose model JSONs are served by the given server.
+std::string overview(TestServer& server, const std::string& timestamp, int models = 1) {
   Json json = {{"timestamp", timestamp}, {"models", Json::object()}};
-  for (int i = 0; i < models; i++)
-    json["models"]["model_" + std::to_string(i)] = {{"url", "https://example.com/model.json"}, {"date", "2026-10-05"}};
+  for (int i = 0; i < models; i++) {
+    auto name = "model_" + std::to_string(i);
+    server.serve("/" + name + ".json", model_json(name));
+    json["models"][name] = {{"url", server.url("/" + name + ".json")}, {"date", "2026-10-05"}};
+  }
   return json.dump();
 }
 
@@ -228,8 +242,8 @@ TEST_CASE("ModelHub repository overview") {
   auto cache = dir.path() / ModelHub::repo_json_name;
   auto tmp = cache; tmp += ".tmp";
 
-  const std::string older = overview("2026-10-01T00:00:00Z", 1);
-  const std::string newer = overview("2026-10-05T12:00:00Z", 2);
+  const std::string older = overview(server, "2026-10-01T00:00:00Z", 1);
+  const std::string newer = overview(server, "2026-10-05T12:00:00Z", 2);
   server.serve("/older.json", older);
   server.serve("/newer.json", newer);
 
@@ -269,7 +283,7 @@ TEST_CASE("ModelHub repository overview") {
   }
 
   SUBCASE("keeps a cached overview with the same timestamp") {
-    auto same = overview("2026-10-01T00:00:00Z", 3);
+    auto same = overview(server, "2026-10-01T00:00:00Z", 3);
     write(cache, same);
     ModelHub hub(dir.utf8(), server.url("/older.json"));
     CHECK_NOTHROW(hub.get_model("model_0"));
@@ -285,11 +299,11 @@ TEST_CASE("ModelHub repository overview") {
 
   SUBCASE("fetches the overview only once per instance") {
     ModelHub hub(dir.utf8(), server.url("/older.json"));
-    CHECK(server.requests() == 0);
+    CHECK(server.requests("/older.json") == 0);
     hub.get_model("model_0");
     hub.get_model("model_0");
-    hub.get_model("model_1");
-    CHECK(server.requests() == 1);
+    hub.get_model("model_0");
+    CHECK(server.requests("/older.json") == 1);
   }
 
   SUBCASE("uses the cached overview when the remote one is unusable") {
@@ -297,8 +311,8 @@ TEST_CASE("ModelHub repository overview") {
     server.serve("/array.json", "[]");
     server.serve("/no_timestamp.json", R"({"models": {}})");
     server.serve("/no_models.json", R"({"timestamp": "2026-12-01T00:00:00Z"})");
-    server.serve("/fractional.json", overview("2026-12-01T00:00:00.5Z"));
-    server.serve("/offset.json", overview("2026-12-01T00:00:00+02:00"));
+    server.serve("/fractional.json", overview(server, "2026-12-01T00:00:00.5Z"));
+    server.serve("/offset.json", overview(server, "2026-12-01T00:00:00+02:00"));
 
     write(cache, older);
     for (auto path : {"/portal.json", "/array.json", "/no_timestamp.json", "/no_models.json",
@@ -342,6 +356,112 @@ TEST_CASE("ModelHub repository overview") {
     CHECK_THROWS_WITH_AS(hub.get_model("model_0"), doctest::Contains("Cannot create ModelHub directory"), LinpipeError);
   }
 
+  CHECK(!std::filesystem::exists(tmp));
+}
+
+TEST_CASE("ModelHub model JSON") {
+  LoggingGuard logging_guard(LOGGING_FATAL);
+  TempDir dir;
+  TestServer server;
+
+  // Serves an overview with the given models, mapping names to model JSON URLs.
+  auto serve_overview = [&](const Json& models) {
+    server.serve("/models.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"models", models}}.dump());
+  };
+  auto model_dir = [&](const std::string& name) { return dir.path() / path_from_utf8(name); };
+  auto model_file = [&](const std::string& name) { return model_dir(name) / ModelHub::model_json_name; };
+
+  const std::string name = "NERToy-261015";
+  server.serve("/nertoy.json", model_json(name));
+  serve_overview({{name, {{"url", server.url("/nertoy.json")}, {"date", "2026-10-15"}}}});
+
+  SUBCASE("creates the model directory and downloads the model JSON") {
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_NOTHROW(hub.get_model(name));
+    CHECK(std::filesystem::is_directory(model_dir(name)));
+    CHECK(read(model_file(name)) == model_json(name));
+  }
+
+  SUBCASE("supports model names with dots and plus signs") {
+    const std::string other = "NameTag-en-CNEC2.0+ud-261005";
+    server.serve("/nametag.json", model_json(other));
+    serve_overview({{other, {{"url", server.url("/nametag.json")}, {"date", "2026-10-05"}}}});
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_NOTHROW(hub.get_model(other));
+    CHECK(read(model_file(other)) == model_json(other));
+  }
+
+  SUBCASE("uses a cached model JSON without downloading it") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    hub.get_model(name);
+    hub.get_model(name);
+    CHECK(server.requests("/nertoy.json") == 1);
+  }
+
+  SUBCASE("uses a cached model JSON when offline") {
+    ModelHub(dir.utf8(), server.url("/models.json")).get_model(name);
+    auto url = server.url("/models.json");
+    server.stop();
+    ModelHub hub(dir.utf8(), url);
+    CHECK_NOTHROW(hub.get_model(name));
+  }
+
+  SUBCASE("replaces an invalid cached model JSON") {
+    for (auto content : {std::string("garbage"), model_json("OtherModel")}) {
+      CAPTURE(content);
+      write(model_file(name), content);
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_NOTHROW(hub.get_model(name));
+      CHECK(read(model_file(name)) == model_json(name));
+    }
+  }
+
+  SUBCASE("throws for a model not in the overview") {
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_THROWS_WITH_AS(hub.get_model("Missing-261005"), doctest::Contains("was not found in the model overview"), LinpipeError);
+    CHECK(!std::filesystem::exists(model_dir("Missing-261005")));
+  }
+
+  SUBCASE("throws for a model without a URL") {
+    serve_overview({{name, {{"date", "2026-10-15"}}}});
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("has no 'url'"), LinpipeError);
+  }
+
+  SUBCASE("throws for model names unusable as directory names") {
+    std::vector<std::string> unsafe = {"../escaped", "a/b", "a\\b", ".hidden", "..", "C:model", "bad name"};
+    Json models = Json::object();
+    for (auto& unsafe_name : unsafe) {
+      server.serve("/" + std::to_string(models.size()) + ".json", model_json(unsafe_name));
+      models[unsafe_name] = {{"url", server.url("/" + std::to_string(models.size()) + ".json")}, {"date", "2026-10-15"}};
+    }
+    serve_overview(models);
+
+    ModelHub hub(dir.utf8(), server.url("/models.json"));
+    for (auto& unsafe_name : unsafe) {
+      CAPTURE(unsafe_name);
+      CHECK_THROWS_WITH_AS(hub.get_model(unsafe_name), doctest::Contains("cannot be used as a directory name"), LinpipeError);
+    }
+    CHECK(!std::filesystem::exists(dir.path().parent_path() / "escaped"));
+    for (auto& entry : std::filesystem::directory_iterator(dir.path()))
+      CHECK(entry.path().filename() == ModelHub::repo_json_name);
+  }
+
+  SUBCASE("throws when the model JSON cannot be obtained, creating no directory") {
+    server.serve("/portal.json", "<html>Please log in</html>");
+    server.serve("/wrong_name.json", model_json("OtherModel"));
+    server.serve("/no_files.json", Json{{"timestamp", "2026-10-05T12:00:00Z"}, {"name", name}, {"files", Json::array()}}.dump());
+    for (auto path : {"/portal.json", "/wrong_name.json", "/no_files.json", "/missing.json"}) {
+      CAPTURE(path);
+      serve_overview({{name, {{"url", server.url(path)}, {"date", "2026-10-15"}}}});
+      ModelHub hub(dir.utf8(), server.url("/models.json"));
+      CHECK_THROWS_WITH_AS(hub.get_model(name), doctest::Contains("ModelHub::ensure_local_model: Cannot obtain the JSON of model"), LinpipeError);
+      CHECK(!std::filesystem::exists(model_dir(name)));
+    }
+  }
+
+  auto tmp = model_file(name); tmp += ".tmp";
   CHECK(!std::filesystem::exists(tmp));
 }
 
