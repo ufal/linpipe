@@ -50,66 +50,82 @@ class REInit {
 REInit REInit::singleton;
 
 // Private template RE methods
-template<class Char>
-std::basic_string_view<Char> match(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>* groups) {
-  if (groups) groups->clear();
-
-  OnigRegion region;
-  if (groups)
-    onig_region_init(&region);
-  int r = onig_match(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                     (UChar*)str.data(), groups ? &region : nullptr, ONIG_OPTION_NONE);
-  if (r >= 0) {
-    if (groups) {
-      groups->reserve(region.num_regs - 1);
-      for (int i = 1; i < region.num_regs; i++)
-        groups->push_back(str.substr(region.beg[i] / sizeof(Char), (region.end[i] - region.beg[i]) / sizeof(Char)));
-
-      onig_region_free(&region, 0);
-    }
-    return std::basic_string_view<Char>(str.data(), r / sizeof(Char));
+template<typename Char, typename Match>
+bool match(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
+  if (match) {
+    match->start = -1;
+    match->groups.clear();
   }
-
-  if (groups)
-    onig_region_free(&region, 0);
-  if (r != ONIG_MISMATCH) {
-    char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar* )s, r);
-    LOG(ERROR, "RE::match: An error occurred during matching: " << s);
-  }
-  return std::basic_string_view<Char>();
-}
-
-template<class Char>
-std::basic_string_view<Char> search(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>* groups) {
-  if (groups) groups->clear();
 
   OnigRegion region;
   onig_region_init(&region);
-  int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                      (UChar*)str.data(), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
+  int r = onig_match(re, (const UChar*)str.data(), (const UChar*)(str.data() + str.size()),
+                     (const UChar*)str.data(), match ? &region : nullptr, ONIG_OPTION_NONE);
   if (r >= 0) {
-    if (groups) {
-      groups->reserve(region.num_regs - 1);
+    if (match) {
+      match->start = 0;
+      match->end = r / (int)sizeof(Char);
+      match->subject = str.data();
+      match->groups.reserve(region.num_regs - 1);
       for (int i = 1; i < region.num_regs; i++)
-        groups->push_back(str.substr(region.beg[i] / sizeof(Char), (region.end[i] - region.beg[i]) / sizeof(Char)));
+        if (region.beg[i] == ONIG_REGION_NOTPOS)
+          match->groups.emplace_back(-1, -1, nullptr);
+        else
+          match->groups.emplace_back(region.beg[i] / (int)sizeof(Char), region.end[i] / (int)sizeof(Char), str.data());
     }
-    std::basic_string_view<Char> result = str.substr(region.beg[0] / sizeof(Char), (region.end[0] - region.beg[0]) / sizeof(Char));
+
     onig_region_free(&region, 0);
-    return result;
+    return true;
   }
 
   onig_region_free(&region, 0);
   if (r != ONIG_MISMATCH) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar* )s, r);
-    LOG(ERROR, "RE::search: An error occurred during searching: " << s);
+    onig_error_code_to_str((UChar*)s, r);
+    LOG(ERROR, "RE::match: An error occurred during matching: " << s);
   }
-  return std::basic_string_view<Char>();
+  return false;
 }
 
-template<class Char>
-size_t split(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<std::basic_string_view<Char>>& parts, size_t max_splits) {
+template<typename Char, typename Match>
+bool search(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
+  if (match) {
+    match->start = -1;
+    match->groups.clear();
+  }
+
+  OnigRegion region;
+  onig_region_init(&region);
+  int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
+                      (UChar*)str.data(), (UChar*)(str.data() + str.size()), match ? &region : nullptr, ONIG_OPTION_NONE);
+  if (r >= 0) {
+    if (match) {
+      match->start = region.beg[0] / (int)sizeof(Char);
+      match->end = region.end[0] / (int)sizeof(Char);
+      match->subject = str.data();
+      match->groups.reserve(region.num_regs - 1);
+      for (int i = 1; i < region.num_regs; i++)
+        if (region.beg[i] == ONIG_REGION_NOTPOS)
+          match->groups.emplace_back(-1, -1, nullptr);
+        else
+          match->groups.emplace_back(region.beg[i] / (int)sizeof(Char), region.end[i] / (int)sizeof(Char), str.data());
+    }
+
+    onig_region_free(&region, 0);
+    return true;
+  }
+
+  onig_region_free(&region, 0);
+  if (r != ONIG_MISMATCH) {
+    char s[ONIG_MAX_ERROR_MESSAGE_LEN];
+    onig_error_code_to_str((UChar*)s, r);
+    LOG(ERROR, "RE::search: An error occurred during searching: " << s);
+  }
+  return false;
+}
+
+template<class Char, class Spans>
+size_t split(OnigRegexType* re, std::basic_string_view<Char> str, Spans& parts, size_t max_splits) {
   parts.clear();
 
   OnigRegion region;
@@ -123,13 +139,13 @@ size_t split(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<st
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str((UChar* )s, r);
+        onig_error_code_to_str((UChar*)s, r);
         LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
       }
       break;
     }
 
-    parts.push_back(str.substr(index, region.beg[0] / sizeof(Char) - index));
+    parts.emplace_back((int)index, region.beg[0] / (int)sizeof(Char), str.data());
     index = region.end[0] / sizeof(Char);
     empty_match = region.end[0] == region.beg[0];
     splits++;
@@ -139,7 +155,7 @@ size_t split(OnigRegexType* re, std::basic_string_view<Char> str, std::vector<st
   onig_region_free(&region, 0);
 
   if (index < str.size() || index) {
-    parts.push_back(str.substr(index));
+    parts.emplace_back((int)index, (int)str.size(), str.data());
     splits++;
   }
   return splits;
@@ -160,13 +176,13 @@ size_t sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_strin
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str((UChar* )s, r);
+        onig_error_code_to_str((UChar*)s, r);
         LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
       }
       break;
     }
 
-    output.append(str.substr(index, region.beg[0] / sizeof(Char) - index));
+    output.append(str.substr(index, (region.beg[0] / sizeof(Char)) - index));
     for (size_t i = 0; i < replacement.size(); i++)
       if (replacement[i] == '\\' && i + 1 < replacement.size() && replacement[i + 1] >= '1' && replacement[i + 1] <= '9') {
         size_t group = 0, j = i + 1;
@@ -196,17 +212,17 @@ size_t sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_strin
   return subs;
 }
 
-}
+} // namespace
 
 // RE declarations
-RE::RE(std::string_view pattern, int options) : re_(nullptr) {
+RE::RE(std::string_view pattern, int options) {
   REInit::initialize();
 
   OnigErrorInfo einfo;
   int r = onig_new((OnigRegexType**)&re_, (UChar*)pattern.data(), (UChar*)(pattern.data() + pattern.size()),
                    ((options & IGNORECASE) ? ONIG_OPTION_IGNORECASE : 0)
-                   | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
-                   | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+                       | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
+                       | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
                    ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
@@ -216,7 +232,7 @@ RE::RE(std::string_view pattern, int options) : re_(nullptr) {
   }
 }
 
-RE::RE(RE&& other) : re_(other.re_) {
+RE::RE(RE&& other) noexcept : re_(other.re_) {
   other.re_ = nullptr;
 }
 
@@ -227,15 +243,15 @@ RE::~RE() {
   }
 }
 
-std::string_view RE::match(std::string_view str, std::vector<std::string_view>* groups) {
-  return linpipe::match<char>((OnigRegexType*)re_, str, groups);
+bool RE::match(std::string_view str, Match* match) {
+  return linpipe::match<char>((OnigRegexType*)re_, str, match);
 }
 
-std::string_view RE::search(std::string_view str, std::vector<std::string_view>* groups) {
-  return linpipe::search<char>((OnigRegexType*)re_, str, groups);
+bool RE::search(std::string_view str, Match* match) {
+  return linpipe::search<char>((OnigRegexType*)re_, str, match);
 }
 
-size_t RE::split(std::string_view str, std::vector<std::string_view>& parts, size_t max_splits) {
+size_t RE::split(std::string_view str, Spans& parts, size_t max_splits) {
   return linpipe::split<char>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
@@ -246,14 +262,14 @@ size_t RE::sub(std::string_view str, std::string_view replacement, std::string& 
 // RE32 declarations
 RE32::RE32(std::string_view pattern, int options) : RE32(unilib::utf::decoded(pattern), options) {}
 
-RE32::RE32(std::u32string_view pattern, int options) : re_(nullptr) {
+RE32::RE32(std::u32string_view pattern, int options) {
   REInit::initialize();
 
   OnigErrorInfo einfo;
   int r = onig_new((OnigRegexType**)&re_, (UChar*)pattern.data(), (UChar*)(pattern.data() + pattern.size()),
                    ((options & IGNORECASE) ? ONIG_OPTION_IGNORECASE : 0)
-                   | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
-                   | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+                       | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
+                       | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
                    ONIG_ENCODING_UTF32_LE, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
@@ -263,7 +279,7 @@ RE32::RE32(std::u32string_view pattern, int options) : re_(nullptr) {
   }
 }
 
-RE32::RE32(RE32&& other) : re_(other.re_) {
+RE32::RE32(RE32&& other) noexcept : re_(other.re_) {
   other.re_ = nullptr;
 }
 
@@ -274,15 +290,15 @@ RE32::~RE32() {
   }
 }
 
-std::u32string_view RE32::match(std::u32string_view str, std::vector<std::u32string_view>* groups) {
-  return linpipe::match<char32_t>((OnigRegexType*)re_, str, groups);
+bool RE32::match(std::u32string_view str, Match* match) {
+  return linpipe::match<char32_t>((OnigRegexType*)re_, str, match);
 }
 
-std::u32string_view RE32::search(std::u32string_view str, std::vector<std::u32string_view>* groups) {
-  return linpipe::search<char32_t>((OnigRegexType*)re_, str, groups);
+bool RE32::search(std::u32string_view str, Match* match) {
+  return linpipe::search<char32_t>((OnigRegexType*)re_, str, match);
 }
 
-size_t RE32::split(std::u32string_view str, std::vector<std::u32string_view>& parts, size_t max_splits) {
+size_t RE32::split(std::u32string_view str, Spans& parts, size_t max_splits) {
   return linpipe::split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
