@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-05T12:00:00Z",
+  "models": {
+    "NERToy": {
+      "url": "https://ufal.mff.cuni.cz/~strakova/linpipe_repo/nertoy-261005/model.json",
+      "family": "ner_toy",
+      "date": "2026-10-05",
+      "operations": ["ner"],
+      "depends_on": []
+    }
+  }
+}
