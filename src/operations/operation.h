@@ -17,24 +17,22 @@ namespace linpipe {
 
 class Operation {
  public:
-  virtual ~Operation() {}
+  virtual ~Operation() = default;
 
-  static std::unique_ptr<Operation> create(const std::string description);
+  static std::unique_ptr<Operation> create(std::string_view description);
 
   virtual void apply(Corpus& corpus, PipelineState& state) = 0;
 
   virtual void reserve_models(PipelineState& state);
 
  protected:
-  Operation() {};
-
   std::vector<std::string> model_names_;
 
   // Name of source layer. If empty (default), the last layer of the
   // appropriate type of the respective operation will be taken from the
   // document.
-  std::string source_ = {}; // name of source layer to start from
-  std::string target_ = {}; // name of the newly constructed target layer
+  std::string source_; // name of source layer to start from
+  std::string target_; // name of the newly constructed target layer
 };
 
 } // namespace linpipe

@@ -12,7 +12,7 @@
 
 namespace linpipe::formats {
 
-std::unique_ptr<Document> Text::load(std::istream& input, const std::string source_path) {
+std::unique_ptr<Document> Text::load(std::istream& input, std::string_view source_path) {
   if (input.eof())
     return nullptr;
 

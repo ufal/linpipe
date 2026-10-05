@@ -13,7 +13,7 @@
 
 namespace linpipe::formats {
 
-std::unique_ptr<Document> Lif::load(std::istream& input, const std::string source_path) {
+std::unique_ptr<Document> Lif::load(std::istream& input, std::string_view source_path) {
   std::string line;
 
   if (!getline(input, line))
@@ -22,7 +22,7 @@ std::unique_ptr<Document> Lif::load(std::istream& input, const std::string sourc
   Json json = json_parse("Lif::load", line);
 
   auto document = std::make_unique<Document>();
-  for (auto layer_json : json_get_array("Lif::load", json, "layers")) {
+  for (const auto& layer_json : json_get_array("Lif::load", json, "layers")) {
     json_assert_object("Lif::load", layer_json);
 
     std::string type = json_get_string("Lif::load", layer_json, "type");
@@ -39,14 +39,14 @@ std::unique_ptr<Document> Lif::load(std::istream& input, const std::string sourc
 void Lif::save(Document& document, std::ostream& output) {
   Json layers_json = Json::array();
 
-  for (auto& layer : document.layers())
+  for (const auto& layer : document.layers())
     layers_json.push_back(layer->to_json());
 
   Json json = {
     {"layers", layers_json},
   };
 
-  output << json.dump() << std::endl;
+  output << json.dump() << '\n';
 }
 
 } // namespace linpipe::formats

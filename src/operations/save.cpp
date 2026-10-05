@@ -14,7 +14,7 @@
 
 namespace linpipe::operations {
 
-Save::Save(const std::string description) {
+Save::Save(std::string_view description) {
   // Parse arguments
   std::unordered_map<std::string, std::string> args;
   std::vector<std::string> kwargs;
@@ -33,20 +33,20 @@ void Save::apply(Corpus& corpus, PipelineState& state) {
 
   // If user requested custom target paths for documents in format kwargs,
   // check that the number of target paths matches the number of documents.
-  if (target_paths.size() && target_paths.size() != corpus.documents.size()) {
+  if (!target_paths.empty() && target_paths.size() != corpus.documents.size()) {
     throw LinpipeError{"Save::apply: The number of target paths (", std::to_string(target_paths.size()), ") != number of documents in the corpus (", std::to_string(corpus.documents.size()), ")"};
   }
 
   // If no custom outputs were required in format kwargs, try to figure out the
   // output from the documents' input source_paths.
   if (target_paths.empty()) {
-    for (size_t i = 0; i < corpus.documents.size(); i++) {
-      if (corpus.documents[i]->source_path().empty()) {
-        target_paths.push_back(corpus.documents[i]->source_path());
+    for (const auto& document : corpus.documents) {
+      if (document->source_path().empty()) {
+        target_paths.push_back(document->source_path());
       } else {
         // TODO: decide on the exact default output extension
         // TODO: the addition ".out" should go BEFORE the actual extension
-        target_paths.push_back(corpus.documents[i]->source_path() + ".out");
+        target_paths.push_back(document->source_path() + ".out");
       }
     }
   }

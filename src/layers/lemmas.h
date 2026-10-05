@@ -16,11 +16,11 @@ namespace linpipe::layers {
 
 class Lemmas : public Layer {
  public:
-  Lemmas(const std::string name = {}) : Layer("lemmas", name.empty() ? "lemmas" : name) {};
+  Lemmas(std::string_view name = {}) : Layer("lemmas", name.empty() ? "lemmas" : name) {}
 
-  virtual void from_json(const Json& json) override;
-  virtual Json to_json() override;
-  virtual std::string to_html() override;
+  void from_json(const Json& json) override;
+  Json to_json() override;
+  std::string to_html() override;
 
   std::string token_layer;
   std::vector<std::string> lemmas;

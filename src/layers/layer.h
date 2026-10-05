@@ -17,9 +17,9 @@ class Document;
 
 class Layer {
  public:
-  virtual ~Layer() {}
+  virtual ~Layer() = default;
 
-  static std::unique_ptr<Layer> create(const std::string type, const std::string name = {});
+  static std::unique_ptr<Layer> create(std::string_view type, std::string_view name = {});
 
   virtual void from_json(const Json& json) = 0;
   virtual Json to_json() = 0;
@@ -31,7 +31,7 @@ class Layer {
   // TODO: add more structured metadata info
 
  protected:
-  Layer(const std::string type, const std::string name) : type_(type), name_(name) {};
+  Layer(std::string_view type, std::string_view name) : type_(type), name_(name) {}
 
   std::string type_;
   std::string name_;

@@ -25,7 +25,7 @@ class TokenLayerTokenView : public TokenView {
       : tokens_(tokens), plain_text(plain_text) {}
 
   size_t size() const override { return tokens_.size(); }
-  const std::string_view text(size_t i) const override {
+  std::string_view text(size_t i) const override {
     const Token& token = tokens_[i];
     if (!token.text.empty() || !plain_text || token.index_span.empty())
       return token.text;
@@ -54,12 +54,12 @@ class TokenLayerSentenceView : public SentenceView {
 
 class TokenLayer : public Layer {
  public:
-  TokenLayer(const std::string& name = {}, const PlainText* plain_text = nullptr)
+  TokenLayer(std::string_view name = {}, const PlainText* plain_text = nullptr)
       : Layer("token_layer", name.empty() ? "token_layer" : name), plain_text(plain_text) {}
 
-  virtual void from_json(const Json& json) override;
-  virtual Json to_json() override;
-  virtual std::string to_html() override;
+  void from_json(const Json& json) override;
+  Json to_json() override;
+  std::string to_html() override;
 
   std::unique_ptr<TokenView> token_view() const { return std::make_unique<TokenLayerTokenView>(tokens, plain_text); }
   std::unique_ptr<SentenceView> sentence_view() const { return std::make_unique<TokenLayerSentenceView>(sentences, tokens.size()); }

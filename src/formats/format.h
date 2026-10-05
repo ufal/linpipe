@@ -17,11 +17,11 @@ namespace linpipe {
 
 class Format {
  public:
-  virtual ~Format() {}
+  virtual ~Format() = default;
 
-  static std::unique_ptr<Format> create(const std::string description);
+  static std::unique_ptr<Format> create(std::string_view description);
 
-  virtual std::unique_ptr<Document> load(std::istream& input, const std::string source_path) = 0;
+  virtual std::unique_ptr<Document> load(std::istream& input, std::string_view source_path) = 0;
   virtual void save(Document& document, std::ostream& output) = 0;
   virtual void save_corpus_start(std::ostream& output);
   virtual void save_corpus_end(std::ostream& output);

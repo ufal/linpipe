@@ -45,18 +45,18 @@ Json Spans::to_json() {
 }
 
 std::string Spans::to_html() {
-  return std::string();
+  return {};
 }
 
 void Spans::decode(std::string_view encoded_tag, unsigned index, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
     if (encoded_tag != "O") {
-      if (encoded_tag.compare(0, 2, "B-") == 0) {  // start new span
+      if (encoded_tag.starts_with("B-")) {  // start new span
         spans.emplace_back(index, index);
         tags.emplace_back(encoded_tag.substr(2));
       }
-      if (encoded_tag.compare(0, 2, "I-") == 0) {  // prolong last span
+      if (encoded_tag.starts_with("I-")) {  // prolong last span
         spans[spans.size() - 1].second = index;
       }
     }
@@ -74,9 +74,8 @@ void Spans::decode(std::string_view encoded_tag, unsigned index, const SpanEncod
 void Spans::encode(std::vector<std::string>& encoded_tags, const SpanEncoding encoding) {
 
   if (encoding.type == SpanEncoding::BIO) {
-    for (size_t i = 0; i < encoded_tags.size(); i++) {
-      encoded_tags[i] = "O";
-    }
+    for (auto& encoded_tag : encoded_tags)
+      encoded_tag = "O";
     for (size_t i = 0; i < spans.size(); i++) {
       encoded_tags[spans[i].first] = "B-" + tags[i];
       for (size_t j = spans[i].first + 1; j <= spans[i].second; j++) {

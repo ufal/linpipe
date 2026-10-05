@@ -13,17 +13,15 @@
 namespace linpipe {
 
 TEST_CASE("Languages::language_by_code") {
-  Languages languages;
-
   SUBCASE("finds a known language by its Set 1 code") {
-    auto french = languages.language_by_code("fr");
+    const auto* french = Languages::language_by_code("fr");
     REQUIRE(french);
     CHECK(french->name == "French");
     CHECK(french->iso639_1 == "fr");
   }
 
   SUBCASE("finds a known language by its Set 3 code") {
-    auto french = languages.language_by_code("fra");
+    const auto* french = Languages::language_by_code("fra");
     REQUIRE(french);
     CHECK(french->name == "French");
     CHECK(french->iso639_1 == "fr");
@@ -33,7 +31,7 @@ TEST_CASE("Languages::language_by_code") {
     for (const auto& language : Languages::languages) {
       for (const auto& code : {language.iso639_1, language.iso639_2b, language.iso639_3}) {
         if (code) {
-          auto found = languages.language_by_code(code);
+          const auto* found = Languages::language_by_code(code);
           REQUIRE(found);
           CHECK(found->iso639_3 == language.iso639_3);
         }
@@ -42,7 +40,7 @@ TEST_CASE("Languages::language_by_code") {
   }
 
   SUBCASE("returns nullptr on an unknown code") {
-    REQUIRE(!languages.language_by_code("x9"));
+    REQUIRE(!Languages::language_by_code("x9"));
   }
 }
 

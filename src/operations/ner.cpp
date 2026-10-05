@@ -15,7 +15,7 @@
 
 namespace linpipe::operations {
 
-NER::NER(const std::string description) {
+NER::NER(std::string_view description) {
   // Parse arguments
   std::unordered_map<std::string, std::string> args;
   std::vector<std::string> kwargs;

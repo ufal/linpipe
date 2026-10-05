@@ -30,14 +30,14 @@ class SpanEncoding {
 
 class Spans : public Layer {
  public:
-  Spans(const std::string name = {}) : Layer("spans", name.empty() ? "spans" : name) {};
+  Spans(std::string_view name = {}) : Layer("spans", name.empty() ? "spans" : name) {}
 
-  virtual void from_json(const Json& json) override;
-  virtual Json to_json() override;
-  virtual std::string to_html() override;
+  void from_json(const Json& json) override;
+  Json to_json() override;
+  std::string to_html() override;
 
-  void decode(std::string_view encoded_tag, unsigned index, const SpanEncoding encoding);
-  void encode(std::vector<std::string>& encoded_tags, const SpanEncoding encoding);
+  void decode(std::string_view encoded_tag, unsigned index, SpanEncoding encoding);
+  void encode(std::vector<std::string>& encoded_tags, SpanEncoding encoding);
 
   std::string token_layer;
   std::vector<std::pair<unsigned, unsigned>> spans;

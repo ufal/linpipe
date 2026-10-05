@@ -18,12 +18,13 @@ class Implementation {
  // TODO: Maybe implementations should have their own directory.
 
  public:
-  virtual ~Implementation() {};
+  virtual ~Implementation() = default;
   std::vector<std::string>& model_names();
   std::string& type();
 
  protected:
-  Implementation(const std::string type, std::vector<std::string> model_names) : type_(type), model_names_(model_names) {};
+  Implementation(std::string type, std::vector<std::string> model_names)
+      : type_(std::move(type)), model_names_(std::move(model_names)) {}
 
   std::string type_;
   std::vector<std::string> model_names_;

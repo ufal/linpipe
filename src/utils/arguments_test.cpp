@@ -61,8 +61,8 @@ TEST_CASE("Arguments::parse_operations") {
   }
 
   SUBCASE("keeps quoted values with spaces and ' --' in one operation") {
-    gold = {" --load \"/tmp/my file.txt\" -title \"a --b\"", " --save \"-title=c --d\""};
-    CHECK_NOTHROW(args.parse_operations(parsed, " --load \"/tmp/my file.txt\" -title \"a --b\" --save -title=\"c --d\""));
+    gold = {R"( --load "/tmp/my file.txt" -title "a --b")", R"( --save "-title=c --d")"};
+    CHECK_NOTHROW(args.parse_operations(parsed, R"( --load "/tmp/my file.txt" -title "a --b" --save -title="c --d")"));
     CHECK(parsed == gold);
   }
 

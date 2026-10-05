@@ -46,6 +46,7 @@ std::string round_trip(const std::string& description, const std::string& input)
 std::vector<std::string> texts(layers::TokenLayer& layer) {
   std::vector<std::string> result;
   auto view = layer.token_view();
+  result.reserve(view->size());
   for (size_t i = 0; i < view->size(); i++)
     result.emplace_back(view->text(i));
   return result;

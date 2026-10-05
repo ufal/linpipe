@@ -19,7 +19,6 @@ namespace linpipe::operations {
 
 class Tokenizer : public Implementation {
  public:
-  virtual ~Tokenizer() {};
   // Tokenizes the text, appending to the given (normally empty) vectors:
   // - tokens: tokens anchored in the text by their index spans;
   // - sentences: sentences as half-open spans of indices into tokens,
@@ -30,7 +29,7 @@ class Tokenizer : public Implementation {
                         std::vector<layers::Token>& tokens, std::vector<layers::IndexSpan>& sentences) = 0;
 
  protected:
-  Tokenizer(const std::string type, std::vector<std::string> model_names) : Implementation(type, model_names) {};
+  Tokenizer(const std::string& type, const std::vector<std::string>& model_names) : Implementation(type, model_names) {}
 };
 
 } // namespace linpipe::operations

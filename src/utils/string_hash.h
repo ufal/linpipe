@@ -7,23 +7,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include <functional>
 
 #include "common.h"
-#include "operations/operation.h"
 
-namespace linpipe {
+// A hash function for any string-like type convertible to std::string_view.
+struct string_hash {
+  using is_transparent = void;
 
-class Pipeline {
- public:
-  Pipeline(std::string_view description);
-
-  bool apply(Corpus& corpus);
-
-  PipelineState state;
-
- private:
-  std::unique_ptr<Operation> operation_;
+  std::size_t operator()(std::string_view text) const noexcept {
+    return std::hash<std::string_view>{}(text);
+  }
 };
-
-} // namespace linpipe

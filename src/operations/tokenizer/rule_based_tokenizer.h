@@ -17,7 +17,7 @@ namespace linpipe::operations {
 // sentence segmentation.
 class RuleBasedTokenizer : public Tokenizer {
  public:
-  RuleBasedTokenizer(std::vector<std::string> /*model_names*/) : Tokenizer("rule_based", {}) {}
+  RuleBasedTokenizer(const std::vector<std::string>& /*model_names*/) : Tokenizer("rule_based", {}) {}
 
   void tokenize(ModelManager* model_manager, const std::string& text,
                 std::vector<layers::Token>& tokens, std::vector<layers::IndexSpan>& sentences) override;

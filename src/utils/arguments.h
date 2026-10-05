@@ -17,14 +17,14 @@ namespace linpipe {
 
 class Arguments {
  public:
-  void parse_operations(std::vector<std::string>& descriptions, const std::string description);
-  void parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description);
-  void parse_format(std::unordered_map<std::string, std::string>& args, const std::string description);
-  static void tokenize(std::vector<std::string>& tokens, const std::string& description);
+  void parse_operations(std::vector<std::string>& descriptions, std::string_view description);
+  void parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, std::string_view description);
+  void parse_format(std::unordered_map<std::string, std::string>& args, std::string_view description);
+  static void tokenize(std::vector<std::string>& tokens, std::string_view description);
   static std::string join(const std::vector<std::string>& tokens);
 
  private:
-  static bool is_operation_(const std::string& token);
+  static bool is_operation_(std::string_view token);
 };
 
 } // namespace linpipe

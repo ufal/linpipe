@@ -16,13 +16,13 @@
 
 namespace linpipe {
 
-std::unique_ptr<Operation> Operation::create(const std::string description) {
+std::unique_ptr<Operation> Operation::create(std::string_view description) {
   std::vector<std::string> descriptions;
 
   Arguments args;
   args.parse_operations(descriptions, description);
 
-  if (descriptions.size() == 0) {
+  if (descriptions.empty()) {
     throw LinpipeError{"Operation::create: No operation specified in description '", description, "'"};
   }
 

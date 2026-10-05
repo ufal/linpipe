@@ -15,7 +15,7 @@
 
 namespace linpipe::operations {
 
-Tokenize::Tokenize(const std::string description) {
+Tokenize::Tokenize(std::string_view description) {
   // Parse arguments
   std::unordered_map<std::string, std::string> args;
   std::vector<std::string> kwargs;

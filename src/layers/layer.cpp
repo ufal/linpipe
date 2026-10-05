@@ -15,7 +15,7 @@
 
 namespace linpipe {
 
-std::unique_ptr<Layer> Layer::create(const std::string type, const std::string name) {
+std::unique_ptr<Layer> Layer::create(std::string_view type, std::string_view name) {
   // Construct layer of corresponding type.
   if (type == "spans")
     return std::make_unique<layers::Spans>(name);

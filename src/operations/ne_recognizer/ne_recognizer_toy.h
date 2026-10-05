@@ -17,7 +17,7 @@ class NERecognizerToy : public NERecognizer {
  /* Toy NE Recognizer class with model. */
 
  public:
-  NERecognizerToy(std::vector<std::string> model_names) : NERecognizer("ner_toy", model_names) {};
+  NERecognizerToy(const std::vector<std::string>& model_names) : NERecognizer("ner_toy", model_names) {}
   void recognize(ModelManager* model_manager, const TokenView& token_view, std::vector<std::pair<unsigned, unsigned>>& spans) override;
 };
 

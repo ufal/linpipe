@@ -12,7 +12,7 @@
 
 namespace linpipe {
 
-void Arguments::parse_operations(std::vector<std::string>& descriptions, const std::string description) {
+void Arguments::parse_operations(std::vector<std::string>& descriptions, std::string_view description) {
   // Operations start with "--" (e.g., "--tag"), named arguments of an
   // operation start with a single "-" (e.g., "-batch_size 32").
   std::vector<std::string> tokens;
@@ -41,7 +41,7 @@ void Arguments::parse_operations(std::vector<std::string>& descriptions, const s
   }
 }
 
-void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, const std::string description) {
+void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& args, std::vector<std::string>& kwargs, std::string_view description) {
   // Named arguments start with a single "-" and their value is either the
   // next token (-format text), or follows the first "=" (-format=text).
   // Any other token is a positional argument (kwarg).
@@ -52,7 +52,7 @@ void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& ar
     throw LinpipeError{"Arguments::parse_arguments: Operation name expected at the beginning of description '", description, "'"};
   }
 
-  std::string argument = "";
+  std::string argument;
   for (size_t i = 1; i < tokens.size(); i++) { // skip operation name
     const std::string& token = tokens[i];
 
@@ -79,7 +79,7 @@ void Arguments::parse_arguments(std::unordered_map<std::string, std::string>& ar
   }
 }
 
-void Arguments::parse_format(std::unordered_map<std::string, std::string>& args, const std::string description) {
+void Arguments::parse_format(std::unordered_map<std::string, std::string>& args, std::string_view description) {
   /* Parses format key-value arguments.
 
   Receives:
@@ -91,14 +91,14 @@ void Arguments::parse_format(std::unordered_map<std::string, std::string>& args,
   */
 
   // Remove leading format name and brackets (if present)
-  std::string format_description = description;
-  size_t pos = description.find("(");
+  std::string_view format_description = description;
+  size_t pos = description.find('(');
   if (pos != std::string::npos) {
     format_description = description.substr(pos + 1); // remove format name & opening bracket
-    if (format_description.empty()) {
+    if (format_description.empty() || format_description.back() != ')') {
       throw LinpipeError{"Arguments::parse_format: Closing bracket missing in format description '", description, "'"};
     }
-    format_description.pop_back();  // remove closing bracket
+    format_description.remove_suffix(1);  // remove closing bracket
   }
 
   std::vector<std::string_view> tokens;
@@ -111,7 +111,7 @@ void Arguments::parse_format(std::unordered_map<std::string, std::string>& args,
   }
 }
 
-void Arguments::tokenize(std::vector<std::string>& tokens, const std::string& description) {
+void Arguments::tokenize(std::vector<std::string>& tokens, std::string_view description) {
   std::string token;
   bool in_token = false;   // needed to keep empty quoted tokens ("")
   bool in_quotes = false;
@@ -173,7 +173,7 @@ std::string Arguments::join(const std::vector<std::string>& tokens) {
   return joined;
 }
 
-bool Arguments::is_operation_(const std::string& token) {
+bool Arguments::is_operation_(std::string_view token) {
   // Operation is "--" followed by a name; "---..." is not an operation.
   return token.size() > 2 && token[0] == '-' && token[1] == '-' && token[2] != '-';
 }

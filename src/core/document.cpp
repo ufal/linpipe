@@ -45,8 +45,8 @@ Layer& Document::add_layer(std::unique_ptr<Layer>&& layer, bool unique_name_if_d
   return *layers_.back().get();
 }
 
-void Document::del_layer(const std::string_view name) {
-  auto it = find_if(layers_.begin(), layers_.end(), [&](const auto& l) { return l->name() == name; });
+void Document::del_layer(std::string_view name) {
+  auto it = std::ranges::find(layers_, name, &Layer::name);
 
   if (it == layers_.end()) {
     throw LinpipeError{"Document::del_layer: Layer '", name, "' was not found in document."};
@@ -63,7 +63,7 @@ const std::string& Document::source_path() {
   return source_path_;
 }
 
-void Document::set_source_path(const std::string_view source_path) {
+void Document::set_source_path(std::string_view source_path) {
   source_path_ = source_path;
 }
 

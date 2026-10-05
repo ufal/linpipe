@@ -18,11 +18,10 @@ namespace linpipe::operations {
 
 class NERecognizer : public Implementation {
  public:
-  virtual ~NERecognizer() {};
   virtual void recognize(ModelManager* model_manager, const TokenView& token_view, std::vector<std::pair<unsigned, unsigned>>& spans) = 0;
 
  protected:
-  NERecognizer(const std::string type, std::vector<std::string> model_names) : Implementation(type, model_names) {};
+  NERecognizer(const std::string& type, const std::vector<std::string>& model_names) : Implementation(type, model_names) {}
 };
 
 } // namespace linpipe::operations

@@ -28,6 +28,7 @@ Json layer_json(const Json& tokens) {
 
 std::vector<layers::IndexSpan> spans(const SentenceView& view) {
   std::vector<layers::IndexSpan> result;
+  result.reserve(view.size());
   for (size_t i = 0; i < view.size(); i++)
     result.push_back(view.span(i));
   return result;
@@ -35,6 +36,7 @@ std::vector<layers::IndexSpan> spans(const SentenceView& view) {
 
 std::vector<std::string> texts(const TokenView& view) {
   std::vector<std::string> result;
+  result.reserve(view.size());
   for (size_t i = 0; i < view.size(); i++)
     result.emplace_back(view.text(i));
   return result;
@@ -182,6 +184,7 @@ TEST_CASE("TokenLayer::sentence_view and TokenViewSlice") {
   SUBCASE("iterates tokens by sentences") {
     auto sentences = layer.sentence_view();
     std::vector<std::vector<std::string>> result;
+    result.reserve(sentences->size());
     for (size_t s = 0; s < sentences->size(); s++)
       result.push_back(texts(TokenViewSlice(*tokens, sentences->span(s))));
     CHECK(result == std::vector<std::vector<std::string>>{{"a", "b"}, {"c", "d", "e"}});

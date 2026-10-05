@@ -12,7 +12,7 @@
 
 namespace linpipe {
 
-Json json_parse(const std::string_view caller, const std::string_view input) {
+Json json_parse(std::string_view caller, std::string_view input) {
   try {
     return Json::parse(input);
   }
@@ -21,47 +21,47 @@ Json json_parse(const std::string_view caller, const std::string_view input) {
   }
 }
 
-void json_assert_object(const std::string_view caller, const Json& json) {
+void json_assert_object(std::string_view caller, const Json& json) {
   if (!json.is_object())
     throw LinpipeError{caller, ": A JSON should be an object, but is a '", json.type_name(), "'"};
 }
 
-Json json_get_key(const std::string_view caller, const Json& json, const std::string_view key) {
+Json json_get_key(std::string_view caller, const Json& json, std::string_view key) {
   json_assert_object(caller, json);
   if (!json.contains(key))
     throw LinpipeError{caller, ": A JSON was expected to contain a key '", key, "'"};
   return json[key];
 }
 
-Json json_get_array(const std::string_view caller, const Json& json, const std::string_view key) {
+Json json_get_array(std::string_view caller, const Json& json, std::string_view key) {
   Json value = json_get_key(caller, json, key);
   if (!value.is_array())
     throw LinpipeError{caller, ": A JSON key '", key, "' should be an array, but is a '", value.type_name(), "'"};
   return value;
 }
 
-Json json_get_object(const std::string_view caller, const Json& json, const std::string_view key) {
+Json json_get_object(std::string_view caller, const Json& json, std::string_view key) {
   Json value = json_get_key(caller, json, key);
   if (!value.is_object())
     throw LinpipeError{caller, ": A JSON key '", key, "' should be an object, but is a '", value.type_name(), "'"};
   return value;
 }
 
-std::string json_get_string(const std::string_view caller, const Json& json, const std::string_view key) {
+std::string json_get_string(std::string_view caller, const Json& json, std::string_view key) {
   Json value = json_get_key(caller, json, key);
   if (!value.is_string())
     throw LinpipeError{caller, ": A JSON key '", key, "' should be a string, but is a '", value.type_name(), "'"};
   return value;
 }
 
-void json_get_string(const std::string_view caller, const Json& json, const std::string_view key, std::string& output) {
+void json_get_string(std::string_view caller, const Json& json, std::string_view key, std::string& output) {
   Json value = json_get_key(caller, json, key);
   if (!value.is_string())
     throw LinpipeError{caller, ": A JSON key '", key, "' should be a string, but is a '", value.type_name(), "'"};
   output = value;
 }
 
-void json_get_unsigned_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<unsigned>& output) {
+void json_get_unsigned_vector(std::string_view caller, const Json& json, std::string_view key, std::vector<unsigned>& output) {
   Json array = json_get_array(caller, json, key);
 
   output.clear();
@@ -72,7 +72,7 @@ void json_get_unsigned_vector(const std::string_view caller, const Json& json, c
   }
 }
 
-void json_get_unsigned_pair_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<std::pair<unsigned, unsigned>>& output) {
+void json_get_unsigned_pair_vector(std::string_view caller, const Json& json, std::string_view key, std::vector<std::pair<unsigned, unsigned>>& output) {
   Json array = json_get_array(caller, json, key);
 
   output.clear();
@@ -88,7 +88,7 @@ void json_get_unsigned_pair_vector(const std::string_view caller, const Json& js
   }
 }
 
-void json_get_string_vector(const std::string_view caller, const Json& json, const std::string_view key, std::vector<std::string>& output) {
+void json_get_string_vector(std::string_view caller, const Json& json, std::string_view key, std::vector<std::string>& output) {
   Json array = json_get_array(caller, json, key);
 
   output.clear();

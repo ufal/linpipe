@@ -31,7 +31,7 @@ Json PlainText::to_json() {
 }
 
 std::string PlainText::to_html() {
-  return std::string();
+  return {};
 }
 
 } // namespace linpipe::layers

@@ -15,7 +15,7 @@ namespace linpipe {
 
 class View {
  public:
-  virtual ~View() {}
+  virtual ~View() = default;
 
  private:
 };

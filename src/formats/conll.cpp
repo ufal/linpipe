@@ -17,13 +17,13 @@
 
 namespace linpipe::formats {
 
-Conll::Conll(const std::string description) {
+Conll::Conll(std::string_view description) {
   Arguments args;
   args.parse_format(args_, description);
 
   int i = 1;
   while (true) { // see how many columns requested
-    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i));
+    auto it = args_.find(std::to_string(i));
     if (it == args_.end()) break; // no more columns
 
     // split column description into name and type
@@ -44,7 +44,7 @@ Conll::Conll(const std::string description) {
 
   encodings_.resize(names_.size());
   for (size_t i = 0; i < encodings_.size(); i++) {
-    std::unordered_map<std::string, std::string>::const_iterator it = args_.find(std::to_string(i + 1) + "_encoding");
+    auto it = args_.find(std::to_string(i + 1) + "_encoding");
     if (it != args_.end()) {
       encodings_[i] = it->second;
     } else if (types_[i] == "spans") {
@@ -56,7 +56,7 @@ Conll::Conll(const std::string description) {
   }
 }
 
-std::unique_ptr<Document> Conll::load(std::istream& input, const std::string source_path) {
+std::unique_ptr<Document> Conll::load(std::istream& input, std::string_view source_path) {
   if (input.eof())
     return nullptr;
 

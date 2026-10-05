@@ -16,8 +16,8 @@ namespace linpipe::operations {
 
 class Tokenize : public Operation {
  public:
-  Tokenize(const std::string description);
-  virtual void apply(Corpus& corpus, PipelineState& state) override;
+  Tokenize(std::string_view description);
+  void apply(Corpus& corpus, PipelineState& state) override;
 
  private:
   std::unique_ptr<Tokenizer> tokenizer_;

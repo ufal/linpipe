@@ -16,8 +16,8 @@ namespace linpipe::operations {
 
 class NER : public Operation {
  public:
-  NER(const std::string description);
-  virtual void apply(Corpus& corpus, PipelineState& state) override;
+  NER(std::string_view description);
+  void apply(Corpus& corpus, PipelineState& state) override;
 
  private:
   std::unique_ptr<NERecognizer> ne_recognizer_;

@@ -13,14 +13,15 @@
 
 #include "common.h"
 #include "models/model.h"
+#include "utils/string_hash.h"
 
 namespace linpipe {
 
 class ModelManager {
  public:
-  void reserve(const std::string name);
-  Model* load(const std::string name);
-  void release(const std::string name);
+  void reserve(std::string_view name);
+  Model* load(std::string_view name);
+  void release(std::string_view name);
 
   // It is possible to configure when the models are unloaded after release,
   // with default being never to unload.
@@ -29,11 +30,10 @@ class ModelManager {
 
  private:
   // Model reservations
-  std::vector<std::string> reserved_models_;  // model names FIFO
-  std::unordered_map<std::string, unsigned> reservations_;  // model reservations counts
+  std::unordered_map<std::string, unsigned, string_hash, std::equal_to<>> reservations_;  // model reservations counts
 
   // Models currently held in memory
-  std::unordered_map<std::string, std::unique_ptr<Model>> models_;
+  std::unordered_map<std::string, std::unique_ptr<Model>, string_hash, std::equal_to<>> models_;
 
   // Maximum capacity of models held in memory. 0 means infinity.
   unsigned capacity_ = 0;

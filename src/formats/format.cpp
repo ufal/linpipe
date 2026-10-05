@@ -14,7 +14,7 @@
 
 namespace linpipe {
 
-std::unique_ptr<Format> Format::create(const std::string description) {
+std::unique_ptr<Format> Format::create(std::string_view description) {
   if (description == "text") {
     return std::make_unique<formats::Text>();
   }
@@ -24,7 +24,7 @@ std::unique_ptr<Format> Format::create(const std::string description) {
   if (description == "conll") {
     return std::make_unique<formats::Conll>("conll(1=token_layer)");
   }
-  if (description.find("conll(") == 0) {
+  if (description.starts_with("conll(")) {
     return std::make_unique<formats::Conll>(description);
   }
 
