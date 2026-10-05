@@ -10,6 +10,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "common.h"
@@ -19,12 +20,15 @@ namespace linpipe {
 
 class ModelHub {
   public:
-    explicit ModelHub(const std::string& dir = {});
+    static constexpr std::string_view default_repo_url = "https://ufal.mff.cuni.cz/~strakova/linpipe_repo/models.json";
+
+    explicit ModelHub(const std::string& dir = {}, const std::string& repo_url = {});
     Model* get_model(const std::string& name);
   private:
     static std::string default_dir();
 
     const std::string dir;
+    const std::string repo_url;
 };
 
 } // namespace linpipe

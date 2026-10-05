@@ -9,7 +9,6 @@
 
 #include <cstdlib>
 #include <filesystem>
-#include <stdexcept>
 
 #include "models/model_hub.h"
 
@@ -24,7 +23,9 @@ std::filesystem::path env_path(const char* name) {
 
 } // namespace
 
-ModelHub::ModelHub(const std::string& dir) : dir(dir.empty() ? default_dir() : dir) {}
+ModelHub::ModelHub(const std::string& dir, const std::string& repo_url)
+  : dir(dir.empty() ? default_dir() : dir),
+    repo_url(repo_url.empty() ? std::string(default_repo_url) : repo_url) {}
 
 //   Linux   -> $XDG_CACHE_HOME/linpipe/model_hub, or ~/.cache/linpipe/model_hub
 //   Windows -> %LOCALAPPDATA%\linpipe\model_hub
