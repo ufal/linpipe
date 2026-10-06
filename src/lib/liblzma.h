@@ -11,10 +11,20 @@
 
 #include "common.h"
 
-namespace linpipe {
+namespace linpipe::lzma {
 
-bool lzma_compress(const std::byte* data, size_t length, std::vector<std::byte>& output, uint32_t preset = 6);
-bool lzma_decompress_all(const std::byte* data, size_t length, std::vector<std::byte>& output);
-size_t lzma_decompress_one(const std::byte* data, size_t length, std::vector<std::byte>& output);
+template<class T>
+concept ByteLike = std::same_as<T, std::byte> || std::same_as<T, char> || std::same_as<T, signed char> || std::same_as<T, unsigned char>;
 
-} // namespace linpipe
+template<class C>
+concept ByteContainer =
+    ByteLike<typename C::value_type>
+    && (std::same_as<C, std::vector<typename C::value_type>> || std::same_as<C, std::basic_string<typename C::value_type>>);
+
+template<ByteContainer C>
+bool compress(std::span<const typename C::value_type> data, C& output, uint32_t preset = 6);
+
+template<ByteContainer C>
+size_t decompress(std::span<const typename C::value_type> data, C& output, bool only_first_block = false);
+
+} // namespace linpipe::lzma
