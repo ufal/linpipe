@@ -24,9 +24,6 @@ AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: true
-BraceWrapping:
-  BeforeCatch: true
-BreakBeforeBraces: Custom
 BreakTemplateDeclarations: Leave
 
 # Alignment and spaces.

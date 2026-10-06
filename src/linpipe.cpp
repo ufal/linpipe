@@ -26,8 +26,7 @@ int main(int argc, char* argv[]) {
 
     Corpus corpus;
     pipeline.apply(corpus);
-  }
-  catch (LinpipeError& error) {
+  } catch (LinpipeError& error) {
     LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
   }
 
