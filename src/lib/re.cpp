@@ -182,7 +182,7 @@ size_t sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_strin
       break;
     }
 
-    output.append(str.substr(index, (region.beg[0] / sizeof(Char)) - index));
+    output.append(str.substr(index, region.beg[0] / sizeof(Char) - index));
     for (size_t i = 0; i < replacement.size(); i++)
       if (replacement[i] == '\\' && i + 1 < replacement.size() && replacement[i + 1] >= '1' && replacement[i + 1] <= '9') {
         size_t group = 0, j = i + 1;

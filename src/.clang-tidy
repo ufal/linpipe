@@ -16,6 +16,7 @@ Checks:
   -  -readability-identifier-length
   -  -readability-isolate-declaration
   -  -readability-magic-numbers
+  -  -readability-math-missing-parentheses
 
 CheckOptions:
   readability-implicit-bool-conversion.AllowPointerConditions: true
