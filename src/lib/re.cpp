@@ -51,7 +51,7 @@ REInit REInit::singleton;
 
 // Private template RE methods
 template<typename Char, typename Match>
-bool match(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
+bool oniguruma_match(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
   if (match) {
     match->start = -1;
     match->groups.clear();
@@ -88,7 +88,7 @@ bool match(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
 }
 
 template<typename Char, typename Match>
-bool search(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
+bool oniguruma_search(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
   if (match) {
     match->start = -1;
     match->groups.clear();
@@ -125,7 +125,7 @@ bool search(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
 }
 
 template<class Char, class Spans>
-size_t split(OnigRegexType* re, std::basic_string_view<Char> str, Spans& parts, size_t max_splits) {
+size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str, Spans& parts, size_t max_splits) {
   parts.clear();
 
   OnigRegion region;
@@ -162,7 +162,8 @@ size_t split(OnigRegexType* re, std::basic_string_view<Char> str, Spans& parts, 
 }
 
 template<class Char>
-size_t sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_string_view<Char> replacement, std::basic_string<Char>& output, size_t max_subs) {
+size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::basic_string_view<Char> replacement,
+                     std::basic_string<Char>& output, size_t max_subs) {
   output.clear();
 
   OnigRegion region;
@@ -244,19 +245,19 @@ RE::~RE() {
 }
 
 bool RE::match(std::string_view str, Match* match) {
-  return linpipe::match<char>((OnigRegexType*)re_, str, match);
+  return oniguruma_match<char>((OnigRegexType*)re_, str, match);
 }
 
 bool RE::search(std::string_view str, Match* match) {
-  return linpipe::search<char>((OnigRegexType*)re_, str, match);
+  return oniguruma_search<char>((OnigRegexType*)re_, str, match);
 }
 
 size_t RE::split(std::string_view str, Spans& parts, size_t max_splits) {
-  return linpipe::split<char>((OnigRegexType*)re_, str, parts, max_splits);
+  return oniguruma_split<char>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
 size_t RE::sub(std::string_view str, std::string_view replacement, std::string& output, size_t max_subs) {
-  return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
+  return oniguruma_sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 
 // RE32 declarations
@@ -291,19 +292,19 @@ RE32::~RE32() {
 }
 
 bool RE32::match(std::u32string_view str, Match* match) {
-  return linpipe::match<char32_t>((OnigRegexType*)re_, str, match);
+  return oniguruma_match<char32_t>((OnigRegexType*)re_, str, match);
 }
 
 bool RE32::search(std::u32string_view str, Match* match) {
-  return linpipe::search<char32_t>((OnigRegexType*)re_, str, match);
+  return oniguruma_search<char32_t>((OnigRegexType*)re_, str, match);
 }
 
 size_t RE32::split(std::u32string_view str, Spans& parts, size_t max_splits) {
-  return linpipe::split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
+  return oniguruma_split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
 }
 
 size_t RE32::sub(std::u32string_view str, std::u32string_view replacement, std::u32string& output, size_t max_subs) {
-  return linpipe::sub((OnigRegexType*)re_, str, replacement, output, max_subs);
+  return oniguruma_sub((OnigRegexType*)re_, str, replacement, output, max_subs);
 }
 
 } // namespace linpipe
