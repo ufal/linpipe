@@ -8,6 +8,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += lib/liblzma
+LINPIPE_OBJECTS += lib/liblzma_stream
 LINPIPE_OBJECTS += lib/re
 
 LINPIPE_TESTS += lib/httplib_test

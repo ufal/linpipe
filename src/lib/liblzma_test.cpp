@@ -9,9 +9,11 @@
 
 #include <algorithm>
 #include <array>
+#include <sstream>
 
 #include "lib/doctest/doctest.h"
 #include "lib/liblzma.h"
+#include "lib/liblzma_stream.h"
 
 namespace linpipe {
 
@@ -33,4 +35,75 @@ TEST_CASE_TEMPLATE("lzma::compress roundtrip", T, char, signed char, unsigned ch
   CHECK(decompressed == input);
 }
 
-} // namespace linpipe::lzma
+static constexpr int DATA_SIZE = 1 << 14;
+static constexpr int CHUNK_SIZE = 1 << 10;
+
+std::string read_all(std::istream& is) {
+  std::string result;
+  for (std::array<char, CHUNK_SIZE> buffer; is.read(buffer.data(), buffer.size()) || is.gcount();)
+    result.append(buffer.data(), is.gcount());
+  return result;
+}
+
+TEST_CASE("lzma::OStream compress") {
+  std::string data(DATA_SIZE, 'a'), decompressed;
+  std::ostringstream compressed;
+  lzma::OStream os(compressed, lzma::Mode::COMPRESS);
+
+  os << data;
+  os.close();
+  CHECK(os.good());
+  CHECK(lzma::decompress(compressed.str(), decompressed) == compressed.str().size());
+  CHECK(decompressed == data);
+}
+
+TEST_CASE("lzma::OStream decompress") {
+  std::string data(DATA_SIZE, 'a'), compressed;
+  REQUIRE(lzma::compress(data, compressed));
+  std::ostringstream decompressed;
+  lzma::OStream os(decompressed, lzma::Mode::DECOMPRESS);
+
+  SUBCASE("single stream") {
+    os << compressed;
+    os.close();
+    CHECK(os.good());
+    CHECK(decompressed.str() == data);
+  }
+  SUBCASE("concatenated streams") {
+    os << compressed << compressed;
+    os.close();
+    CHECK(os.good());
+    CHECK(decompressed.str() == data + data);
+  }
+  SUBCASE("truncated stream") {
+    os << compressed.substr(0, compressed.size() / 2);
+    os.close();
+    CHECK(os.bad());
+  }
+}
+
+TEST_CASE("lzma::IStream") {
+  std::string data(DATA_SIZE, 'a'), compressed;
+  REQUIRE(lzma::compress(data, compressed));
+
+  SUBCASE("single stream") {
+    std::istringstream source(compressed);
+    lzma::IStream is(source);
+    CHECK(read_all(is) == data);
+    CHECK(!is.bad());
+  }
+  SUBCASE("concatenated streams") {
+    std::istringstream source(compressed + compressed);
+    lzma::IStream is(source);
+    CHECK(read_all(is) == data + data);
+    CHECK(!is.bad());
+  }
+  SUBCASE("truncated stream") {
+    std::istringstream source(compressed.substr(0, compressed.size() / 2));
+    lzma::IStream is(source);
+    read_all(is);
+    CHECK(is.bad());
+  }
+}
+
+} // namespace linpipe
