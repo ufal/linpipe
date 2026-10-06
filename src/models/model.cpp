@@ -17,7 +17,7 @@ const std::string& Model::name() {
 }
 
 std::unique_ptr<Model> Model::create(std::string& name, std::istream& input) {
-  if (name == "ner_toy") return std::make_unique<models::NERToy>(name, input);
+  if (name == "NERToy") return std::make_unique<models::NERToy>(name, input);
 
   throw LinpipeError{"Model::create: Cannot load model of uknown name '", name, "'"};
 }

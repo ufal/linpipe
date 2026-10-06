@@ -19,7 +19,7 @@ NER::NER(std::string_view description) {
   // Parse arguments
   std::unordered_map<std::string, std::string> args;
   std::vector<std::string> kwargs;
-  args["model"] = "ner_toy";
+  args["model"] = "nertoy-261005";
   args["source"] = "";
   args["target"] = "";
 
@@ -27,7 +27,7 @@ NER::NER(std::string_view description) {
   arguments.parse_arguments(args, kwargs, description);
 
   // Process parsed arguments
-  if (args["model"] == "ner_toy") ne_recognizer_ = std::make_unique<NERecognizerToy>(std::vector<std::string>{args["model"]});
+  if (args["model"] == "nertoy-261005") ne_recognizer_ = std::make_unique<NERecognizerToy>(std::vector<std::string>{args["model"]});
 
   model_names_ = ne_recognizer_->model_names();
   source_ = args["source"];

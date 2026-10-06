@@ -9,6 +9,7 @@
 
 #include "operations/composite.h"
 #include "operations/load.h"
+#include "operations/ner.h"
 #include "operations/operation.h"
 #include "operations/save.h"
 #include "operations/tokenize.h"
@@ -42,6 +43,9 @@ std::unique_ptr<Operation> Operation::create(std::string_view description) {
     }
     if (name == "tokenize") {
       return std::make_unique<operations::Tokenize>(description);
+    }
+    if (name == "ner") {
+      return std::make_unique<operations::NER>(description);
     }
   }
 

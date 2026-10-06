@@ -13,6 +13,7 @@
 
 #include "common.h"
 #include "models/model.h"
+#include "models/model_hub.h"
 #include "utils/string_hash.h"
 
 namespace linpipe {
@@ -40,6 +41,9 @@ class ModelManager {
 
   // Load on reserve? If true, load immediately.
   bool load_on_reserve = true;
+
+  // Local model storage
+  ModelHub model_hub;
 };
 
 } // namespace linpipe
