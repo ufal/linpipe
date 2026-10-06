@@ -7,7 +7,24 @@ on:
       - '.github/workflows/tests.yml'
 
 jobs:
-  compile:
+  stylecheck:
+    name: Stylecheck
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get update && sudo apt-get install -y clang-format
+      - run: make -C src style/all
+
+  linting:
+    name: Linting
+    runs-on: ubuntu-26.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      - run: make -C src lint/all
+
+  tests:
     name: Tests
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
