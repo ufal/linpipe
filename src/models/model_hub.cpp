@@ -15,7 +15,7 @@
 
 #include "lib/httplib/httplib.h"
 #include "lib/json/json.h"
-#include "lib/mbedtls/include/psa/crypto.h"
+#include "lib/sha256.h"
 #include "models/model_hub.h"
 #include "utils/getenv_utf8.h"
 #include "utils/path_utf8.h"
@@ -92,7 +92,7 @@ void write_atomically(const std::filesystem::path& target, std::string_view cont
   target_tmp += ".tmp";
   {
     std::ofstream os(target_tmp, std::ios::binary);
-    os.write(content.data(), content.size());
+    os.write(content.data(), static_cast<std::streamsize>(content.size()));
     os.close();
     if (!os) {
       std::error_code ec;
@@ -109,6 +109,10 @@ void write_atomically(const std::filesystem::path& target, std::string_view cont
   }
 }
 
+bool is_ascii_digit(char c) { return c >= '0' && c <= '9'; }
+
+bool is_ascii_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
+
 bool is_valid_timestamp(const std::string& timestamp) {
   /* Checks that a timestamp has exactly the form YYYY-MM-DDTHH:MM:SSZ.
 
@@ -122,7 +126,7 @@ bool is_valid_timestamp(const std::string& timestamp) {
   static constexpr std::string_view pattern = "dddd-dd-ddTdd:dd:ddZ";
   if (timestamp.size() != pattern.size()) return false;
   for (size_t i = 0; i < pattern.size(); i++)
-    if (pattern[i] == 'd' ? !(timestamp[i] >= '0' && timestamp[i] <= '9') : timestamp[i] != pattern[i])
+    if (pattern[i] == 'd' ? !is_ascii_digit(timestamp[i]) : timestamp[i] != pattern[i])
       return false;
   return true;
 }
@@ -168,38 +172,9 @@ bool is_valid_sha256(std::string_view sha256) {
     true if the checksum has the required form
   */
 
-  if (sha256.size() != 64) return false;
-  for (char c : sha256)
-    if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
-      return false;
-  return true;
-}
-
-std::string sha256_hex(std::string_view data) {
-  /* Computes the SHA-256 checksum of the data.
-
-  Receives:
-    data: the data to hash
-
-  Returns:
-    the checksum as 64 lowercase hex characters
-
-  Throws:
-    LinpipeError if the checksum cannot be computed.
-  */
-
-  psa_status_t status = psa_crypto_init();
-  if (status != PSA_SUCCESS)
-    throw LinpipeError{"sha256_hex: Cannot initialize PSA crypto, error ", std::to_string(status)};
-
-  uint8_t hash[PSA_HASH_LENGTH(PSA_ALG_SHA_256)];
-  size_t hash_length = 0;
-  status = psa_hash_compute(PSA_ALG_SHA_256, reinterpret_cast<const uint8_t*>(data.data()), data.size(),
-                            hash, sizeof(hash), &hash_length);
-  if (status != PSA_SUCCESS || hash_length != sizeof(hash))
-    throw LinpipeError{"sha256_hex: Cannot compute SHA-256, error ", std::to_string(status)};
-
-  return fmt::format("{:02x}", fmt::join(hash, ""));
+  return sha256.size() == 64 && std::ranges::all_of(sha256, [](char c) {
+           return is_ascii_digit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+         });
 }
 
 bool is_safe_name(std::string_view name) {
@@ -213,11 +188,9 @@ bool is_safe_name(std::string_view name) {
   */
 
   if (name.empty() || name[0] == '.') return false;
-  for (char c : name)
-    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
-          c == '-' || c == '_' || c == '.' || c == '+'))
-      return false;
-  return true;
+  return std::ranges::all_of(name, [](char c) {
+    return is_ascii_letter(c) || is_ascii_digit(c) || c == '-' || c == '_' || c == '.' || c == '+';
+  });
 }
 
 Json parse_model_json(std::string_view content, std::string_view source, std::string_view name) {
@@ -286,8 +259,8 @@ std::optional<std::string> read_file(const std::filesystem::path& path) {
 } // namespace
 
 ModelHub::ModelHub(const std::string& dir, const std::string& repo_url)
-  : dir(dir.empty() ? default_dir() : dir),
-    repo_url(repo_url.empty() ? std::string(default_repo_url) : repo_url) {
+    : dir(dir.empty() ? default_dir() : dir),
+      repo_url(repo_url.empty() ? std::string(default_repo_url) : repo_url) {
   /* Creates a model hub; no files are accessed until a model is requested.
 
   Receives:
@@ -364,7 +337,7 @@ Model* ModelHub::get_model(const std::string& name) {
   auto model = ensure_local_model(name);
   ensure_local_files(name, model);
 
-  // TODO: Check the size and SHA-256 of the files, unpack them, and load the model.
+  // TODO: Unpack the files and load the model.
   return nullptr;
 }
 
@@ -424,7 +397,7 @@ void ModelHub::ensure_local_repo() {
 
   repo = std::make_unique<Json>(std::move(*local));
   LOG(INFO, "ModelHub: loaded the model overview with timestamp " << (*repo)["timestamp"].get<std::string>()
-      << " and " << (*repo)["models"].size() << " model(s)");
+                                                                  << " and " << (*repo)["models"].size() << " model(s)");
 }
 
 Json ModelHub::ensure_local_model(const std::string& name) {
@@ -515,7 +488,7 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
       if (!ec && local_size == size)
         continue;
       LOG(WARN, "ModelHub: the file '" << file_name << "' of model '" << name << "' has size "
-          << (ec ? "unknown" : std::to_string(local_size)) << " instead of " << size << ", downloading it again");
+                                       << (ec ? "unknown" : std::to_string(local_size)) << " instead of " << size << ", downloading it again");
     }
 
     auto url = file["url"].get<std::string>();
@@ -530,9 +503,9 @@ void ModelHub::ensure_local_files(const std::string& name, const Json& model) {
                          "' has size ", std::to_string(content.size()), " instead of the expected ", std::to_string(size)};
 
     auto expected_sha256 = file["sha256"].get<std::string>();
-    std::transform(expected_sha256.begin(), expected_sha256.end(), expected_sha256.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
-    auto sha256 = sha256_hex(content);
+    std::ranges::transform(expected_sha256, expected_sha256.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    auto sha256 = SHA256().update(content).hexdigest();
     if (sha256 != expected_sha256)
       throw LinpipeError{"ModelHub::ensure_local_files: The file '", file_name, "' of model '", name, "' downloaded from '", url,
                          "' has SHA-256 ", sha256, " instead of the expected ", expected_sha256};
