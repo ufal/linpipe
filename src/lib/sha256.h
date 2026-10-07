@@ -9,20 +9,13 @@
 
 #pragma once
 
-#include <cstddef>
-#include <memory>
 #include <span>
-#include <string>
-#include <string_view>
-#include <vector>
 
 #include "common.h"
 
 namespace linpipe {
 
 class SHA256 {
-  /* Incremental SHA-256 computation, an adapter over the PSA crypto API. */
-
  public:
   static constexpr size_t digest_size = 32;
 
