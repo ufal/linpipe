@@ -21,12 +21,6 @@ struct SHA256::Impl {
 };
 
 SHA256::SHA256() : impl(std::make_unique<Impl>()) {
-  /* Creates a new SHA-256 computation with no data.
-
-  Throws:
-    LinpipeError if the PSA crypto cannot be initialized.
-  */
-
   psa_status_t status = psa_crypto_init();
   if (status != PSA_SUCCESS)
     throw LinpipeError{"SHA256: Cannot initialize PSA crypto, error ", std::to_string(status)};
@@ -41,34 +35,10 @@ SHA256::SHA256(SHA256&&) noexcept = default;
 SHA256& SHA256::operator=(SHA256&&) noexcept = default;
 
 SHA256& SHA256::update(std::string_view data) {
-  /* Adds the data to the computation.
-
-  Receives:
-    data: the data to add
-
-  Returns:
-    *this, to allow chaining
-
-  Throws:
-    LinpipeError if the data cannot be added.
-  */
-
   return update(std::as_bytes(std::span(data.data(), data.size())));
 }
 
 SHA256& SHA256::update(std::span<const std::byte> data) {
-  /* Adds the data to the computation.
-
-  Receives:
-    data: the data to add
-
-  Returns:
-    *this, to allow chaining
-
-  Throws:
-    LinpipeError if the data cannot be added.
-  */
-
   if (data.empty()) return *this;
 
   psa_status_t status = psa_hash_update(&impl->operation, reinterpret_cast<const uint8_t*>(data.data()), data.size());
@@ -79,15 +49,6 @@ SHA256& SHA256::update(std::span<const std::byte> data) {
 }
 
 std::vector<std::byte> SHA256::digest() const {
-  /* Computes the SHA-256 of all data added so far, without finalizing.
-
-  Returns:
-    the checksum as digest_size bytes
-
-  Throws:
-    LinpipeError if the checksum cannot be computed.
-  */
-
   psa_hash_operation_t clone = psa_hash_operation_init();
   psa_status_t status = psa_hash_clone(&impl->operation, &clone);
   if (status != PSA_SUCCESS) {
@@ -106,15 +67,6 @@ std::vector<std::byte> SHA256::digest() const {
 }
 
 std::string SHA256::hexdigest() const {
-  /* Computes the SHA-256 of all data added so far, without finalizing.
-
-  Returns:
-    the checksum as 2 * digest_size lowercase hex characters
-
-  Throws:
-    LinpipeError if the checksum cannot be computed.
-  */
-
   static constexpr char hex[] = "0123456789abcdef";
 
   std::string result;
