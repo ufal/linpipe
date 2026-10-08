@@ -7,7 +7,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-BUILTEM_VERSION := 2.3.1
+BUILTEM_VERSION := 2.3.3
 
 ############
 # PLATFORM #
@@ -111,6 +111,23 @@ ifeq ($(MODE),profile)
   ifneq ($(filter win-vs-%,$(PLATFORM)),)
     $(error Profile mode is currently not supported on win-vs platform)
   endif
+endif
+
+###############
+# OUTPUT SYNC #
+###############
+ifndef OUTPUT_SYNC
+  OUTPUT_SYNC=target
+endif
+
+# fail for unknown output syncs
+ifeq ($(filter none line line+dirs target target+dirs recurse,$(OUTPUT_SYNC)),)
+  $(error Unsupported output sync $(OUTPUT_SYNC), only none, line(+dirs), [target](+dirs), recurse supported)
+endif
+
+# enable output sync when supported by make and there is no -O in MAKEFLAGS
+ifneq ($(and $(filter output-sync,$(.FEATURES)),$(filter-out none,$(OUTPUT_SYNC)),$(if $(filter -O%,$(MAKEFLAGS)),,1)),)
+  MAKEFLAGS += --output-sync=$(OUTPUT_SYNC:+dirs=) $(if $(filter %+dirs recurse,$(OUTPUT_SYNC)),,--no-print-directory)
 endif
 
 ##################
