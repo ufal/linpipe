@@ -63,7 +63,7 @@ class LinpipeError : public std::exception {
 template<>
 struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
   constexpr auto format(std::byte b, fmt::format_context& ctx) const {
-    return fmt::formatter<unsigned>::format(unsigned(b), ctx);
+    return fmt::formatter<unsigned>::format(static_cast<unsigned>(b), ctx);
   }
 };
 

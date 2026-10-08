@@ -5,6 +5,8 @@ Checks:
   - cppcoreguidelines-*
   -  -cppcoreguidelines-avoid-c-arrays
   -  -cppcoreguidelines-avoid-magic-numbers
+  -  -cppcoreguidelines-pro-*
+  - google-readability-casting
   - modernize-*
   -  -modernize-avoid-c-arrays
   -  -modernize-return-braced-init-list
