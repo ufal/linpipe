@@ -8,26 +8,16 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "common.h"
-#include "core/corpus.h"
-#include "core/pipeline.h"
-#include "utils/arguments.h"
 
 using namespace linpipe;
 
-int main(int argc, char* argv[]) {
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
   std::iostream::sync_with_stdio(false);
 
-  // Concatenate commandline arguments into a string description
-  std::string description = " " + Arguments::join(std::vector<std::string>(argv + 1, argv + argc));
-
-  // Create and apply pipeline
   try {
-    Pipeline pipeline = Pipeline(description);
-
-    Corpus corpus;
-    pipeline.apply(corpus);
+    std::cout << "LinPipe is up and running" << std::endl;
   } catch (LinpipeError& error) {
-    LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
+    std::cerr << "An unhandled exception has occurred, terminating: " << error.what() << std::endl;
   }
 
   return 0;

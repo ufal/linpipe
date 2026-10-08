@@ -46,32 +46,6 @@ static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
 static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian systems are supported!");
 #endif
 
-// Logging
-enum {
-  LOGGING_TRACE = 0,
-  LOGGING_INFO = 1,
-  LOGGING_PROGRESS = 2,
-  LOGGING_WARN = 3,
-  LOGGING_ERROR = 4,
-  LOGGING_FATAL = 5,
-};
-extern int logging_level;
-extern bool logging_to_file;
-std::ostream& logging_start(int level, const char* source, int line);
-
-// NOLINTBEGIN(bugprone-macro-parentheses,performance-avoid-endl)
-#define LOG(level, message)                                                                           \
-  do {                                                                                                \
-    if constexpr (linpipe::LOGGING_##level == linpipe::LOGGING_PROGRESS) {                            \
-      if (linpipe::logging_level <= linpipe::LOGGING_PROGRESS && !linpipe::logging_to_file)           \
-        linpipe::logging_start(linpipe::LOGGING_PROGRESS, __FILE__, __LINE__) << message << '\r';     \
-    } else {                                                                                          \
-      if (linpipe::logging_level <= linpipe::LOGGING_##level)                                         \
-        linpipe::logging_start(linpipe::LOGGING_##level, __FILE__, __LINE__) << message << std::endl; \
-    }                                                                                                 \
-  } while (false)
-// NOLINTEND(bugprone-macro-parentheses,performance-avoid-endl)
-
 // Errors
 class LinpipeError : public std::exception {
  public:
