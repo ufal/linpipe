@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include <span>
-
 #include "common.h"
 
 namespace linpipe {
