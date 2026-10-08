@@ -59,14 +59,17 @@ define lint_files
   $(call echo,>.build/lint_$2.cpp,// NOLINTBEGIN(bugprone-suspicious-include))
   $(foreach f,$1,$(call echo,>>.build/lint_$2.cpp,#include "$f"))
   $(call echo,>>.build/lint_$2.cpp,// NOLINTEND(bugprone-suspicious-include))
-  $(info Linting $1)
-  @clang-tidy .build/lint_$2.cpp -- $(C_FLAGS)
+  $(info Linting $(LINT_ARGS:%=% )$1)
+  @clang-tidy $(LINT_ARGS) .build/lint_$2.cpp -- $(C_FLAGS)
 endef
-.PHONY: FORCE lint  # lint/all lint/path
+.PHONY: FORCE lint relint  # lint/all lint/path relint/all relint/path
 lint: .build
 	$(if $(CHANGED_SOURCES),$(call lint_files,$(CHANGED_SOURCES),current),@echo "No changed files to lint.")
 lint/%: .build FORCE
-	$(if $(filter all,$*),$(call lint_files,$(ALL_SOURCES),all),clang-tidy $* -- $(if $(filter %.h,$*),-x c++-header )$(C_FLAGS))
+	$(if $(filter all,$*),$(call lint_files,$(ALL_SOURCES),all),clang-tidy $(LINT_ARGS) $* -- $(if $(filter %.h,$*),-x c++-header )$(C_FLAGS))
+relint relint/%: LINT_ARGS := --fix
+relint: lint
+relint/%: lint/% ;
 
 # Style checking and formating (both show diff and perform in-place)
 .PHONY: style reformat  # style/all style/path format/path reformat/all reformat/path
