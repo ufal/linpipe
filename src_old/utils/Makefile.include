@@ -11,7 +11,6 @@ LINPIPE_OBJECTS += utils/arguments
 LINPIPE_OBJECTS += utils/json_utils
 LINPIPE_OBJECTS += utils/logging
 LINPIPE_OBJECTS += utils/split
-LINPIPE_OBJECTS += utils/path_utf8
 LINPIPE_OBJECTS += utils/languages
 
 LINPIPE_TESTS += utils/arguments_test
