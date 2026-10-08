@@ -8,5 +8,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += utils/getenv_utf8
+LINPIPE_OBJECTS += utils/logging
 LINPIPE_OBJECTS += utils/path_utf8
 LINPIPE_OBJECTS += utils/win_wmain_utf8

@@ -59,6 +59,32 @@ class LinpipeError : public std::exception {
   std::string text_;
 };
 
+// Logging
+enum class LoggingLevel : int {
+  LEVEL_TRACE = 0,
+  LEVEL_INFO = 1,
+  LEVEL_PROGRESS = 2,
+  LEVEL_WARN = 3,
+  LEVEL_ERROR = 4,
+  LEVEL_FATAL = 5,
+};
+extern LoggingLevel logging_level;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+extern bool logging_to_file;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+std::ostream& logging_start(LoggingLevel level, const char* source, int line);
+
+// NOLINTBEGIN(bugprone-macro-parentheses,cppcoreguidelines-avoid-do-while,cppcoreguidelines-macro-usage)
+#define LOG(level, message)                                                                                       \
+  do {                                                                                                            \
+    if constexpr (linpipe::LoggingLevel::LEVEL_##level == linpipe::LoggingLevel::LEVEL_PROGRESS) {                \
+      if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_PROGRESS && !linpipe::logging_to_file)           \
+        linpipe::logging_start(linpipe::LoggingLevel::LEVEL_PROGRESS, __FILE__, __LINE__) << message << '\r';     \
+    } else {                                                                                                      \
+      if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_##level)                                         \
+        linpipe::logging_start(linpipe::LoggingLevel::LEVEL_##level, __FILE__, __LINE__) << message << std::endl; \
+    }                                                                                                             \
+  } while (false)
+// NOLINTEND(bugprone-macro-parentheses,cppcoreguidelines-avoid-do-while,cppcoreguidelines-macro-usage)
+
 // Additional formatters for {fmt}
 template<>
 struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
