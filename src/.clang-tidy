@@ -11,6 +11,7 @@ Checks:
   -  -modernize-use-nodiscard
   -  -modernize-use-trailing-return-type
   - performance-*
+  -  -performance-avoid-endl
   -  -performance-enum-size
   - portability-*
   -  -portability-avoid-pragma-once
