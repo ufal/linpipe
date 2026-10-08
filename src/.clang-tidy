@@ -26,6 +26,7 @@ Checks:
   -  -readability-math-missing-parentheses
 
 CheckOptions:
+  cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
   readability-implicit-bool-conversion.AllowPointerConditions: true
   readability-implicit-bool-conversion.AllowIntegerConditions: true
 
