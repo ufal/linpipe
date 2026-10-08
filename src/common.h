@@ -10,6 +10,7 @@
 #pragma once
 
 // Headers available in all sources
+#include <array>
 #include <cassert>
 #include <concepts>
 #include <cstddef>
@@ -22,6 +23,7 @@
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
