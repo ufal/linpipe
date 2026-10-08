@@ -62,8 +62,7 @@ TEST_CASE("SHA256 digest has digest_size bytes matching the hexdigest") {
   auto digest = SHA256().update("abc").digest();
   REQUIRE(digest.size() == SHA256::digest_size);
 
-  std::string hex;
-  for (auto byte : digest) hex += fmt::format("{:02x}", std::to_integer<unsigned>(byte));
+  std::string hex = fmt::format("{:02x}", fmt::join(digest, ""));
   CHECK(hex == abc_sha256);
 }
 
