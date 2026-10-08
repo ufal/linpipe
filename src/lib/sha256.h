@@ -30,7 +30,7 @@ class SHA256 {
   SHA256& update(std::string_view data);
   SHA256& update(std::span<const std::byte> data);
 
-  std::vector<std::byte> digest() const;
+  std::array<std::byte, digest_size> digest() const;
   std::string hexdigest() const;
 
  private:

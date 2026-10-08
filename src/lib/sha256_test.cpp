@@ -21,8 +21,8 @@ constexpr std::string_view two_blocks_sha256 = "248d6a61d20638b8e5c026930c3e6039
 constexpr std::string_view million_a_sha256 = "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0";
 constexpr std::string_view all_bytes_sha256 = "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880";
 
-std::vector<std::byte> all_bytes() {
-  std::vector<std::byte> bytes(256);
+std::array<std::byte, 256> all_bytes() {
+  std::array<std::byte, 256> bytes;
   for (size_t i = 0; i < bytes.size(); i++) bytes[i] = static_cast<std::byte>(i);
   return bytes;
 }

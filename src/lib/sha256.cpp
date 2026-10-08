@@ -48,7 +48,7 @@ SHA256& SHA256::update(std::span<const std::byte> data) {
   return *this;
 }
 
-std::vector<std::byte> SHA256::digest() const {
+std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
   psa_hash_operation_t clone = psa_hash_operation_init();
   psa_status_t status = psa_hash_clone(&impl->operation, &clone);
   if (status != PSA_SUCCESS) {
@@ -56,7 +56,7 @@ std::vector<std::byte> SHA256::digest() const {
     throw LinpipeError{"SHA256::digest: Cannot clone SHA-256, error ", std::to_string(status)};
   }
 
-  std::vector<std::byte> hash(digest_size);
+  std::array<std::byte, SHA256::digest_size> hash;
   size_t hash_length = 0;
   status = psa_hash_finish(&clone, reinterpret_cast<uint8_t*>(hash.data()), hash.size(), &hash_length);
   psa_hash_abort(&clone);
