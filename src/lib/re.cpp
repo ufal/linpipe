@@ -8,13 +8,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <algorithm>
-#include <array>
 
 #include "lib/oniguruma/oniguruma.h"
 #include "lib/re.h"
 #include "lib/unilib/utf.h"
 
-// Right now, only UTF32-LE encoding is supported, even if Oniguruma does provide UTF32-BE.
+// Only UTF32-LE is supported.
 #ifdef __BYTE_ORDER__
 static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian systems are supported!");
 #endif
@@ -25,25 +24,13 @@ namespace {
 
 // Private Oniguruma initialization
 class REInit {
- public:
-  static void initialize() {
-    if (!initialized_) {
-      onig_initialize(encodings_.data(), encodings_.size());
-      initialized_ = true;
-    }
-  }
-
  private:
   REInit() {
-    initialize();
+    onig_initialize(encodings_.data(), encodings_.size());
   }
   ~REInit() {
-    if (initialized_) {
-      onig_end();
-      initialized_ = false;
-    }
+    onig_end();
   }
-  inline static bool initialized_ = false;
   inline static std::array<OnigEncoding, 2> encodings_ = {ONIG_ENCODING_UTF8, ONIG_ENCODING_UTF32_LE};
   static REInit singleton;
 };
@@ -53,25 +40,25 @@ REInit REInit::singleton;
 template<typename Char, typename Match>
 bool oniguruma_match(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
   if (match) {
-    match->start = -1;
+    match->str = {};
     match->groups.clear();
   }
 
   OnigRegion region;
   onig_region_init(&region);
-  int r = onig_match(re, (const UChar*)str.data(), (const UChar*)(str.data() + str.size()),
-                     (const UChar*)str.data(), match ? &region : nullptr, ONIG_OPTION_NONE);
+  int r = onig_match(
+      re, reinterpret_cast<const UChar*>(str.data()), reinterpret_cast<const UChar*>(str.data() + str.size()),
+      reinterpret_cast<const UChar*>(str.data()), match ? &region : nullptr, ONIG_OPTION_NONE);
+
   if (r >= 0) {
     if (match) {
-      match->start = 0;
-      match->end = r / (int)sizeof(Char);
-      match->subject = str.data();
+      match->str = str.substr(0, r / sizeof(Char));
       match->groups.reserve(region.num_regs - 1);
       for (int i = 1; i < region.num_regs; i++)
         if (region.beg[i] == ONIG_REGION_NOTPOS)
-          match->groups.emplace_back(-1, -1, nullptr);
+          match->groups.emplace_back();
         else
-          match->groups.emplace_back(region.beg[i] / (int)sizeof(Char), region.end[i] / (int)sizeof(Char), str.data());
+          match->groups.push_back(str.substr(region.beg[i] / sizeof(Char), (region.end[i] - region.beg[i]) / sizeof(Char)));
     }
 
     onig_region_free(&region, 0);
@@ -81,7 +68,7 @@ bool oniguruma_match(OnigRegexType* re, std::basic_string_view<Char> str, Match*
   onig_region_free(&region, 0);
   if (r != ONIG_MISMATCH) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar*)s, r);
+    onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
     LOG(ERROR, "RE::match: An error occurred during matching: " << s);
   }
   return false;
@@ -90,25 +77,25 @@ bool oniguruma_match(OnigRegexType* re, std::basic_string_view<Char> str, Match*
 template<typename Char, typename Match>
 bool oniguruma_search(OnigRegexType* re, std::basic_string_view<Char> str, Match* match) {
   if (match) {
-    match->start = -1;
+    match->str = {};
     match->groups.clear();
   }
 
   OnigRegion region;
   onig_region_init(&region);
-  int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                      (UChar*)str.data(), (UChar*)(str.data() + str.size()), match ? &region : nullptr, ONIG_OPTION_NONE);
+  int r = onig_search(
+      re, reinterpret_cast<const UChar*>(str.data()), reinterpret_cast<const UChar*>(str.data() + str.size()),
+      reinterpret_cast<const UChar*>(str.data()), reinterpret_cast<const UChar*>(str.data() + str.size()),
+      match ? &region : nullptr, ONIG_OPTION_NONE);
   if (r >= 0) {
     if (match) {
-      match->start = region.beg[0] / (int)sizeof(Char);
-      match->end = region.end[0] / (int)sizeof(Char);
-      match->subject = str.data();
+      match->str = str.substr(region.beg[0] / sizeof(Char), (region.end[0] - region.beg[0]) / sizeof(Char));
       match->groups.reserve(region.num_regs - 1);
       for (int i = 1; i < region.num_regs; i++)
         if (region.beg[i] == ONIG_REGION_NOTPOS)
-          match->groups.emplace_back(-1, -1, nullptr);
+          match->groups.emplace_back();
         else
-          match->groups.emplace_back(region.beg[i] / (int)sizeof(Char), region.end[i] / (int)sizeof(Char), str.data());
+          match->groups.push_back(str.substr(region.beg[i] / sizeof(Char), (region.end[i] - region.beg[i]) / sizeof(Char)));
     }
 
     onig_region_free(&region, 0);
@@ -118,14 +105,15 @@ bool oniguruma_search(OnigRegexType* re, std::basic_string_view<Char> str, Match
   onig_region_free(&region, 0);
   if (r != ONIG_MISMATCH) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar*)s, r);
+    onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
     LOG(ERROR, "RE::search: An error occurred during searching: " << s);
   }
   return false;
 }
 
-template<class Char, class Spans>
-size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str, Spans& parts, size_t max_splits) {
+template<class Char>
+size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str,
+                       std::vector<std::basic_string_view<Char>>& parts, size_t max_splits) {
   parts.clear();
 
   OnigRegion region;
@@ -134,18 +122,20 @@ size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str, Span
   size_t splits = 0, index = 0;
   bool empty_match = false;
   while (index + empty_match <= str.size()) {
-    int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                        (UChar*)(str.data() + index + empty_match), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
+    int r = onig_search(
+        re, reinterpret_cast<const UChar*>(str.data()), reinterpret_cast<const UChar*>(str.data() + str.size()),
+        reinterpret_cast<const UChar*>(str.data() + index + empty_match), reinterpret_cast<const UChar*>(str.data() + str.size()),
+        &region, ONIG_OPTION_NONE);
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str((UChar*)s, r);
+        onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
         LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
       }
       break;
     }
 
-    parts.emplace_back((int)index, region.beg[0] / (int)sizeof(Char), str.data());
+    parts.emplace_back(str.data() + index, region.beg[0] / sizeof(Char) - index);
     index = region.end[0] / sizeof(Char);
     empty_match = region.end[0] == region.beg[0];
     splits++;
@@ -155,7 +145,7 @@ size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str, Span
   onig_region_free(&region, 0);
 
   if (index < str.size() || index) {
-    parts.emplace_back((int)index, (int)str.size(), str.data());
+    parts.emplace_back(str.data() + index, str.size() - index);
     splits++;
   }
   return splits;
@@ -172,12 +162,14 @@ size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::b
   size_t subs = 0, index = 0;
   bool empty_match = false;
   while (index + empty_match <= str.size()) {
-    int r = onig_search(re, (UChar*)str.data(), (UChar*)(str.data() + str.size()),
-                        (UChar*)(str.data() + index + empty_match), (UChar*)(str.data() + str.size()), &region, ONIG_OPTION_NONE);
+    int r = onig_search(
+        re, reinterpret_cast<const UChar*>(str.data()), reinterpret_cast<const UChar*>(str.data() + str.size()),
+        reinterpret_cast<const UChar*>(str.data() + index + empty_match), reinterpret_cast<const UChar*>(str.data() + str.size()),
+        &region, ONIG_OPTION_NONE);
     if (r < 0) {
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str((UChar*)s, r);
+        onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
         LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
       }
       break;
@@ -189,7 +181,7 @@ size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::b
         size_t group = 0, j = i + 1;
         while (j < replacement.size() && replacement[j] >= '0' && replacement[j] <= '9')
           group = group * 10 + replacement[j++] - '0';
-        if (group < (size_t)region.num_regs) {
+        if (group < static_cast<size_t>(region.num_regs) && region.beg[group] != ONIG_REGION_NOTPOS) {
           output.append(str.substr(region.beg[group] / sizeof(Char), (region.end[group] - region.beg[group]) / sizeof(Char)));
           i = j - 1;
         } else {
@@ -216,19 +208,19 @@ size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::b
 } // namespace
 
 // RE declarations
-RE::RE(std::string_view pattern, int options) {
-  REInit::initialize();
-
+RE::RE(std::string_view pattern, REOptions options) {
   OnigErrorInfo einfo;
-  int r = onig_new((OnigRegexType**)&re_, (UChar*)pattern.data(), (UChar*)(pattern.data() + pattern.size()),
-                   ((options & IGNORECASE) ? ONIG_OPTION_IGNORECASE : 0)
-                       | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
-                       | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
-                   ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL, &einfo);
+  int r = onig_new(
+      reinterpret_cast<OnigRegexType**>(&re_),
+      reinterpret_cast<const UChar*>(pattern.data()), reinterpret_cast<const UChar*>(pattern.data() + pattern.size()),
+      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0)
+          | (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0)
+          | (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+      ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar*)s, r, &einfo);
+    onig_error_code_to_str(reinterpret_cast<UChar*>(s), r, &einfo);
     throw LinpipeError{"RE::RE: Cannot parse regular expression '", pattern, "': ", s};
   }
 }
@@ -239,44 +231,44 @@ RE::RE(RE&& other) noexcept : re_(other.re_) {
 
 RE::~RE() {
   if (re_) {
-    onig_free((OnigRegexType*)re_);
+    onig_free(reinterpret_cast<OnigRegexType*>(re_));
     re_ = nullptr;
   }
 }
 
 bool RE::match(std::string_view str, Match* match) {
-  return oniguruma_match<char>((OnigRegexType*)re_, str, match);
+  return oniguruma_match<char>(reinterpret_cast<OnigRegexType*>(re_), str, match);
 }
 
 bool RE::search(std::string_view str, Match* match) {
-  return oniguruma_search<char>((OnigRegexType*)re_, str, match);
+  return oniguruma_search<char>(reinterpret_cast<OnigRegexType*>(re_), str, match);
 }
 
-size_t RE::split(std::string_view str, Spans& parts, size_t max_splits) {
-  return oniguruma_split<char>((OnigRegexType*)re_, str, parts, max_splits);
+size_t RE::split(std::string_view str, std::vector<std::string_view>& parts, size_t max_splits) {
+  return oniguruma_split<char>(reinterpret_cast<OnigRegexType*>(re_), str, parts, max_splits);
 }
 
 size_t RE::sub(std::string_view str, std::string_view replacement, std::string& output, size_t max_subs) {
-  return oniguruma_sub((OnigRegexType*)re_, str, replacement, output, max_subs);
+  return oniguruma_sub(reinterpret_cast<OnigRegexType*>(re_), str, replacement, output, max_subs);
 }
 
 // RE32 declarations
-RE32::RE32(std::string_view pattern, int options) : RE32(unilib::utf::decoded(pattern), options) {}
+RE32::RE32(std::string_view pattern, REOptions options) : RE32(unilib::utf::decoded(pattern), options) {}
 
-RE32::RE32(std::u32string_view pattern, int options) {
-  REInit::initialize();
-
+RE32::RE32(std::u32string_view pattern, REOptions options) {
   OnigErrorInfo einfo;
-  int r = onig_new((OnigRegexType**)&re_, (UChar*)pattern.data(), (UChar*)(pattern.data() + pattern.size()),
-                   ((options & IGNORECASE) ? ONIG_OPTION_IGNORECASE : 0)
-                       | ((options & DOTALL) ? ONIG_OPTION_MULTILINE : 0)
-                       | ((options & MULTILINE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
-                   ONIG_ENCODING_UTF32_LE, ONIG_SYNTAX_PERL, &einfo);
+  int r = onig_new(
+      reinterpret_cast<OnigRegexType**>(&re_),
+      reinterpret_cast<const UChar*>(pattern.data()), reinterpret_cast<const UChar*>(pattern.data() + pattern.size()),
+      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0)
+          | (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0)
+          | (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+      ONIG_ENCODING_UTF32_LE, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
-    onig_error_code_to_str((UChar*)s, r, &einfo);
-    throw LinpipeError{"RE::RE: Cannot parse regular expression '", unilib::utf::encoded(pattern), "': ", s};
+    onig_error_code_to_str(reinterpret_cast<UChar*>(s), r, &einfo);
+    throw LinpipeError{"RE32::RE32: Cannot parse regular expression '", unilib::utf::encoded(pattern), "': ", s};
   }
 }
 
@@ -286,25 +278,25 @@ RE32::RE32(RE32&& other) noexcept : re_(other.re_) {
 
 RE32::~RE32() {
   if (re_) {
-    onig_free((OnigRegexType*)re_);
+    onig_free(reinterpret_cast<OnigRegexType*>(re_));
     re_ = nullptr;
   }
 }
 
 bool RE32::match(std::u32string_view str, Match* match) {
-  return oniguruma_match<char32_t>((OnigRegexType*)re_, str, match);
+  return oniguruma_match<char32_t>(reinterpret_cast<OnigRegexType*>(re_), str, match);
 }
 
 bool RE32::search(std::u32string_view str, Match* match) {
-  return oniguruma_search<char32_t>((OnigRegexType*)re_, str, match);
+  return oniguruma_search<char32_t>(reinterpret_cast<OnigRegexType*>(re_), str, match);
 }
 
-size_t RE32::split(std::u32string_view str, Spans& parts, size_t max_splits) {
-  return oniguruma_split<char32_t>((OnigRegexType*)re_, str, parts, max_splits);
+size_t RE32::split(std::u32string_view str, std::vector<std::u32string_view>& parts, size_t max_splits) {
+  return oniguruma_split<char32_t>(reinterpret_cast<OnigRegexType*>(re_), str, parts, max_splits);
 }
 
 size_t RE32::sub(std::u32string_view str, std::u32string_view replacement, std::u32string& output, size_t max_subs) {
-  return oniguruma_sub((OnigRegexType*)re_, str, replacement, output, max_subs);
+  return oniguruma_sub(reinterpret_cast<OnigRegexType*>(re_), str, replacement, output, max_subs);
 }
 
 } // namespace linpipe
