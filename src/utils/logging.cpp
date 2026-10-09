@@ -9,6 +9,8 @@
 
 #include <ctime>
 #include <fstream>
+#include <mutex>
+#include <syncstream>
 
 #include "utils/getenv_utf8.h"
 #include "utils/logging.h"
@@ -16,15 +18,17 @@
 
 namespace linpipe {
 
-int logging_level = LOGGING_INFO;
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+LoggingLevel logging_level = LoggingLevel::LEVEL_INFO;
 bool logging_to_file = false;
-
-bool logging_sources = false;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace {
 
+bool logging_sources = false;
 bool logging_last_progress = false;
 std::ofstream logging_file;
+std::mutex logging_mutex;
 
 class LoggingInit {
  private:
@@ -45,58 +49,63 @@ LoggingInit LoggingInit::singleton;
 
 void logging_set_level(std::string_view level) {
   logging_sources = false;
-  if (level.size() >= 2 && (level.compare(level.size() - 2, 2, "+s") == 0 || level.compare(level.size() - 2, 2, "+S") == 0)) {
+  if (level.size() >= 2 && (level.ends_with("+s") || level.ends_with("+S"))) {
     logging_sources = true;
     level.remove_suffix(2);
-  } else if (level.size() >= 8 && (level.compare(level.size() - 8, 8, "+sources") == 0 || level.compare(level.size() - 8, 8, "+SOURCES") == 0)) {
+  } else if (level.size() >= 8 && (level.ends_with("+sources") || level.ends_with("+SOURCES"))) {
     logging_sources = true;
     level.remove_suffix(8);
   }
 
   if (level == "t" || level == "T" || level == "trace" || level == "TRACE")
-    logging_level = LOGGING_TRACE;
+    logging_level = LoggingLevel::LEVEL_TRACE;
   else if (level == "i" || level == "I" || level == "info" || level == "INFO")
-    logging_level = LOGGING_INFO;
+    logging_level = LoggingLevel::LEVEL_INFO;
   else if (level == "p" || level == "P" || level == "progress" || level == "PROGRESS")
-    logging_level = LOGGING_PROGRESS;
+    logging_level = LoggingLevel::LEVEL_PROGRESS;
   else if (level == "w" || level == "W" || level == "warn" || level == "WARN")
-    logging_level = LOGGING_WARN;
+    logging_level = LoggingLevel::LEVEL_WARN;
   else if (level == "e" || level == "E" || level == "error" || level == "ERROR")
-    logging_level = LOGGING_ERROR;
+    logging_level = LoggingLevel::LEVEL_ERROR;
   else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL")
-    logging_level = LOGGING_FATAL;
+    logging_level = LoggingLevel::LEVEL_FATAL;
   else
-    LOG(WARN, "logging_set_level: Cannot parse logging level '" << level << "'");
+    LOG(ERROR, "logging_set_level: Cannot parse logging level '" << level << "'");
 }
 
 void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
-    throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_utf8(path), "'"};
-
-  logging_to_file = true;
+    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '" << path_to_utf8(path) << "'");
+  else
+    logging_to_file = true;
 }
 
-std::ostream& logging_start(int level, const char* source, int line) {
-  std::ostream& logger = logging_to_file ? logging_file : std::cerr;
+LoggingStream::LoggingStream(LoggingLevel level, const char* source, int line) {
+  if (level != LoggingLevel::LEVEL_PROGRESS && logging_last_progress) buf_.put('\n');
+  logging_last_progress = level == LoggingLevel::LEVEL_PROGRESS;
 
-  if (level != LOGGING_PROGRESS && logging_last_progress) logger.put('\n');
-  logging_last_progress = level == LOGGING_PROGRESS;
-
-  time_t now;
+  time_t now = 0;
   time(&now);
   char date_time[6 + 1 + 6 + 1];
   strftime(date_time, std::size(date_time), "%y%m%d-%H%M%S", localtime(&now));
-  logger.write(date_time, sizeof(date_time) - 1);
+  buf_.write(date_time, sizeof(date_time) - 1);
 
   if (logging_sources)
-    logger << ' ' << source << ':' << line;
+    buf_ << ' ' << source << ':' << line;
 
-  logger.put(' ');
-  logger.put("TIPWEF"[level]);
-  logger.put(' ');
+  buf_.put(' ');
+  buf_.put("TIPWEF"[static_cast<int>(level)]);
+  buf_.put(' ');
+}
 
-  return logger;
+LoggingStream::~LoggingStream() {
+  std::ostream& logger = logging_to_file ? logging_file : std::cerr;
+
+  std::scoped_lock lock(logging_mutex);
+  logger.write(buf_.view().data(), static_cast<std::streamsize>(buf_.view().size()));
+  if (!(logger.flags() & std::ios::unitbuf))
+    logger.flush();
 }
 
 } // namespace linpipe

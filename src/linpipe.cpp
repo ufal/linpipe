@@ -15,9 +15,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
   std::iostream::sync_with_stdio(false);
 
   try {
-    std::cout << "LinPipe is up and running" << std::endl;
+    LOG(INFO, "LinPipe is up and running");
   } catch (LinpipeError& error) {
-    std::cerr << "An unhandled exception has occurred, terminating: " << error.what() << std::endl;
+    LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
+    return 1;
   }
 
   return 0;
