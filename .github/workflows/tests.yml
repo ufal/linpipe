@@ -104,7 +104,8 @@ jobs:
         run: choco install --no-progress -y make
 
       - name: Compile
-        run: make PLATFORM=${{ matrix.platform }} ${{ matrix.make_args }} -k -C src all
+        run: make PLATFORM=${{ matrix.platform }} ${{ matrix.make_args }} -j4 -k all
+        working-directory: src
 
       - name: Run tests
         run: src/linpipe_test
