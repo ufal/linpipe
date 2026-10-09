@@ -36,8 +36,22 @@ namespace linpipe {
 
 using namespace std::literals;
 
-// Configuration of JSON for Modern C++
-using Json = nlohmann::json;
+// Import size_t and ptrdiff_t and provide user-defined literals for them
+using std::size_t, std::ptrdiff_t;
+
+consteval size_t operator""_uz(unsigned long long n) {
+  if (n > (std::numeric_limits<size_t>::max)()) throw "Literal out of range for std::size_t";
+  return static_cast<size_t>(n);
+}
+
+consteval ptrdiff_t operator""_z(unsigned long long n) {
+  if (n > static_cast<unsigned long long>((std::numeric_limits<ptrdiff_t>::max)())) throw "Literal out of range for std::ptrdiff_t";
+  return static_cast<ptrdiff_t>(n);
+}
+
+// Import basic integer types with a fixed width
+using std::int8_t, std::int16_t, std::int32_t, std::int64_t;
+using std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t;
 
 // Assert that int is at least 4B
 static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
@@ -46,6 +60,9 @@ static_assert(sizeof(int) >= sizeof(int32_t), "Int must be at least 4B wide!");
 #ifdef __BYTE_ORDER__
 static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian systems are supported!");
 #endif
+
+// A shortcut for JSON for Modern C++
+using Json = nlohmann::json;
 
 // Errors
 class LinpipeError : public std::exception {
