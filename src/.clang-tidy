@@ -4,8 +4,10 @@ Checks:
   - clang-analyzer-*
   - cppcoreguidelines-*
   -  -cppcoreguidelines-avoid-c-arrays
+  -  -cppcoreguidelines-avoid-do-while
   -  -cppcoreguidelines-avoid-magic-numbers
   -  -cppcoreguidelines-pro-*
+  -  -cppcoreguidelines-special-member-functions
   - google-readability-casting
   - modernize-*
   -  -modernize-avoid-c-arrays

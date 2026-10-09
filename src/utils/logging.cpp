@@ -9,6 +9,8 @@
 
 #include <ctime>
 #include <fstream>
+#include <mutex>
+#include <syncstream>
 
 #include "utils/getenv_utf8.h"
 #include "utils/logging.h"
@@ -26,6 +28,7 @@ namespace {
 bool logging_sources = false;
 bool logging_last_progress = false;
 std::ofstream logging_file;
+std::mutex logging_mutex;
 
 class LoggingInit {
  private:
@@ -78,26 +81,31 @@ void logging_set_file(const std::filesystem::path& path) {
     logging_to_file = true;
 }
 
-std::ostream& logging_start(LoggingLevel level, const char* source, int line) {
-  std::ostream& logger = logging_to_file ? logging_file : std::cerr;
-
-  if (level != LoggingLevel::LEVEL_PROGRESS && logging_last_progress) logger.put('\n');
+LoggingStream::LoggingStream(LoggingLevel level, const char* source, int line) {
+  if (level != LoggingLevel::LEVEL_PROGRESS && logging_last_progress) buf_.put('\n');
   logging_last_progress = level == LoggingLevel::LEVEL_PROGRESS;
 
   time_t now = 0;
   time(&now);
   char date_time[6 + 1 + 6 + 1];
   strftime(date_time, std::size(date_time), "%y%m%d-%H%M%S", localtime(&now));
-  logger.write(date_time, sizeof(date_time) - 1);
+  buf_.write(date_time, sizeof(date_time) - 1);
 
   if (logging_sources)
-    logger << ' ' << source << ':' << line;
+    buf_ << ' ' << source << ':' << line;
 
-  logger.put(' ');
-  logger.put("TIPWEF"[static_cast<int>(level)]);
-  logger.put(' ');
+  buf_.put(' ');
+  buf_.put("TIPWEF"[static_cast<int>(level)]);
+  buf_.put(' ');
+}
 
-  return logger;
+LoggingStream::~LoggingStream() {
+  std::ostream& logger = logging_to_file ? logging_file : std::cerr;
+
+  std::scoped_lock lock(logging_mutex);
+  logger.write(buf_.view().data(), static_cast<std::streamsize>(buf_.view().size()));
+  if (!(logger.flags() & std::ios::unitbuf))
+    logger.flush();
 }
 
 } // namespace linpipe
