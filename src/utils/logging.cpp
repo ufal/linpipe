@@ -19,12 +19,11 @@ namespace linpipe {
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 LoggingLevel logging_level = LoggingLevel::LEVEL_INFO;
 bool logging_to_file = false;
-
-bool logging_sources = false;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace {
 
+bool logging_sources = false;
 bool logging_last_progress = false;
 std::ofstream logging_file;
 
