@@ -8,49 +8,51 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "lib/liblzma/api/lzma.h"
-#include "lib/liblzma_stream.h"
+#include "lib/xz_stream.h"
 
-namespace linpipe::lzma {
+namespace linpipe {
 
-constexpr size_t BUFFER_SIZE = 4 << 10;  // 4kB
+constexpr size_t XZ_BUFFER_SIZE = 4 << 10;  // 4kB
 
-struct Coder {
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+class XZCoder {
+ public:
   lzma_stream stream = LZMA_STREAM_INIT;
-  ~Coder() { lzma_end(&stream); }
+  ~XZCoder() { lzma_end(&stream); }
 };
 
-// OStreamBuf
-OStreamBuf::OStreamBuf(std::ostream& target, Mode mode, uint32_t preset)
-    : target_(target), coder_(std::make_unique<Coder>()), input_(BUFFER_SIZE), output_(BUFFER_SIZE) {
-  lzma_ret ret;
-  if (mode == Mode::COMPRESS)
+// XZOStreamBuf
+XZOStreamBuf::XZOStreamBuf(std::ostream& target, XZMode mode, uint32_t preset)
+    : target_(target), coder_(std::make_unique<XZCoder>()), input_(XZ_BUFFER_SIZE), output_(XZ_BUFFER_SIZE) {
+  lzma_ret ret{};
+  if (mode == XZMode::COMPRESS)
     ret = lzma_easy_encoder(&coder_->stream, preset, LZMA_CHECK_CRC64);
   else
     ret = lzma_stream_decoder(&coder_->stream, UINT64_MAX, LZMA_CONCATENATED);
 
   if (ret != LZMA_OK)
-    throw LinpipeError{"lzma::OStreamBuf: Cannot initialize the LZMA ", mode == Mode::COMPRESS ? "encoder" : "decoder"};
+    throw LinpipeError{"XZOStreamBuf: Cannot initialize the LZMA ", mode == XZMode::COMPRESS ? "encoder" : "decoder"};
 
   setp(input_.data(), input_.data() + input_.size());
 }
 
-OStreamBuf::~OStreamBuf() {
+XZOStreamBuf::~XZOStreamBuf() {
   try {
     finish();
   } catch (...) {  // NOLINT(bugprone-empty-catch)
   }
 }
 
-bool OStreamBuf::finish() {
+bool XZOStreamBuf::finish() {
   if (finished_)
     return true;
-  bool ok = code(true) && target_.flush();
+  bool ok = run_coder(true) && target_.flush();
   finished_ = true;
   return ok;
 }
 
-OStreamBuf::int_type OStreamBuf::overflow(int_type c) {
-  if (finished_ || !code(false))
+XZOStreamBuf::int_type XZOStreamBuf::overflow(int_type c) {
+  if (finished_ || !run_coder(false))
     return traits_type::eof();
 
   if (!traits_type::eq_int_type(c, traits_type::eof())) {
@@ -60,23 +62,23 @@ OStreamBuf::int_type OStreamBuf::overflow(int_type c) {
   return traits_type::not_eof(c);
 }
 
-int OStreamBuf::sync() {
-  return !finished_ && code(false) && target_.flush() ? 0 : -1;
+int XZOStreamBuf::sync() {
+  return !finished_ && run_coder(false) && target_.flush() ? 0 : -1;
 }
 
-bool OStreamBuf::code(bool finish) {
+bool XZOStreamBuf::run_coder(bool finish) {
   lzma_stream& stream = coder_->stream;
-  stream.next_in = (const uint8_t*)pbase();
+  stream.next_in = reinterpret_cast<const uint8_t*>(pbase());
   stream.avail_in = pptr() - pbase();
 
-  lzma_ret ret;
+  lzma_ret ret{};
   do {
-    stream.next_out = (uint8_t*)output_.data();
+    stream.next_out = reinterpret_cast<uint8_t*>(output_.data());
     stream.avail_out = output_.size();
     ret = lzma_code(&stream, finish ? LZMA_FINISH : LZMA_RUN);
     if (ret != LZMA_OK && ret != LZMA_STREAM_END)
-      throw LinpipeError{"lzma::OStreamBuf: An error occurred during LZMA coding"};
-    if (!target_.write(output_.data(), (std::streamsize)(output_.size() - stream.avail_out)))
+      throw LinpipeError{"XZOStreamBuf: An error occurred during LZMA coding"};
+    if (!target_.write(output_.data(), static_cast<std::streamsize>(output_.size() - stream.avail_out)))
       return false;
   } while (ret != LZMA_STREAM_END && (finish || stream.avail_in || !stream.avail_out));
 
@@ -84,29 +86,29 @@ bool OStreamBuf::code(bool finish) {
   return true;
 }
 
-// IStreamBuf
-IStreamBuf::IStreamBuf(std::istream& source)
-    : source_(source), coder_(std::make_unique<Coder>()), input_(BUFFER_SIZE), output_(BUFFER_SIZE) {
+// XZIStreamBuf
+XZIStreamBuf::XZIStreamBuf(std::istream& source)
+    : source_(source), coder_(std::make_unique<XZCoder>()), input_(XZ_BUFFER_SIZE), output_(XZ_BUFFER_SIZE) {
   if (lzma_stream_decoder(&coder_->stream, UINT64_MAX, LZMA_CONCATENATED) != LZMA_OK)
-    throw LinpipeError{"lzma::IStreamBuf: Cannot initialize the LZMA decoder"};
+    throw LinpipeError{"XZIStreamBuf: Cannot initialize the LZMA decoder"};
 }
 
-IStreamBuf::~IStreamBuf() = default;
+XZIStreamBuf::~XZIStreamBuf() = default;
 
-IStreamBuf::int_type IStreamBuf::underflow() {
+XZIStreamBuf::int_type XZIStreamBuf::underflow() {
   if (gptr() < egptr())
     return traits_type::to_int_type(*gptr());
   if (finished_)
     return traits_type::eof();
 
   lzma_stream& stream = coder_->stream;
-  stream.next_out = (uint8_t*)output_.data();
+  stream.next_out = reinterpret_cast<uint8_t*>(output_.data());
   stream.avail_out = output_.size();
 
   while (stream.avail_out == output_.size()) {
     if (!stream.avail_in && !source_finished_) {
-      source_.read(input_.data(), (std::streamsize)input_.size());
-      stream.next_in = (const uint8_t*)input_.data();
+      source_.read(input_.data(), static_cast<std::streamsize>(input_.size()));
+      stream.next_in = reinterpret_cast<const uint8_t*>(input_.data());
       stream.avail_in = source_.gcount();
       source_finished_ = !source_;
     }
@@ -117,20 +119,20 @@ IStreamBuf::int_type IStreamBuf::underflow() {
       break;
     }
     if (ret != LZMA_OK)
-      throw LinpipeError{"lzma::IStreamBuf: An error occurred during LZMA decoding"};
+      throw LinpipeError{"XZIStreamBuf: An error occurred during LZMA decoding"};
   }
 
-  setg(output_.data(), output_.data(), (char*)stream.next_out);
+  setg(output_.data(), output_.data(), reinterpret_cast<char*>(stream.next_out));
   return gptr() < egptr() ? traits_type::to_int_type(*gptr()) : traits_type::eof();
 }
 
-// OStream
-OStream::OStream(std::ostream& target, Mode mode, uint32_t preset)
+// XZOStream
+XZOStream::XZOStream(std::ostream& target, XZMode mode, uint32_t preset)
     : std::ostream(nullptr), buf_(target, mode, preset) {
   rdbuf(&buf_);
 }
 
-void OStream::close() {
+void XZOStream::close() {
   bool ok = false;
   try {
     ok = buf_.finish();
@@ -140,10 +142,10 @@ void OStream::close() {
     setstate(std::ios::badbit);
 }
 
-// IStream
-IStream::IStream(std::istream& source)
+// XZIStream
+XZIStream::XZIStream(std::istream& source)
     : std::istream(nullptr), buf_(source) {
   rdbuf(&buf_);
 }
 
-} // namespace linpipe::lzma
+} // namespace linpipe
