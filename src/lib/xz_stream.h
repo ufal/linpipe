@@ -9,25 +9,22 @@
 
 #pragma once
 
-#include <istream>
-#include <ostream>
-#include <streambuf>
-
 #include "common.h"
 
-namespace linpipe::lzma {
+namespace linpipe {
 
-enum class Mode {
+enum class XZMode {
   COMPRESS,
   DECOMPRESS,
 };
 
-struct Coder;
+class XZCoder;
 
-class OStreamBuf : public std::streambuf {
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+class XZOStreamBuf : public std::streambuf {
  public:
-  OStreamBuf(std::ostream& target, Mode mode, uint32_t preset);
-  ~OStreamBuf() override;
+  XZOStreamBuf(std::ostream& target, XZMode mode, uint32_t preset);
+  ~XZOStreamBuf() override;
 
   bool finish();
 
@@ -36,45 +33,46 @@ class OStreamBuf : public std::streambuf {
   int sync() override;
 
  private:
-  bool code(bool finish);
+  bool run_coder(bool finish);
 
   std::ostream& target_;
-  std::unique_ptr<Coder> coder_;
+  std::unique_ptr<XZCoder> coder_;
   std::vector<char> input_, output_;
   bool finished_ = false;
 };
 
-class IStreamBuf : public std::streambuf {
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
+class XZIStreamBuf : public std::streambuf {
  public:
-  IStreamBuf(std::istream& source);
-  ~IStreamBuf() override;
+  XZIStreamBuf(std::istream& source);
+  ~XZIStreamBuf() override;
 
  protected:
   int_type underflow() override;
 
  private:
   std::istream& source_;
-  std::unique_ptr<Coder> coder_;
+  std::unique_ptr<XZCoder> coder_;
   std::vector<char> input_, output_;
   bool source_finished_ = false, finished_ = false;
 };
 
-class OStream : public std::ostream {
+class XZOStream : public std::ostream {
  public:
-  OStream(std::ostream& target, Mode mode, uint32_t preset = 6);
+  XZOStream(std::ostream& target, XZMode mode, uint32_t preset = 6);
 
   void close();
 
  private:
-  OStreamBuf buf_;
+  XZOStreamBuf buf_;
 };
 
-class IStream : public std::istream {
+class XZIStream : public std::istream {
  public:
-  IStream(std::istream& source);
+  XZIStream(std::istream& source);
 
  private:
-  IStreamBuf buf_;
+  XZIStreamBuf buf_;
 };
 
-} // namespace linpipe::lzma
+} // namespace linpipe

@@ -9,12 +9,14 @@
 
 #include <algorithm>
 
-#include "lib/liblzma.h"
 #include "lib/liblzma/api/lzma.h"
+#include "lib/xz.h"
 
-namespace linpipe::lzma {
+namespace linpipe {
 
-template<ByteContainer C>
+namespace {
+
+template<typename C>
 bool compress(std::span<const typename C::value_type> data, C& output, uint32_t preset) {
   output.clear();
 
@@ -23,11 +25,11 @@ bool compress(std::span<const typename C::value_type> data, C& output, uint32_t 
   if (ret != LZMA_OK)
     return false;
 
-  output.resize(std::max(data.size() / 4, size_t(128)));
+  output.resize(std::max(data.size() / 4, 128_uz));
 
-  stream.next_in = (const uint8_t*)data.data();
+  stream.next_in = reinterpret_cast<const uint8_t*>(data.data());
   stream.avail_in = data.size();
-  stream.next_out = (uint8_t*)output.data();
+  stream.next_out = reinterpret_cast<uint8_t*>(output.data());
   stream.avail_out = output.size();
 
   while (ret = lzma_code(&stream, stream.avail_in ? LZMA_RUN : LZMA_FINISH), ret != LZMA_STREAM_END) {
@@ -39,17 +41,17 @@ bool compress(std::span<const typename C::value_type> data, C& output, uint32_t 
     if (!stream.avail_out) {
       size_t current = output.size();
       output.resize(2 * current);
-      stream.next_out = (uint8_t*)output.data() + current;
+      stream.next_out = reinterpret_cast<uint8_t*>(output.data()) + current;
       stream.avail_out = current;
     }
   }
-  output.resize(stream.next_out - (const uint8_t*)output.data());
+  output.resize(stream.next_out - reinterpret_cast<const uint8_t*>(output.data()));
 
   lzma_end(&stream);
   return true;
 }
 
-template<ByteContainer C>
+template<typename C>
 size_t decompress(std::span<const typename C::value_type> data, C& output, bool only_first_block) {
   output.clear();
 
@@ -58,11 +60,11 @@ size_t decompress(std::span<const typename C::value_type> data, C& output, bool 
   if (ret != LZMA_OK)
     return 0;
 
-  output.resize(std::max(data.size(), size_t(128)));
+  output.resize(std::max(data.size(), 128_uz));
 
-  stream.next_in = (const uint8_t*)data.data();
+  stream.next_in = reinterpret_cast<const uint8_t*>(data.data());
   stream.avail_in = data.size();
-  stream.next_out = (uint8_t*)output.data();
+  stream.next_out = reinterpret_cast<uint8_t*>(output.data());
   stream.avail_out = output.size();
 
   while (ret = lzma_code(&stream, stream.avail_in ? LZMA_RUN : LZMA_FINISH), ret != LZMA_STREAM_END) {
@@ -74,26 +76,32 @@ size_t decompress(std::span<const typename C::value_type> data, C& output, bool 
     if (!stream.avail_out) {
       size_t current = output.size();
       output.resize(2 * current);
-      stream.next_out = (uint8_t*)output.data() + current;
+      stream.next_out = reinterpret_cast<uint8_t*>(output.data()) + current;
       stream.avail_out = current;
     }
   }
-  output.resize(stream.next_out - (const uint8_t*)output.data());
+  output.resize(stream.next_out - reinterpret_cast<const uint8_t*>(output.data()));
 
   lzma_end(&stream);
-  return stream.next_in - (const uint8_t*)data.data();
+  return stream.next_in - reinterpret_cast<const uint8_t*>(data.data());
 }
 
-template bool compress(std::span<const std::byte>, std::vector<std::byte>&, uint32_t);
-template bool compress(std::span<const char>, std::vector<char>&, uint32_t);
-template bool compress(std::span<const signed char>, std::vector<signed char>&, uint32_t);
-template bool compress(std::span<const unsigned char>, std::vector<unsigned char>&, uint32_t);
-template bool compress(std::span<const char>, std::string&, uint32_t);
+} // namespace
 
-template size_t decompress(std::span<const std::byte>, std::vector<std::byte>&, bool);
-template size_t decompress(std::span<const char>, std::vector<char>&, bool);
-template size_t decompress(std::span<const signed char>, std::vector<signed char>&, bool);
-template size_t decompress(std::span<const unsigned char>, std::vector<unsigned char>&, bool);
-template size_t decompress(std::span<const char>, std::string&, bool);
+bool xz_compress(std::string_view data, std::string& output, uint32_t preset) {
+  return compress(data, output, preset);
+}
 
-} // namespace linpipe::lzma
+bool xz_compress(std::span<std::byte> data, std::vector<std::byte>& output, uint32_t preset) {
+  return compress(data, output, preset);
+}
+
+size_t xz_decompress(std::string_view data, std::string& output, bool only_first_block) {
+  return decompress(data, output, only_first_block);
+}
+
+size_t xz_decompress(std::span<std::byte> data, std::vector<std::byte>& output, bool only_first_block) {
+  return decompress(data, output, only_first_block);
+}
+
+} // namespace linpipe
