@@ -18,6 +18,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     LOG(INFO, "LinPipe is up and running");
   } catch (LinpipeError& error) {
     LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
+    return 1;
   }
 
   return 0;
