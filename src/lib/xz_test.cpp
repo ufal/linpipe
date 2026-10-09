@@ -12,26 +12,27 @@
 #include <sstream>
 
 #include "lib/doctest/doctest.h"
-#include "lib/liblzma.h"
-#include "lib/liblzma_stream.h"
+#include "lib/xz.h"
+#include "lib/xz_stream.h"
 
 namespace linpipe {
 
-TEST_CASE_TEMPLATE("lzma::compress roundtrip", T, char, signed char, unsigned char, std::byte) {
+TEST_CASE_TEMPLATE("xz_compress roundtrip", Container, std::string, std::vector<std::byte>) {
+  using T = typename Container::value_type;
   auto data = "Testing LZMA compression in LinPipe"sv | std::views::transform([](char c) { return T(c); });
-  std::vector<T> input(data.begin(), data.end());
+  Container input(data.begin(), data.end());
 
-  std::vector<T> compressed, decompressed;
-  CHECK(lzma::compress(input, compressed));
-  CHECK(lzma::decompress(compressed, decompressed) == compressed.size());
+  Container compressed, decompressed;
+  CHECK(xz_compress(input, compressed));
+  CHECK(xz_decompress(compressed, decompressed) == compressed.size());
   CHECK(decompressed == input);
 
   auto concatenated = std::array{compressed, compressed} | std::views::join;
-  std::vector<T> compressed_twice(concatenated.begin(), concatenated.end());
-  CHECK(lzma::decompress(compressed_twice, decompressed) == compressed_twice.size());
+  Container compressed_twice(concatenated.begin(), concatenated.end());
+  CHECK(xz_decompress(compressed_twice, decompressed) == compressed_twice.size());
   CHECK(std::ranges::equal(decompressed, std::array{input, input} | std::views::join));
 
-  CHECK(lzma::decompress(compressed_twice, decompressed, true) == compressed.size());
+  CHECK(xz_decompress(compressed_twice, decompressed, true) == compressed.size());
   CHECK(decompressed == input);
 }
 
@@ -45,23 +46,23 @@ std::string read_all(std::istream& is) {
   return result;
 }
 
-TEST_CASE("lzma::OStream compress") {
+TEST_CASE("XZOStream compress") {
   std::string data(DATA_SIZE, 'a'), decompressed;
   std::ostringstream compressed;
-  lzma::OStream os(compressed, lzma::Mode::COMPRESS);
+  XZOStream os(compressed, XZMode::COMPRESS);
 
   os << data;
   os.close();
   CHECK(os.good());
-  CHECK(lzma::decompress(compressed.str(), decompressed) == compressed.str().size());
+  CHECK(xz_decompress(compressed.str(), decompressed) == compressed.str().size());
   CHECK(decompressed == data);
 }
 
-TEST_CASE("lzma::OStream decompress") {
+TEST_CASE("XZOStream decompress") {
   std::string data(DATA_SIZE, 'a'), compressed;
-  REQUIRE(lzma::compress(data, compressed));
+  REQUIRE(xz_compress(data, compressed));
   std::ostringstream decompressed;
-  lzma::OStream os(decompressed, lzma::Mode::DECOMPRESS);
+  XZOStream os(decompressed, XZMode::DECOMPRESS);
 
   SUBCASE("single stream") {
     os << compressed;
@@ -82,25 +83,25 @@ TEST_CASE("lzma::OStream decompress") {
   }
 }
 
-TEST_CASE("lzma::IStream") {
+TEST_CASE("XZIStream") {
   std::string data(DATA_SIZE, 'a'), compressed;
-  REQUIRE(lzma::compress(data, compressed));
+  REQUIRE(xz_compress(data, compressed));
 
   SUBCASE("single stream") {
     std::istringstream source(compressed);
-    lzma::IStream is(source);
+    XZIStream is(source);
     CHECK(read_all(is) == data);
     CHECK(!is.bad());
   }
   SUBCASE("concatenated streams") {
     std::istringstream source(compressed + compressed);
-    lzma::IStream is(source);
+    XZIStream is(source);
     CHECK(read_all(is) == data + data);
     CHECK(!is.bad());
   }
   SUBCASE("truncated stream") {
     std::istringstream source(compressed.substr(0, compressed.size() / 2));
-    lzma::IStream is(source);
+    XZIStream is(source);
     read_all(is);
     CHECK(is.bad());
   }
