@@ -67,15 +67,15 @@ void logging_set_level(std::string_view level) {
   else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL")
     logging_level = LoggingLevel::LEVEL_FATAL;
   else
-    LOG(WARN, "logging_set_level: Cannot parse logging level '" << level << "'");
+    LOG(ERROR, "logging_set_level: Cannot parse logging level '" << level << "'");
 }
 
 void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
-    throw LinpipeError{"logging_set_file: Cannot redirect logs to file '", path_to_utf8(path), "'"};
-
-  logging_to_file = true;
+    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '" << path_to_utf8(path) << "'");
+  else
+    logging_to_file = true;
 }
 
 std::ostream& logging_start(LoggingLevel level, const char* source, int line) {
