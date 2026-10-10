@@ -12,6 +12,7 @@ Checks:
   - modernize-*
   -  -modernize-avoid-c-arrays
   -  -modernize-return-braced-init-list
+  -  -modernize-use-integer-sign-comparison
   -  -modernize-use-nodiscard
   -  -modernize-use-trailing-return-type
   - performance-*
