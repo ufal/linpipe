@@ -7,11 +7,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-LINPIPE_OBJECTS += lib/liblzma
-LINPIPE_OBJECTS += lib/liblzma_stream
 LINPIPE_OBJECTS += lib/re
 LINPIPE_OBJECTS += lib/sha256
 
-LINPIPE_TESTS += lib/liblzma_test
 LINPIPE_TESTS += lib/re_test
 LINPIPE_TESTS += lib/sha256_test
