@@ -8,11 +8,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += lib/re
+LINPIPE_OBJECTS += lib/sha256
 LINPIPE_OBJECTS += lib/xz
 LINPIPE_OBJECTS += lib/xz_stream
 
 LINPIPE_TESTS += lib/httplib_test
 LINPIPE_TESTS += lib/json_test
 LINPIPE_TESTS += lib/re_test
+LINPIPE_TESTS += lib/sha256_test
 LINPIPE_TESTS += lib/xz_test
 
