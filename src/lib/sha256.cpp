@@ -60,7 +60,7 @@ std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
   size_t hash_length = 0;
   status = psa_hash_finish(&clone, reinterpret_cast<uint8_t*>(hash.data()), hash.size(), &hash_length);
   psa_hash_abort(&clone);
-  if (status != PSA_SUCCESS || hash_length != digest_size)
+  if (status != PSA_SUCCESS)
     throw LinpipeError{"SHA256::digest: Cannot compute SHA-256, error ", std::to_string(status)};
 
   return hash;
