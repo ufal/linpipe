@@ -213,9 +213,9 @@ RE::RE(std::string_view pattern, REOptions options) {
   int r = onig_new(
       reinterpret_cast<OnigRegexType**>(&re_),
       reinterpret_cast<const UChar*>(pattern.data()), reinterpret_cast<const UChar*>(pattern.data() + pattern.size()),
-      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0)
-          | (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0)
-          | (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0) |
+          (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0) |
+          (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
       ONIG_ENCODING_UTF8, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
@@ -260,9 +260,9 @@ RE32::RE32(std::u32string_view pattern, REOptions options) {
   int r = onig_new(
       reinterpret_cast<OnigRegexType**>(&re_),
       reinterpret_cast<const UChar*>(pattern.data()), reinterpret_cast<const UChar*>(pattern.data() + pattern.size()),
-      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0)
-          | (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0)
-          | (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
+      (((options & IGNORECASE) != NONE) ? ONIG_OPTION_IGNORECASE : 0) |
+          (((options & DOTALL) != NONE) ? ONIG_OPTION_MULTILINE : 0) |
+          (((options & MULTILINE) != NONE) ? ONIG_OPTION_NEGATE_SINGLELINE : 0),
       ONIG_ENCODING_UTF32_LE, ONIG_SYNTAX_PERL, &einfo);
 
   if (r != ONIG_NORMAL) {
