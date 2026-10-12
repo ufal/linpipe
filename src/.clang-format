@@ -32,6 +32,13 @@ AlignTrailingComments:
 BreakBeforeBinaryOperators: NonAssignment
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: false
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterIfMacros: true
+  AfterRequiresInClause: true
+  AfterRequiresInExpression: false
 
 # Sort the includes as system headers - "common.h" - local headers.
 SortIncludes: true
