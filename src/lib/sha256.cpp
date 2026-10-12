@@ -67,16 +67,7 @@ std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
 }
 
 std::string SHA256::hexdigest() const {
-  static constexpr char hex[] = "0123456789abcdef";
-
-  std::string result;
-  result.reserve(2 * digest_size);
-  for (auto byte : digest()) {
-    auto value = std::to_integer<unsigned>(byte);
-    result.push_back(hex[value >> 4]);
-    result.push_back(hex[value & 0xF]);
-  }
-  return result;
+  return fmt::format("{:02x}", fmt::join(digest(), ""));
 }
 
 } // namespace linpipe
