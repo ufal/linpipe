@@ -35,7 +35,7 @@ SHA256::SHA256(SHA256&&) noexcept = default;
 SHA256& SHA256::operator=(SHA256&&) noexcept = default;
 
 SHA256& SHA256::update(std::string_view data) {
-  return update(std::as_bytes(std::span(data.data(), data.size())));
+  return update(std::as_bytes(std::span(data)));
 }
 
 SHA256& SHA256::update(std::span<const std::byte> data) {
