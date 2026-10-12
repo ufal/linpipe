@@ -29,7 +29,7 @@ BreakTemplateDeclarations: Leave
 # Alignment and spaces.
 AlignTrailingComments:
   Kind: Leave
-BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBinaryOperators: None
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: false
 SpaceBeforeParens: Custom
