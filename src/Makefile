@@ -16,7 +16,7 @@ default: $(call exe,linpipe)
 lib: $(call lib,liblinpipe)
 test_compile: $(call exe,linpipe_test)
 test: test_compile
-	$(call platform_name,./$(call exe,linpipe_test))
+	$(call platform_name,./$(call exe,linpipe_test)) $(if $(CI),-fc)
 all: default lib test_compile
 
 # Compilation flags

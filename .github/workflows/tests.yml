@@ -108,4 +108,5 @@ jobs:
         working-directory: src
 
       - name: Run tests
-        run: src/linpipe_test
+        run: make PLATFORM=${{ matrix.platform }} ${{ matrix.make_args }} test
+        working-directory: src
