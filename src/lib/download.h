@@ -15,6 +15,6 @@
 
 namespace linpipe {
 
-void download(std::string_view url, std::ostream& o, bool progress);
+void download(std::string_view url, std::ostream& o, bool progress = false);
 
 } // namespace linpipe

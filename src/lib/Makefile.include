@@ -13,6 +13,7 @@ LINPIPE_OBJECTS += lib/sha256
 LINPIPE_OBJECTS += lib/xz
 LINPIPE_OBJECTS += lib/xz_stream
 
+LINPIPE_TESTS += lib/download_test
 LINPIPE_TESTS += lib/hash_map_test
 LINPIPE_TESTS += lib/hash_set_test
 LINPIPE_TESTS += lib/httplib_test
