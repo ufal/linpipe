@@ -89,6 +89,8 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
       throw LinpipeError{"download: Cannot write the downloaded data of URL: ", url};
     throw LinpipeError{"download: Cannot download URL '", url, "': ", httplib::to_string(result.error())};
   }
+
+  LOG(TRACE, "Downloaded " << url);
 }
 
 } // namespace linpipe
