@@ -79,7 +79,7 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
         return true;
       });
 
-  bool bad_status = status && (status < 200 || status >= 300);
+  bool bad_status = status != 0 && (status < 200 || status >= 300);
   if (bad_status || write_failed || !result || !write_buffer()) {
     LOG(ERROR, "Downloading " << url << " failed");
 
