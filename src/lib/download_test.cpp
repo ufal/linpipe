@@ -11,7 +11,6 @@
 
 #include "doctest/doctest.h"
 #include "lib/download.h"
-#include "lib/httplib/httplib.h"
 
 namespace linpipe {
 
@@ -29,6 +28,18 @@ TEST_CASE("download rejects unsupported protocols") {
   CHECK_THROWS_WITH_AS(download_url("file:///etc/passwd", oss), doctest::Contains("Unsupported network protocol"), LinpipeError);
   CHECK_THROWS_WITH_AS(download_url("HTTP://example.com/", oss), doctest::Contains("Unsupported network protocol"), LinpipeError);
   CHECK(oss.view().empty());
+}
+
+TEST_CASE("download from huggingface.co" * doctest::may_fail(true)) {
+  std::ostringstream oss;
+  REQUIRE_NOTHROW(download_url("https://huggingface.co/ufal/robeczech-base/raw/main/config.json", oss));
+  CHECK(oss.view().starts_with("{"));
+}
+
+TEST_CASE("download from GitHub" * doctest::may_fail(true)) {
+  std::ostringstream oss;
+  REQUIRE_NOTHROW(download_url("https://raw.githubusercontent.com/ufal/linpipe/refs/heads/master/README.md", oss));
+  CHECK(!oss.view().empty());
 }
 
 } // namespace linpipe
