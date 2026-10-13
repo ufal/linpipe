@@ -69,11 +69,11 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
             int percent = static_cast<int>(received * 100 / total);
             if (percent != last_percent) {
               last_percent = percent;
-              LOG(PROGRESS, "Downloading " << url << ": " << percent << "%");
+              LOG(PROGRESS, "Downloading " << url.substr(0, 60) << ": " << percent << "%");
             }
           } else if (received - last_logged >= (1 << 20)) {
             last_logged = received;
-            LOG(PROGRESS, "Downloading " << url << ": " << (received >> 20) << " MiB");
+            LOG(PROGRESS, "Downloading " << url.substr(0, 60) << ": " << (received >> 20) << " MiB");
           }
         }
         return true;
