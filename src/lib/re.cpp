@@ -24,13 +24,22 @@ namespace {
 
 // Private Oniguruma initialization
 class REInit {
+ public:
+  static void initialize() {
+    if (!initialized_) {
+      onig_initialize(encodings_.data(), encodings_.size());
+      initialized_ = true;
+    }
+  }
+
  private:
   REInit() {
-    onig_initialize(encodings_.data(), encodings_.size());
+    initialize();
   }
   ~REInit() {
     onig_end();
   }
+  inline static bool initialized_ = false;
   inline static std::array<OnigEncoding, 2> encodings_ = {ONIG_ENCODING_UTF8, ONIG_ENCODING_UTF32_LE};
   static REInit singleton;
 };
@@ -209,6 +218,8 @@ size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::b
 
 // RE declarations
 RE::RE(std::string_view pattern, REOptions options) {
+  REInit::initialize();
+
   OnigErrorInfo einfo;
   int r = onig_new(
       reinterpret_cast<OnigRegexType**>(&re_),
@@ -256,6 +267,8 @@ size_t RE::sub(std::string_view str, std::string_view replacement, std::string& 
 RE32::RE32(std::string_view pattern, REOptions options) : RE32(unilib::utf::decoded(pattern), options) {}
 
 RE32::RE32(std::u32string_view pattern, REOptions options) {
+  REInit::initialize();
+
   OnigErrorInfo einfo;
   int r = onig_new(
       reinterpret_cast<OnigRegexType**>(&re_),
