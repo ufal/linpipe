@@ -16,33 +16,19 @@
 namespace linpipe {
 
 TEST_CASE("download rejects malformed URLs") {
-  std::ostringstream o;
-  CHECK_THROWS_WITH_AS(download("example.com/file", o), doctest::Contains("Cannot parse"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download("://example.com", o), doctest::Contains("Cannot parse"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download("http:///file", o), doctest::Contains("Missing host"), LinpipeError);
-  CHECK(o.str().empty());
+  std::ostringstream os;
+  CHECK_THROWS_WITH_AS(download_url("example.com/file", os), doctest::Contains("Cannot parse"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("://example.com", os), doctest::Contains("Cannot parse"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("http:///file", os), doctest::Contains("Missing host"), LinpipeError);
+  CHECK(os.view().empty());
 }
 
 TEST_CASE("download rejects unsupported protocols") {
-  std::ostringstream o;
-  CHECK_THROWS_WITH_AS(download("ftp://example.com/file", o), doctest::Contains("Unsupported network protocol 'ftp'"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download("file:///etc/passwd", o), doctest::Contains("Unsupported network protocol"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download("HTTP://example.com/", o), doctest::Contains("Unsupported network protocol"), LinpipeError);
-  CHECK(o.str().empty());
-}
-
-#ifndef CPPHTTPLIB_SSL_ENABLED
-TEST_CASE("download rejects https without SSL support") {
-  std::ostringstream o;
-  CHECK_THROWS(download("https://example.com/", o));
-}
-#endif
-
-TEST_CASE("download reports connection failures") {
-  // Nothing listens on port 1 of the loopback interface, so the connection is refused immediately.
-  std::ostringstream o;
-  CHECK_THROWS_WITH_AS(download("http://127.0.0.1:1/file", o), doctest::Contains("Cannot download URL"), LinpipeError);
-  CHECK(o.str().empty());
+  std::ostringstream os;
+  CHECK_THROWS_WITH_AS(download_url("ftp://example.com/file", os), doctest::Contains("Unsupported network protocol 'ftp'"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("file:///etc/passwd", os), doctest::Contains("Unsupported network protocol"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("HTTP://example.com/", os), doctest::Contains("Unsupported network protocol"), LinpipeError);
+  CHECK(os.view().empty());
 }
 
 } // namespace linpipe

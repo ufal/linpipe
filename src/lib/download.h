@@ -9,12 +9,10 @@
 
 #pragma once
 
-#include <ostream>
-
 #include "common.h"
 
 namespace linpipe {
 
-void download(std::string_view url, std::ostream& o, bool progress = false);
+void download_url(std::string_view url, std::ostream& os, bool progress = false);
 
 } // namespace linpipe
