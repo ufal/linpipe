@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/schemas/model.schema.json",
-  "title": "model",
+  "$id": "https://linpipe.org/schemas/model.schema.json",
+  "title": "LinPipe Model",
   "description": "Configuration of a single LinPipe model. Besides the fields listed here and in asset.schema.json, a model may carry any number of model-specific parameters (e.g. 'tagsets').",
   "allOf": [
     { "$ref": "asset.schema.json" }
@@ -31,16 +31,6 @@
       },
       "uniqueItems": true,
       "minItems": 1
-    },
-    "depends_on": {
-      "description": "Names of other models that this model depends on.",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1
-      },
-      "uniqueItems": true,
-      "default": []
     }
   }
 }

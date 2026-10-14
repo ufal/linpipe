@@ -14,7 +14,7 @@ namespace linpipe {
 
 namespace {
 
-constexpr std::string_view asset_schema_path = "../models/asset.schema.json";
+constexpr std::string_view asset_schema_path = "../assets/asset.schema.json";
 
 [[maybe_unused]] void download_to_file([[maybe_unused]] std::string_view file_url,
                                        [[maybe_unused]] std::string_view path,
