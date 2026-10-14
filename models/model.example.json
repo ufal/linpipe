@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-10-05T12:00:00Z",
+  "name": "nertoy-261005",
+  "family": "NERToy",
+  "operations": ["ner"],
+  "depends_on": [],
+  "files": [
+    {
+      "name": "nertoy-261005.zip",
+      "url": "https://ufal.mff.cuni.cz/~strakova/linpipe_repo/nertoy-261005/nertoy-261005.zip",
+      "unpack": true,
+      "sha256": "d8d7e2bca79d41f8ae1859a29fd04175b474a80cfbbd71f7eccb8694791515a1",
+      "size": 188
+    }
+  ]
+}
