@@ -9,8 +9,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "common.h"
 
 namespace linpipe {
