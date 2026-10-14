@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linpipe.org/schemas/asset.schema.json",
+  "title": "LinPipe Asset",
+  "description": "Fields shared by every downloadable LinPipe asset (models, libraries, ...).",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this config was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "name": {
+      "description": "Asset name; should match its key in the corresponding index file.",
+      "type": "string",
+      "minLength": 1
+    },
+    "requirements": {
+      "description": "Names of other assets that this asset depends on.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "files": {
+      "description": "Files that belong to the asset, usually a single archive to download and decompress.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "File name, as stored locally after download and decompression (if any).",
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "description": "Where to download the file from.",
+            "type": "string",
+            "format": "uri"
+          },
+          "compression": {
+            "description": "Compression of the file; no compression if missing.",
+            "enum": ["xz"]
+          },
+          "sha256": {
+            "description": "SHA-256 checksum of the file (before decompression), as 64 hex characters.",
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$"
+          },
+          "size": {
+            "description": "File size in bytes (before decompression).",
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": ["name", "url", "sha256", "size"]
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["timestamp", "name", "files"]
+}
