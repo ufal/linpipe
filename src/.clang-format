@@ -27,9 +27,11 @@ AllowShortLoopsOnASingleLine: true
 BreakTemplateDeclarations: Leave
 
 # Alignment and spaces.
+AlignOperands: DontAlign
 AlignTrailingComments:
   Kind: Leave
 BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: false
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: false
 SpaceBeforeParens: Custom
