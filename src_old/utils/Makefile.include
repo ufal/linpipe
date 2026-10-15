@@ -8,6 +8,5 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += utils/arguments
-LINPIPE_OBJECTS += utils/json_utils
 
 LINPIPE_TESTS += utils/arguments_test
