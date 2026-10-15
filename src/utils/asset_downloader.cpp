@@ -13,10 +13,12 @@
 namespace linpipe {
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
-  // 1. If !assets_json_, make assets_json_ from assets_json_url_.
-  // 2. Find asset_name in assets_json_, get asset_json_url and asset_path.
-  // 3. download_asset(asset_json_url, asset_path);
-  // 4. return asset_path
+  // 1. If cache_dir_.empty(), make architecture-appropriate cache_dir.
+  // 2. If !assets_json_, make assets_json_ from assets_json_url_.
+  // 3. Find asset_name in assets_json_, get asset_json_url and asset_path.
+  // 4. If asset_path already exists, return asset_path.
+  // 5. download_asset(asset_json_url, asset_path);
+  // 6. return asset_path
   return {};
 }
 
