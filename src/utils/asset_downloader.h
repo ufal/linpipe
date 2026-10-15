@@ -9,10 +9,24 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include "common.h"
+#include "lib/json/json.h"
 
 namespace linpipe {
 
-void download_asset(std::string_view asset_json_url, std::string_view path);
+class AssetDownloader {
+ public:
+  AssetDownloader(std::string_view assets_json_url) : assets_json_url_(assets_json_url) {}
+  static std::filesystem::path get_asset(std::string_view asset_name);
+
+ private:
+  void download_asset(std::string_view asset_json_url, std::string_view path);
+  void download_to_file(std::string_view file_url, std::string_view path, uint64_t size, std::string_view sha256, std::string_view decompress);
+
+  std::string_view assets_json_url_;
+  std::unique_ptr<Json> assets_json_;
+};
 
 } // namespace linpipe
