@@ -7,11 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "common.h"
+#include "lib/json/json.h"
 #include "utils/asset_downloader.h"
 
 namespace linpipe {
 
+AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::filesystem::path cache_dir) : assets_json_url_(assets_json_url), cache_dir_(std::move(cache_dir)) {}
+
+AssetDownloader::~AssetDownloader() = default;
+
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
   // 1. If cache_dir_.empty(), make architecture-appropriate cache_dir.
   // 2. If !assets_json_, make assets_json_ from assets_json_url_.
@@ -33,7 +38,7 @@ void AssetDownloader::download_asset(std::string_view /*asset_json_url*/, std::s
     // 7. Unlocks path.lock. On any failure, removes path.tmp/ before unlocking.
 }
 
-void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, Decompress /*decompress*/) {
+void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*compression*/) {
 }
 
 } // namespace linpipe

@@ -13,28 +13,24 @@
 #include <mutex>
 
 #include "common.h"
-#include "lib/json/json.h"
 
 namespace linpipe {
 
 class AssetDownloader {
  public:
-  AssetDownloader(std::string_view assets_json_url, std::filesystem::path cache_dir = {}) : assets_json_url_(assets_json_url), cache_dir_(std::move(cache_dir)) {}
-  static std::filesystem::path get_asset(std::string_view asset_name);
+  AssetDownloader(std::string_view assets_json_url, std::filesystem::path cache_dir = {});
+  ~AssetDownloader();
+
+  std::filesystem::path get_asset(std::string_view asset_name);
 
  private:
-  enum class Decompress {
-    none,
-    xz
-  };
-
   void download_asset(std::string_view asset_json_url, std::string_view path);
-  void download_to_file(std::string_view file_url, std::string_view path, uint64_t size, std::string_view sha256, Decompress decompress);
+  static void download_to_file(std::string_view file_url, std::string_view path, uint64_t size, std::string_view sha256, std::string_view compression = {});
 
   std::string assets_json_url_;
   std::filesystem::path cache_dir_;
   std::unique_ptr<Json> assets_json_;
-  std::mutex init_mutex_;
+  std::mutex assets_json_mutex_;
 };
 
 } // namespace linpipe
