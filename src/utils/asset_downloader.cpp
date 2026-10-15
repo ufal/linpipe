@@ -33,7 +33,7 @@ void AssetDownloader::download_asset(std::string_view /*asset_json_url*/, std::s
     // 7. Unlocks path.lock. On any failure, removes path.tmp/ before unlocking.
 }
 
-void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*decompress*/) {
+void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, Decompress /*decompress*/) {
 }
 
 } // namespace linpipe
