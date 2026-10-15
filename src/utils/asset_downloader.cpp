@@ -12,28 +12,26 @@
 
 namespace linpipe {
 
-namespace {
-
-constexpr std::string_view asset_schema_path = "../assets/asset.schema.json";
-
-[[maybe_unused]] void download_to_file([[maybe_unused]] std::string_view file_url,
-                                       [[maybe_unused]] std::string_view path,
-                                       [[maybe_unused]] uint64_t size,
-                                       [[maybe_unused]] std::string_view sha256,
-                                       [[maybe_unused]] bool unpack) {
+std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
+  // 1. If !assets_json_, make assets_json_ from assets_json_url_.
+  // 2. Find asset_name in assets_json_, get asset_json_url and asset_path.
+  // 3. download_asset(asset_json_url, asset_path);
+  // 4. return asset_path
+  return {};
 }
 
-} // namespace
-
-void download_asset([[maybe_unused]] std::string_view asset_json_url, [[maybe_unused]] std::string_view path) {
+void AssetDownloader::download_asset(std::string_view /*asset_json_url*/, std::string_view /*path*/) {
     // Downloads the entire asset:
     // 1. Opens/creates path.lock and locks it exclusively (never delete it).
     // 2. If path/ exists, another thread/process already finished; unlock and return.
     // 3. Removes any stale path.tmp/ left over from a crashed run, creates it anew.
-    // 4. Downloads the asset JSON from asset_json_url to path.tmp/ and validates it.
+    // 4. Downloads the asset JSON from asset_json_url to path.tmp/.
     // 5. Downloads all files listed in the asset JSON to path.tmp/ using download_to_file().
     // 6. Renames path.tmp/ to path/ (path/ does not exist).
     // 7. Unlocks path.lock. On any failure, removes path.tmp/ before unlocking.
+}
+
+void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*decompress*/) {
 }
 
 } // namespace linpipe
