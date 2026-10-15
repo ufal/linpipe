@@ -12,22 +12,14 @@
 
 namespace linpipe {
 
-AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::filesystem::path cache_dir) : assets_json_url_(assets_json_url), cache_dir_(std::move(cache_dir)) {}
+namespace {
 
-AssetDownloader::~AssetDownloader() = default;
-
-// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
-std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
-  // 1. If cache_dir_.empty(), make architecture-appropriate cache_dir.
-  // 2. If !assets_json_, make assets_json_ from assets_json_url_.
-  // 3. Find asset_name in assets_json_, get asset_json_url and asset_path.
-  // 4. If asset_path already exists, return asset_path.
-  // 5. download_asset(asset_json_url, asset_path);
-  // 6. return asset_path
-  return {};
+[[maybe_unused]]
+void download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*compression*/) {
 }
 
-void AssetDownloader::download_asset(std::string_view /*asset_json_url*/, std::string_view /*path*/) {
+[[maybe_unused]]
+void download_asset(std::string_view /*asset_json_url*/, std::string_view /*path*/) {
     // Downloads the entire asset:
     // 1. Opens/creates path.lock and locks it exclusively (never delete it).
     // 2. If path/ exists, another thread/process already finished; unlock and return.
@@ -38,7 +30,22 @@ void AssetDownloader::download_asset(std::string_view /*asset_json_url*/, std::s
     // 7. Unlocks path.lock. On any failure, removes path.tmp/ before unlocking.
 }
 
-void AssetDownloader::download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*compression*/) {
+} // namespace
+
+AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::filesystem::path cache_dir) : assets_json_url_(assets_json_url), cache_dir_(std::move(cache_dir)) {}
+
+AssetDownloader::~AssetDownloader() = default;
+
+std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
+  // 1. If cache_dir_.empty(), make architecture-appropriate cache_dir.
+  // 2. If !assets_json_, make assets_json_ from assets_json_url_.
+  // 3. Find asset_name in assets_json_, get asset_json_url and asset_path.
+  // 4. If asset_path already exists, return asset_path.
+  // 5. download_asset(asset_json_url, asset_path);
+  // 6. return asset_path
+
+  (void)assets_json_url_;
+  return {};
 }
 
 } // namespace linpipe
