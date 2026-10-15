@@ -1,0 +1,7 @@
+#!/bin/sh
+
+DIR="$(dirname "$0")"
+
+[ -d "$DIR/venv" ] || python3 -m venv "$DIR/venv"
+
+"$DIR/venv/bin/pip" install check-jsonschema
