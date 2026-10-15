@@ -1,0 +1,19 @@
+#!/bin/sh
+
+DIR="$(dirname "$(readlink -f "$0")")"
+
+[ -d "$DIR"/venv ] || { echo "A virtual environment '$DIR/venv' is required, create it with create_scripts_venv" >&2; exit 1; }
+
+[ $# -ge 2 ] || { echo "Usage: $0 schema_name json_path" >&2; exit 1; }
+
+schema="$1"; shift
+
+schema_path=
+for f in "$DIR"/../*/schemas/"$schema".schema.json; do
+  [ -f "$f" ] || continue
+  [ -z "$schema_path" ] || { echo "Multiple '$schema' schemas found" >&2; exit 1; }
+  schema_path="$f"
+done
+[ -z "$schema_path" ] && { echo "No '$schema' schema found" >&2; exit 1; }
+
+"$DIR"/venv/bin/check-jsonschema --schemafile "$schema_path" --base-uri "$DIR"/../assets/schemas/ -v "$@"
