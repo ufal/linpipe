@@ -9,5 +9,4 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
-#include "common.h"
 #include "lib/doctest/doctest.h"
