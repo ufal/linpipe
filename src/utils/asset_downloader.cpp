@@ -18,6 +18,8 @@ namespace linpipe {
 
 namespace {
 
+constexpr std::string_view assets_json_name = "assets.json";
+
 std::filesystem::path env_path(const std::string& name) {
   auto value = getenv_utf8(name.c_str());
   return value && !value->empty() ? path_from_utf8(*value) : std::filesystem::path();
@@ -103,7 +105,7 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
       if (ec || !std::filesystem::is_directory(cache_dir_, ec))
         throw LinpipeError{"AssetDownloader: Cannot create cache directory '", path_to_utf8(cache_dir_), "'"};
 
-      auto assets_json_path = cache_dir_ / "assets.json";
+      auto assets_json_path = cache_dir_ / assets_json_name;
 
       // Try updating the cached copy; when offline, fall back to it.
       std::string download_error;
