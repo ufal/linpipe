@@ -24,7 +24,7 @@ class AssetDownloader {
   std::filesystem::path get_asset(std::string_view asset_name);
 
  private:
-  void make_cache_dir();
+  void determine_cache_dir();
 
   std::string assets_json_url_;
   std::string family_;
