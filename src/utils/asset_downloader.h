@@ -32,7 +32,7 @@ class AssetDownloader {
 
  private:
   std::string assets_json_url_;
-  std::string family_;
+  std::string family_;  // "model", "lib"
   std::optional<std::filesystem::path> cache_dir_;
   std::optional<Json> assets_json_;
   std::mutex mutex_;
