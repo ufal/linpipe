@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <fstream>
+
 #include "lib/json/json.h"
 #include "utils/asset_downloader.h"
 #include "utils/getenv_utf8.h"
@@ -45,7 +47,7 @@ std::filesystem::path system_cache_dir() {
 }
 
 [[maybe_unused]]
-void download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/, std::string_view /*sha256*/, std::string_view /*compression*/) {
+void download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
 }
 
 [[maybe_unused]]
@@ -62,7 +64,7 @@ void download_asset(std::string_view /*asset_json_url*/, std::string_view /*path
 
 } // namespace
 
-void AssetDownloader::make_cache_dir() {
+void AssetDownloader::determine_cache_dir() {
   // 1. LINPIPE_<FAMILY>_DIR.
   std::string family_env = "LINPIPE_";
   for (char c : family_)
@@ -90,18 +92,48 @@ AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_v
 
 AssetDownloader::~AssetDownloader() = default;
 
-std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
-  if (!assets_json_) {
-    make_cache_dir();
-    // Get assets_json_ from assets_json_url.
+std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
+  {
+    std::scoped_lock lock(assets_json_mutex_);
+    if (!assets_json_) {
+      determine_cache_dir();
+
+      std::error_code ec;
+      std::filesystem::create_directories(cache_dir_, ec);
+      if (ec || !std::filesystem::is_directory(cache_dir_, ec))
+        throw LinpipeError{"AssetDownloader: Cannot create cache directory '", path_to_utf8(cache_dir_), "'"};
+
+      auto assets_json_path = cache_dir_ / "assets.json";
+
+      // Try updating the cached copy; when offline, fall back to it.
+      std::string download_error;
+      try {
+        download_to_file(assets_json_url_, path_to_utf8(assets_json_path));
+      } catch (const std::exception& e) {
+        download_error = e.what();
+      }
+
+      std::ifstream is(assets_json_path);
+      if (!is)
+        throw LinpipeError{"AssetDownloader: Cannot download '", assets_json_url_, "' and no cached copy exists: ", download_error};
+      if (!download_error.empty())
+        LOG(WARN, "AssetDownloader: cannot update '" << assets_json_url_ << "', using the cached copy: " << download_error);
+
+      try {
+        assets_json_ = std::make_unique<Json>(Json::parse(is));
+      } catch (const Json::exception& e) {
+        throw LinpipeError{"AssetDownloader: The file '", path_to_utf8(assets_json_path), "' is not valid JSON: ", e.what()};
+      }
+    }
+
+    // - Find asset_name in assets_json_, get asset_json_url and asset_path (under cache_dir_).
   }
 
-  // - Find asset_name in assets_json_, get asset_json_url and asset_path (under cache_dir_).
   // - If asset_path already exists, return asset_path.
   // - download_asset(asset_json_url, asset_path);
   // - return asset_path
 
-  (void)assets_json_url_;
+  (void)asset_name;
   return {};
 }
 
