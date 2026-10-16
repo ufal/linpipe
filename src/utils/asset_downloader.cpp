@@ -62,7 +62,7 @@ void download_asset(std::string_view /*asset_json_url*/, std::string_view /*path
 
 } // namespace
 
-AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_view family) : assets_json_url_(assets_json_url), family_(family) {
+void AssetDownloader::make_cache_dir() {
   // 1. LINPIPE_<FAMILY>_DIR.
   std::string family_env = "LINPIPE_";
   for (char c : family_)
@@ -86,14 +86,20 @@ AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_v
   throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
 }
 
+AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_view family) : assets_json_url_(assets_json_url), family_(family) {}
+
 AssetDownloader::~AssetDownloader() = default;
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view /*asset_name*/) {
-  // 1. If !assets_json_, make assets_json_ from assets_json_url_.
-  // 2. Find asset_name in assets_json_, get asset_json_url and asset_path (under cache_dir_).
-  // 3. If asset_path already exists, return asset_path.
-  // 4. download_asset(asset_json_url, asset_path);
-  // 5. return asset_path
+  if (!assets_json_) {
+    make_cache_dir();
+    // Get assets_json_ from assets_json_url.
+  }
+
+  // - Find asset_name in assets_json_, get asset_json_url and asset_path (under cache_dir_).
+  // - If asset_path already exists, return asset_path.
+  // - download_asset(asset_json_url, asset_path);
+  // - return asset_path
 
   (void)assets_json_url_;
   return {};
