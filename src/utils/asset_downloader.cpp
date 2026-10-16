@@ -18,8 +18,6 @@ namespace linpipe {
 
 namespace {
 
-constexpr std::string_view assets_json_name = "assets.json";
-
 std::filesystem::path env_path(const std::string& name) {
   auto value = getenv_utf8(name.c_str());
   return value && !value->empty() ? path_from_utf8(*value) : std::filesystem::path();
@@ -49,24 +47,26 @@ std::filesystem::path system_cache_dir() {
 }
 
 std::filesystem::path determine_cache_dirname(std::string_view family) {
+  std::string family_dirname = fmt::format("{}s", family);  // "model" -> "models", "lib" -> "libs"
+
   // 1. LINPIPE_<FAMILY>_DIR.
   std::string family_env = "LINPIPE_";
-  for (char c : family)
+  for (char c : family_dirname)
     family_env += c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c;
   family_env += "_DIR";
   auto dir = env_path(family_env);
   if (!dir.empty())
     return dir;
 
-  // 2. LINPIPE_CACHE_DIR/<family>.
+  // 2. LINPIPE_CACHE_DIR/<family_dirname>.
   if (auto base = env_path("LINPIPE_CACHE_DIR"); !base.empty())
-    return base / path_from_utf8(family);
+    return base / path_from_utf8(family_dirname);
 
-  // 3. <system cache dir>/<family>.
+  // 3. <system cache dir>/<family_dirname>.
   if (auto base = system_cache_dir(); !base.empty())
-    return base / path_from_utf8(family);
+    return base / path_from_utf8(family_dirname);
 
-  throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
+  throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
 }
 
 void download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
@@ -90,7 +90,7 @@ AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_v
 
 const Json& AssetDownloader::assets_json() {
   if (!assets_json_) {
-    auto assets_json_path = cache_dir() / assets_json_name;
+    auto assets_json_path = cache_dir() / path_from_utf8(fmt::format("{}.json", family_));
 
     if (!offline_mode())
       download_to_file(assets_json_url_, path_to_utf8(assets_json_path));
