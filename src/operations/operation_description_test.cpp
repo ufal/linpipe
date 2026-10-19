@@ -157,7 +157,6 @@ TEST_CASE("OperationDescription::tokenize") {
   SUBCASE("does not treat single quotes specially") {
     CHECK(OperationDescription::tokenize("'a b'") == Tokens{"'a", "b'"});
   }
-
 }
 
 TEST_CASE("OperationDescription tokenize + parse_descriptions") {

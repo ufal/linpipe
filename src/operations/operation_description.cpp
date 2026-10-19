@@ -14,7 +14,7 @@ namespace linpipe {
 namespace {
 
 bool is_operation(std::string_view token) {
-  return token.size() > 1 && token[0] == '-' && token[1] != '-' && token[1] != '.' && !(token[1] >= '0' && token[1] <= '9');
+  return token.size() > 1 && token[0] == '-' && token[1] != '-' && token[1] != '.' && (token[1] < '0' || token[1] > '9');
 }
 
 } // namespace
@@ -58,20 +58,18 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
           throw LinpipeError{"OperationDescription::parse_descriptions: Value expected for argument '", token, "' in operation '-", description.operation, "'"};
 
         description.kwargs.insert_or_assign(std::string{token.substr(2)}, std::string{tokens[++i]});
-      }
-      else {
+      } else {
         if (eq == 2)
           throw LinpipeError{"OperationDescription::parse_descriptions: Argument name expected before '=' in '", token, "' in operation '-", description.operation, "'"};
 
         description.kwargs.insert_or_assign(std::string{token.substr(2, eq - 2)}, std::string{token.substr(eq + 1)});
       }
-    }
-    else
+    } else
       description.args.emplace_back(token);
   }
 
   return descriptions;
-  }
+}
 
 std::vector<std::string> OperationDescription::tokenize(std::string_view description) {
   std::vector<std::string> tokens;
@@ -85,19 +83,16 @@ std::vector<std::string> OperationDescription::tokenize(std::string_view descrip
     if (c == '\\' && i + 1 < description.size() && (description[i + 1] == '"' || description[i + 1] == '\\')) {
       token.push_back(description[++i]);
       in_token = true;
-    }
-    else if (c == '"') {
+    } else if (c == '"') {
       in_quotes = !in_quotes;
       in_token = true;
-    }
-    else if (!in_quotes && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
+    } else if (!in_quotes && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
       if (in_token) {
         tokens.push_back(std::move(token));
         token.clear();
         in_token = false;
       }
-    }
-    else {
+    } else {
       token.push_back(c);
       in_token = true;
     }
