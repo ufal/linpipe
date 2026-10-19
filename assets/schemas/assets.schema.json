@@ -17,6 +17,7 @@
         "minLength": 1
       },
       "additionalProperties": {
+        "$anchor": "entry",
         "type": "object",
         "properties": {
           "url": {
@@ -40,11 +41,9 @@
             "default": []
           }
         },
-        "required": ["url", "timestamp"],
-        "additionalProperties": false
+        "required": ["url", "timestamp"]
       }
     }
   },
-  "required": ["timestamp", "entries"],
-  "additionalProperties": false
+  "required": ["timestamp", "entries"]
 }
