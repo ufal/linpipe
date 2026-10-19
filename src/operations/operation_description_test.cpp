@@ -143,11 +143,13 @@ TEST_CASE("OperationDescription::tokenize") {
   }
 
   SUBCASE("handles escapes inside and outside quotes") {
-    CHECK(OperationDescription::tokenize(R"("say \"hi\"" "a\\b" a\"b)") == Tokens{"say \"hi\"", "a\\b", "a\"b"});
+    auto description = R"("say \"hi\"" "a\\b" a\"b)"sv;  // factored-out to sidestep VC++ escaped-strings-in-stringize bug
+    CHECK(OperationDescription::tokenize(description) == Tokens{"say \"hi\"", "a\\b", "a\"b"});
   }
 
   SUBCASE("keeps other backslashes literal") {
-    CHECK(OperationDescription::tokenize(R"(C:\dir "C:\dir" C:\dir\)") == Tokens{"C:\\dir", "C:\\dir", "C:\\dir\\"});
+    auto description = R"(C:\dir "C:\dir" C:\dir\)"sv;  // factored-out to sidestep VC++ escaped-strings-in-stringize bug
+    CHECK(OperationDescription::tokenize(description) == Tokens{"C:\\dir", "C:\\dir", "C:\\dir\\"});
   }
 
   SUBCASE("keeps empty quoted tokens") {
