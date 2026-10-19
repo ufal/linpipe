@@ -86,11 +86,19 @@ TEST_CASE("OperationDescription::parse_descriptions") {
     check_description(descriptions[0], "load", {"---", "---x", ""}, {});
   }
 
+  SUBCASE("accepts '-' (stdin) as positional argument and as value") {
+    auto descriptions = parse({"-load", "-", "--input", "-", "--output=-", "-save", "-"});
+    REQUIRE(descriptions.size() == 2);
+    check_description(descriptions[0], "load", {"-"}, {{"input", "-"}, {"output", "-"}});
+    check_description(descriptions[1], "save", {"-"}, {});
+  }
+
   SUBCASE("throws when the pipeline does not start with an operation") {
     CHECK_THROWS_AS(parse({"test.in", "-load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"--load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"--format", "text", "-load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"-1", "-load"}), LinpipeError);
+    CHECK_THROWS_AS(parse({"-", "-load"}), LinpipeError);
   }
 }
 

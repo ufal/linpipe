@@ -25,10 +25,6 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
   for (size_t i = 0; i < tokens.size(); i++) {
     std::string_view token = tokens[i];
 
-    if (token == "-") {
-      throw LinpipeError{"OperationDescription::parse_descriptions: Operation name expected after '-'"};
-    }
-
     if (is_operation(token)) {
       if (token.find('=') != std::string_view::npos) {
         throw LinpipeError{"OperationDescription::parse_descriptions: Operation name cannot contain '=' in '", token, "'; named arguments are written as '--name=value'"};
@@ -50,7 +46,7 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
     if (token.size() > 2 && token[0] == '-' && token[1] == '-' && token[2] != '-') {
       size_t eq = token.find('=');
       if (eq == std::string_view::npos) {
-        if (i + 1 >= tokens.size() || is_operation(tokens[i + 1]) || tokens[i + 1] == "-")
+        if (i + 1 >= tokens.size() || is_operation(tokens[i + 1]))
           throw LinpipeError{"OperationDescription::parse_descriptions: Value expected for argument '", token, "' in operation '-", description.operation, "'"};
         description.kwargs.insert_or_assign(std::string{token.substr(2)}, std::string{tokens[++i]});
       }
