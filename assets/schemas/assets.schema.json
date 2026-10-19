@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://linpipe.org/schemas/assets.schema.json",
   "title": "LinPipe Assets",
-  "description": "Base schema for timestamped indices of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config, described by a schema extending asset.schema.json (such as model.schema.json). This schema is not meant to be used on its own: concrete indices such as models.schema.json and libs.schema.json (and others to come) reference it and extend the per-asset entry by redefining the 'entry' dynamic anchor.",
+  "description": "Base schema for timestamped indices of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config. This schema is not meant to be used on its own: concrete indices such as models.schema.json and libs.schema.json (and others to come) reference it and extend the per-asset entry by redefining the 'entry' dynamic anchor.",
   "type": "object",
   "properties": {
     "timestamp": {
@@ -10,8 +10,8 @@
       "type": "string",
       "format": "date-time"
     },
-    "assets": {
-      "description": "Map of asset name to asset entry. Each key should equal the 'name' field of the linked config.",
+    "entries": {
+      "description": "Map of asset name to its index entry. Each key should equal the 'name' field of the linked config.",
       "type": "object",
       "propertyNames": {
         "minLength": 1
@@ -21,7 +21,7 @@
       }
     }
   },
-  "required": ["timestamp", "assets"],
+  "required": ["timestamp", "entries"],
   "$defs": {
     "entry": {
       "$dynamicAnchor": "entry",
@@ -39,12 +39,19 @@
           "format": "uri"
         },
         "timestamp": {
-          "$ref": "asset.schema.json#/properties/timestamp",
-          "description": "Copy of the 'timestamp' of the linked config."
+          "description": "Copy of the 'timestamp' of the linked config: when that config was generated (ISO 8601 date-time).",
+          "type": "string",
+          "format": "date-time"
         },
         "requirements": {
-          "$ref": "asset.schema.json#/properties/requirements",
-          "description": "Copy of the 'requirements' of the linked config."
+          "description": "Copy of the 'requirements' of the linked config: names of other assets that this asset depends on.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "default": []
         }
       },
       "required": ["url", "timestamp"]
