@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://linpipe.org/schemas/assets.schema.json",
   "title": "LinPipe Assets",
-  "description": "Base schema for timestamped indices of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config. This schema is not meant to be used on its own: concrete indices such as models.schema.json and libs.schema.json (and others to come) reference it and extend the per-asset entry by redefining the 'entry' dynamic anchor.",
+  "description": "A timestamped index of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config. Indices of specific asset kinds (such as models.schema.json) have the same structure with additional entry fields.",
   "type": "object",
   "properties": {
     "timestamp": {
@@ -17,44 +17,34 @@
         "minLength": 1
       },
       "additionalProperties": {
-        "$dynamicRef": "#entry"
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "Link to the asset's JSON config.",
+            "type": "string",
+            "format": "uri"
+          },
+          "timestamp": {
+            "description": "Copy of the 'timestamp' of the linked config: when that config was generated (ISO 8601 date-time).",
+            "type": "string",
+            "format": "date-time"
+          },
+          "requirements": {
+            "description": "Copy of the 'requirements' of the linked config: names of other assets that this asset depends on.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "default": []
+          }
+        },
+        "required": ["url", "timestamp"],
+        "additionalProperties": false
       }
     }
   },
   "required": ["timestamp", "entries"],
-  "$defs": {
-    "entry": {
-      "$dynamicAnchor": "entry",
-      "description": "Entry of a plain asset index: the base fields only.",
-      "$ref": "#/$defs/assetEntry",
-      "unevaluatedProperties": false
-    },
-    "assetEntry": {
-      "description": "Fields every index entry has.",
-      "type": "object",
-      "properties": {
-        "url": {
-          "description": "Link to the asset's JSON config.",
-          "type": "string",
-          "format": "uri"
-        },
-        "timestamp": {
-          "description": "Copy of the 'timestamp' of the linked config: when that config was generated (ISO 8601 date-time).",
-          "type": "string",
-          "format": "date-time"
-        },
-        "requirements": {
-          "description": "Copy of the 'requirements' of the linked config: names of other assets that this asset depends on.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true,
-          "default": []
-        }
-      },
-      "required": ["url", "timestamp"]
-    }
-  }
+  "additionalProperties": false
 }

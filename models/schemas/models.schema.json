@@ -3,41 +3,73 @@
   "$id": "https://linpipe.org/schemas/models.schema.json",
   "title": "LinPipe Models",
   "description": "A timestamped index of available LinPipe models, keyed by model name. Same structure as assets.schema.json; each entry additionally summarizes the model-specific fields of its config.",
-  "$ref": "assets.schema.json",
-  "unevaluatedProperties": false,
-  "$defs": {
-    "entry": {
-      "$dynamicAnchor": "entry",
-      "description": "Entry of a model index: the base asset entry plus model summary fields, nothing else allowed.",
-      "$ref": "assets.schema.json#/$defs/assetEntry",
-      "properties": {
-        "family": {
-          "description": "Copy of the 'family' of the linked config: the model family this model belongs to.",
-          "type": "string",
-          "minLength": 1
-        },
-        "languages": {
-          "description": "Copy of the 'languages' of the linked config: languages the model supports.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true,
-          "minItems": 1
-        },
-        "operations": {
-          "description": "Copy of the 'operations' of the linked config: kinds of operations the model can respond to.",
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true,
-          "minItems": 1
-        }
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this index was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "entries": {
+      "description": "Map of model name to its index entry. Each key should equal the 'name' field of the linked config.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
       },
-      "unevaluatedProperties": false
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "Link to the model's JSON config.",
+            "type": "string",
+            "format": "uri"
+          },
+          "timestamp": {
+            "description": "Copy of the 'timestamp' of the linked config: when that config was generated (ISO 8601 date-time).",
+            "type": "string",
+            "format": "date-time"
+          },
+          "requirements": {
+            "description": "Copy of the 'requirements' of the linked config: names of other assets that this model depends on.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "default": []
+          },
+          "family": {
+            "description": "Copy of the 'family' of the linked config: the model family this model belongs to.",
+            "type": "string",
+            "minLength": 1
+          },
+          "languages": {
+            "description": "Copy of the 'languages' of the linked config: languages the model supports.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "operations": {
+            "description": "Copy of the 'operations' of the linked config: kinds of operations the model can respond to.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          }
+        },
+        "required": ["url", "timestamp"],
+        "additionalProperties": false
+      }
     }
-  }
+  },
+  "required": ["timestamp", "entries"],
+  "additionalProperties": false
 }
