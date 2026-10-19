@@ -18,7 +18,7 @@ namespace linpipe {
 
 class AssetDownloader {
  public:
-  AssetDownloader(std::string_view assets_json_url, std::string_view family);
+  AssetDownloader(std::string assets_json_url, std::string family);
 
   // Lazy accessors
   const Json& assets_json();
@@ -26,16 +26,18 @@ class AssetDownloader {
   bool offline_mode();
 
   // Non-commital, offline, non-downloading, non-throwing asset getter
-  std::optional<std::filesystem::path> get_downloaded_asset(std::string_view asset_name);
+  std::optional<std::filesystem::path> get_downloaded_asset(std::string_view asset_name) noexcept;
 
   std::filesystem::path get_asset(std::string_view asset_name);
 
  private:
   std::string assets_json_url_;
   std::string family_;  // "model", "lib"
+
+  // Lazily initialized, guarded by mutex_.
+  std::mutex mutex_;
   std::optional<std::filesystem::path> cache_dir_;
   std::optional<Json> assets_json_;
-  std::mutex mutex_;
   std::optional<bool> offline_mode_;
 };
 

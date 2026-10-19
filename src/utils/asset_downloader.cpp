@@ -18,32 +18,32 @@ namespace linpipe {
 
 namespace {
 
-std::filesystem::path env_path(const std::string& name) {
+std::optional<std::filesystem::path> env_path(const std::string& name) {
   auto value = getenv_utf8(name.c_str());
-  return value && !value->empty() ? path_from_utf8(*value) : std::filesystem::path();
+  if (!value || value->empty()) return std::nullopt;
+  return path_from_utf8(*value);
 }
 
-std::filesystem::path system_cache_dir() {
-  std::filesystem::path base;
+std::optional<std::filesystem::path> system_cache_dir() {
 
 #ifdef WIN32
-  base = env_path("LOCALAPPDATA");
-  if (base.empty()) {
-    auto profile = env_path("USERPROFILE");
-    if (!profile.empty()) base = profile / "AppData" / "Local";
+  auto base = env_path("LOCALAPPDATA");
+  if (!base) {
+    if (auto profile = env_path("USERPROFILE")) base = *profile / "AppData" / "Local";
   }
 #elif defined(__APPLE__)
-  auto home = env_path("HOME");
-  if (!home.empty()) base = home / "Library" / "Caches";
+  std::optional<std::filesystem::path> base;
+  if (auto home = env_path("HOME")) base = *home / "Library" / "Caches";
 #else
-  base = env_path("XDG_CACHE_HOME");
-  if (base.empty() || base.is_relative()) {
-    auto home = env_path("HOME");
-    base = home.empty() ? std::filesystem::path() : home / ".cache";
+  auto base = env_path("XDG_CACHE_HOME");
+  if (!base || base->is_relative()) {
+    base.reset();
+    if (auto home = env_path("HOME")) base = *home / ".cache";
   }
 #endif
 
-  return base.empty() ? base : base / "linpipe";
+  if (base) *base /= "linpipe";
+  return base;
 }
 
 std::filesystem::path determine_cache_dirname(std::string_view family) {
@@ -54,26 +54,25 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   for (char c : family_dirname)
     family_env += c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c;
   family_env += "_DIR";
-  auto dir = env_path(family_env);
-  if (!dir.empty())
-    return dir;
+  if (auto dir = env_path(family_env))
+    return *dir;
 
   // 2. LINPIPE_CACHE_DIR/<family_dirname>.
-  if (auto base = env_path("LINPIPE_CACHE_DIR"); !base.empty())
-    return base / path_from_utf8(family_dirname);
+  if (auto base = env_path("LINPIPE_CACHE_DIR"))
+    return *base / path_from_utf8(family_dirname);
 
   // 3. <system cache dir>/<family_dirname>.
-  if (auto base = system_cache_dir(); !base.empty())
-    return base / path_from_utf8(family_dirname);
+  if (auto base = system_cache_dir())
+    return *base / path_from_utf8(family_dirname);
 
   throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
 }
 
-void download_to_file(std::string_view /*file_url*/, std::string_view /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
+void download_to_file(std::string_view /*file_url*/, const std::filesystem::path& /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
 }
 
 [[maybe_unused]]
-void download_asset(std::string_view /*asset_json_url*/, std::string_view /*path*/) {
+void download_asset(std::string_view /*asset_json_url*/, const std::filesystem::path& /*path*/) {
     // Downloads the entire asset:
     // 1. Opens/creates path.lock and locks it exclusively (never delete it).
     // 2. If path/ exists, another thread/process already finished; unlock and return.
@@ -86,14 +85,14 @@ void download_asset(std::string_view /*asset_json_url*/, std::string_view /*path
 
 } // namespace
 
-AssetDownloader::AssetDownloader(std::string_view assets_json_url, std::string_view family) : assets_json_url_(assets_json_url), family_(family) {}
+AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family) : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
 
 const Json& AssetDownloader::assets_json() {
   if (!assets_json_) {
     auto assets_json_path = cache_dir() / path_from_utf8(fmt::format("{}.json", family_));
 
     if (!offline_mode())
-      download_to_file(assets_json_url_, path_to_utf8(assets_json_path));
+      download_to_file(assets_json_url_, assets_json_path);
 
     std::ifstream is(assets_json_path);
     if (!is.is_open())
@@ -126,17 +125,24 @@ const std::filesystem::path& AssetDownloader::cache_dir() {
 }
 
 bool AssetDownloader::offline_mode() {
-  // TODO
-
+  std::scoped_lock lock(mutex_);
+  if (!offline_mode_) {
+    auto value = getenv_utf8("LINPIPE_OFFLINE");
+    offline_mode_ = value && !value->empty() && *value != "0";
+  }
   return *offline_mode_;
 }
 
-std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view /*asset_name*/) {
-  // TODO: Check if dir exists.
-  // TODO: Read json, check files and file sizes (not sha256, too expensive).
-  // TODO: Return path.
-
-  return {};
+std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) noexcept {
+  try {
+    auto asset_dir = cache_dir() / path_from_utf8(asset_name);
+    std::error_code ec;
+    if (!std::filesystem::is_directory(asset_dir, ec)) return std::nullopt;
+    // TODO: Read json, check files and file sizes (not sha256, too expensive).
+    return asset_dir;
+  } catch (...) {
+    return std::nullopt;
+  }
 }
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
@@ -148,7 +154,7 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
     throw LinpipeError{"Cannot download missing asset in offline mode: ", asset_name};
 
   // const auto& assets = assets_json();
-  auto asset_dir = cache_dir() / asset_name;
+  auto asset_dir = cache_dir() / path_from_utf8(asset_name);
 
   // - Find asset_name in assets, get corresponding asset_json_url.
   // - download_asset(asset_json_url, asset_dir);
