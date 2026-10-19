@@ -93,12 +93,32 @@ TEST_CASE("OperationDescription::parse_descriptions") {
     check_description(descriptions[1], "save", {"-"}, {});
   }
 
+  SUBCASE("treats all tokens after '--' as positional arguments") {
+    auto descriptions = parse({"-load", "--format", "text", "in.txt", "--", "-save", "--format=lif", "-", "--", "-1"});
+    REQUIRE(descriptions.size() == 1);
+    check_description(descriptions[0], "load", {"in.txt", "-save", "--format=lif", "-", "--", "-1"}, {{"format", "text"}});
+  }
+
+  SUBCASE("accepts '--' at the end of the pipeline") {
+    auto descriptions = parse({"-load", "in.txt", "--"});
+    REQUIRE(descriptions.size() == 1);
+    check_description(descriptions[0], "load", {"in.txt"}, {});
+  }
+
+  SUBCASE("accepts '--' as a value of a named argument") {
+    auto descriptions = parse({"-load", "--separator", "--", "-save"});
+    REQUIRE(descriptions.size() == 2);
+    check_description(descriptions[0], "load", {}, {{"separator", "--"}});
+    check_description(descriptions[1], "save", {}, {});
+  }
+
   SUBCASE("throws when the pipeline does not start with an operation") {
     CHECK_THROWS_AS(parse({"test.in", "-load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"--load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"--format", "text", "-load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"-1", "-load"}), LinpipeError);
     CHECK_THROWS_AS(parse({"-", "-load"}), LinpipeError);
+    CHECK_THROWS_AS(parse({"--", "-load"}), LinpipeError);
   }
 }
 

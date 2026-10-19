@@ -21,9 +21,16 @@ bool is_operation(std::string_view token) {
 
 std::vector<OperationDescription> OperationDescription::parse_descriptions(std::span<const std::string_view> tokens) {
   std::vector<OperationDescription> descriptions;
+  bool only_positional = false;
 
   for (size_t i = 0; i < tokens.size(); i++) {
     std::string_view token = tokens[i];
+
+    // after "--", all remaining tokens are positional arguments of the current operation
+    if (only_positional) {
+      descriptions.back().args.emplace_back(token);
+      continue;
+    }
 
     if (is_operation(token)) {
       if (token.find('=') != std::string_view::npos) {
@@ -39,7 +46,8 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
     OperationDescription& description = descriptions.back();
 
     if (token == "--") {
-      throw LinpipeError{"OperationDescription::parse_descriptions: Argument name expected after '--' in operation '-", description.operation, "'"};
+      only_positional = true;
+      continue;
     }
 
     // named argument
