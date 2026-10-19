@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linpipe.org/schemas/models.schema.json",
+  "title": "LinPipe Models",
+  "description": "A timestamped index of available LinPipe models, keyed by model name. Same structure as assets.schema.json; each entry additionally summarizes the model-specific fields of its config (model.schema.json).",
+  "$ref": "assets.schema.json",
+  "unevaluatedProperties": false,
+  "$defs": {
+    "entry": {
+      "$dynamicAnchor": "entry",
+      "description": "Entry of a model index: the base asset entry plus model summary fields, nothing else allowed.",
+      "$ref": "assets.schema.json#/$defs/assetEntry",
+      "properties": {
+        "family": {
+          "$ref": "model.schema.json#/properties/family"
+        },
+        "languages": {
+          "$ref": "model.schema.json#/properties/languages"
+        },
+        "operations": {
+          "$ref": "model.schema.json#/properties/operations"
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}

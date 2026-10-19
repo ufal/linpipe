@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linpipe.org/schemas/assets.schema.json",
+  "title": "LinPipe Assets",
+  "description": "Base schema for timestamped indices of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config, described by a schema extending asset.schema.json (such as model.schema.json). This schema is not meant to be used on its own: concrete indices such as models.schema.json and libs.schema.json (and others to come) reference it and extend the per-asset entry by redefining the 'entry' dynamic anchor.",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this index was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "assets": {
+      "description": "Map of asset name to asset entry. Each key should equal the 'name' field of the linked config.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$dynamicRef": "#entry"
+      }
+    }
+  },
+  "required": ["timestamp", "assets"],
+  "$defs": {
+    "entry": {
+      "$dynamicAnchor": "entry",
+      "description": "Entry of a plain asset index: the base fields only.",
+      "$ref": "#/$defs/assetEntry",
+      "unevaluatedProperties": false
+    },
+    "assetEntry": {
+      "description": "Fields every index entry has.",
+      "type": "object",
+      "properties": {
+        "url": {
+          "description": "Link to the asset's JSON config.",
+          "type": "string",
+          "format": "uri"
+        },
+        "timestamp": {
+          "$ref": "asset.schema.json#/properties/timestamp",
+          "description": "Copy of the 'timestamp' of the linked config."
+        },
+        "requirements": {
+          "$ref": "asset.schema.json#/properties/requirements",
+          "description": "Copy of the 'requirements' of the linked config."
+        }
+      },
+      "required": ["url", "timestamp"]
+    }
+  }
+}
