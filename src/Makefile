@@ -76,6 +76,12 @@ reformat/%: FORCE
 check: style lint
 check/%: style/% lint/% ;
 
+# Generating list of sources for bindings
+.PHONY: sources
+sources:
+	$(foreach obj,$(LINPIPE_OBJECTS),$(info $(firstword $(wildcard $(obj).cpp $(obj).c))))
+	@exit 0
+
 # Cleaning
 .PHONY: clean
 clean:
