@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linpipe.org/schemas/assets.schema.json",
+  "title": "LinPipe Assets",
+  "description": "A timestamped index of available LinPipe assets, keyed by asset name. Each entry summarizes one asset and links to its full config. Indices of specific asset kinds (such as models.schema.json) have the same structure with additional entry fields.",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "description": "When this index was generated (ISO 8601 date-time).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "entries": {
+      "description": "Map of asset name to its index entry. Each key should equal the 'name' field of the linked config.",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "$anchor": "entry",
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "Link to the asset's JSON config.",
+            "type": "string",
+            "format": "uri"
+          },
+          "timestamp": {
+            "description": "Copy of the 'timestamp' of the linked config: when that config was generated (ISO 8601 date-time).",
+            "type": "string",
+            "format": "date-time"
+          },
+          "requirements": {
+            "description": "Copy of the 'requirements' of the linked config: names of other assets that this asset depends on.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "default": []
+          }
+        },
+        "required": ["url", "timestamp"]
+      }
+    }
+  },
+  "required": ["timestamp", "entries"]
+}

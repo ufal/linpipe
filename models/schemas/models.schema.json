@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linpipe.org/schemas/models.schema.json",
+  "title": "LinPipe Models",
+  "description": "A timestamped index of available LinPipe models, keyed by model name. Same structure as assets.schema.json; each entry additionally summarizes the model-specific fields of its config.",
+  "allOf": [
+    { "$ref": "assets.schema.json" }
+  ],
+  "properties": {
+    "entries": {
+      "additionalProperties": {
+        "$ref": "assets.schema.json#entry",
+        "properties": {
+          "family": {
+            "description": "Copy of the 'family' of the linked config: the model family this model belongs to.",
+            "type": "string",
+            "minLength": 1
+          },
+          "languages": {
+            "description": "Copy of the 'languages' of the linked config: languages the model supports.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "operations": {
+            "description": "Copy of the 'operations' of the linked config: kinds of operations the model can respond to.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          }
+        },
+        "required": ["family"],
+        "unevaluatedProperties": false
+      }
+    }
+  },
+  "unevaluatedProperties": false
+}
