@@ -32,7 +32,7 @@ $(call lib,liblinpipe): $(call obj,$(LINPIPE_OBJECTS))
 $(call obj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
 	$(filter-out -std=% -stdlib=% /std:%,$(call compile,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
 ifneq ($(call dynobj,%),$(call obj,%))
-$(call dynobj,%): $$(call builtem_demangle,$$*).cpp $$(COMPILE_DEPS) | .build
+$(call dynobj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
 	$(filter-out -std=% -stdlib=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
 endif
 
