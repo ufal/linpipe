@@ -30,15 +30,16 @@ class AssetDownloader {
 
   std::filesystem::path get_asset(std::string_view asset_name);
 
+
  private:
   std::string assets_json_url_;
   std::string family_;  // "model", "lib"
 
-  // Lazily initialized, guarded by mutex_.
-  std::mutex mutex_;
+  // Lazily initialized
   std::optional<std::filesystem::path> cache_dir_;
   std::optional<Json> assets_json_;
   std::optional<bool> offline_mode_;
+  std::once_flag assets_json_once_, cache_dir_once_, offline_mode_once_;
 };
 
 } // namespace linpipe
