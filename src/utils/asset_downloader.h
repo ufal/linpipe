@@ -30,15 +30,14 @@ class AssetDownloader {
 
   std::filesystem::path get_asset(std::string_view asset_name);
 
-
  private:
   std::string assets_json_url_;
   std::string family_;  // "model", "lib"
 
   // Lazily initialized
-  std::optional<std::filesystem::path> cache_dir_;
-  std::optional<Json> assets_json_;
-  std::optional<bool> offline_mode_;
+  std::filesystem::path cache_dir_;
+  Json assets_json_;
+  bool offline_mode_ = false;
   std::once_flag assets_json_once_, cache_dir_once_, offline_mode_once_;
 };
 

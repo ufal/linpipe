@@ -94,7 +94,7 @@ const Json& AssetDownloader::assets_json() {
       download_to_file(assets_json_url_, path);
     assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
   });
-  return *assets_json_;
+  return assets_json_;
 }
 
 const std::filesystem::path& AssetDownloader::cache_dir() {
@@ -106,7 +106,7 @@ const std::filesystem::path& AssetDownloader::cache_dir() {
       throw LinpipeError{"AssetDownloader: Cannot create cache directory ", path_to_utf8(dirname)};
     cache_dir_ = std::move(dirname);
   });
-  return *cache_dir_;
+  return cache_dir_;
 }
 
 bool AssetDownloader::offline_mode() {
@@ -114,7 +114,7 @@ bool AssetDownloader::offline_mode() {
     auto value = getenv_utf8("LINPIPE_OFFLINE");
     offline_mode_ = value && !value->empty() && *value != "0";
   });
-  return *offline_mode_;
+  return offline_mode_;
 }
 
 std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) {
