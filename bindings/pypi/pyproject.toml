@@ -1,0 +1,39 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "linpipe"
+version = "0.9.0-a0"
+authors = [
+  { name="Milan Straka", email="straka@ufal.mff.cuni.cz"},
+  { name="Jana Straková", email="strakova@ufal.mff.cuni.cz"},
+]
+description = "LinPipe: Multilingual Processing Tool"
+readme = "README.md"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: C++",
+  "Programming Language :: Python",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering",
+]
+requires-python = ">= 3.11"
+
+[project.urls]
+Homepage = "https://linpipe.org"
+Repository = "https://github.com/ufal/linpipe"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = ">=3.21"
+build-dir = "build/{wheel_tag}"
+sdist.exclude = ["/venv/", ".gitignore"]
+sdist.include = ["/linpipe/__init__.py", "/linpipe/__init__.pyi", "/linpipe/py.typed", "/src/", "/CMakeLists.sources"]
+wheel.packages = ["linpipe"]
