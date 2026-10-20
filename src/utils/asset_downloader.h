@@ -25,8 +25,8 @@ class AssetDownloader {
   const std::filesystem::path& cache_dir();
   bool offline_mode();
 
-  // Non-commital, offline, non-downloading, non-throwing asset getter
-  std::optional<std::filesystem::path> get_downloaded_asset(std::string_view asset_name) noexcept;
+  // Non-commital, offline, non-downloading asset getter
+  std::optional<std::filesystem::path> get_downloaded_asset(std::string_view asset_name);
 
   std::filesystem::path get_asset(std::string_view asset_name);
 
