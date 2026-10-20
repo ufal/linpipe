@@ -88,45 +88,32 @@ void download_asset(std::string_view /*asset_json_url*/, const std::filesystem::
 AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family) : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
 
 const Json& AssetDownloader::assets_json() {
-  if (!assets_json_) {
-    auto assets_json_path = cache_dir() / path_from_utf8(fmt::format("{}.json", family_));
-
+  std::call_once(assets_json_once_, [this] {
+    auto path = cache_dir() / path_from_utf8(fmt::format("{}.json", family_));
     if (!offline_mode())
-      download_to_file(assets_json_url_, assets_json_path);
-
-    {
-      Json assets_json = json_parse_path("AssetDownloader::AssetDownloader", assets_json_path);
-      std::scoped_lock lock(mutex_);
-      assets_json_ = std::move(assets_json);
-    }
-  }
-
+      download_to_file(assets_json_url_, path);
+    assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
+  });
   return *assets_json_;
 }
 
 const std::filesystem::path& AssetDownloader::cache_dir() {
-  if (!cache_dir_) {
-    std::scoped_lock lock(mutex_);
-
+  std::call_once(cache_dir_once_, [this] {
     auto dirname = determine_cache_dirname(family_);
-
     std::error_code ec;
     std::filesystem::create_directories(dirname, ec);
     if (ec || !std::filesystem::is_directory(dirname, ec))
       throw LinpipeError{"AssetDownloader: Cannot create cache directory ", path_to_utf8(dirname)};
-
-    cache_dir_ = dirname;
-  }
-
+    cache_dir_ = std::move(dirname);
+  });
   return *cache_dir_;
 }
 
 bool AssetDownloader::offline_mode() {
-  std::scoped_lock lock(mutex_);
-  if (!offline_mode_) {
+  std::call_once(offline_mode_once_, [this] {
     auto value = getenv_utf8("LINPIPE_OFFLINE");
     offline_mode_ = value && !value->empty() && *value != "0";
-  }
+  });
   return *offline_mode_;
 }
 
