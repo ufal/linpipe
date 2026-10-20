@@ -12,6 +12,7 @@
 #include "lib/json/json.h"
 #include "utils/asset_downloader.h"
 #include "utils/getenv_utf8.h"
+#include "utils/json_utils.h"
 #include "utils/path_utf8.h"
 
 namespace linpipe {
@@ -25,7 +26,6 @@ std::optional<std::filesystem::path> env_path(const std::string& name) {
 }
 
 std::optional<std::filesystem::path> system_cache_dir() {
-
 #ifdef WIN32
   auto base = env_path("LOCALAPPDATA");
   if (!base) {
@@ -94,13 +94,10 @@ const Json& AssetDownloader::assets_json() {
     if (!offline_mode())
       download_to_file(assets_json_url_, assets_json_path);
 
-    std::ifstream is(assets_json_path);
-    if (!is.is_open())
-      throw LinpipeError{"AssetDownloader::assets_json: Cannot find ", path_to_utf8(assets_json_path)};
-
     {
+      Json assets_json = json_parse_path("AssetDownloader::AssetDownloader", assets_json_path);
       std::scoped_lock lock(mutex_);
-      assets_json_ = Json::parse(is); // TODO: Replace with json_utils from PR
+      assets_json_ = std::move(assets_json);
     }
   }
 
@@ -133,16 +130,12 @@ bool AssetDownloader::offline_mode() {
   return *offline_mode_;
 }
 
-std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) noexcept {
-  try {
-    auto asset_dir = cache_dir() / path_from_utf8(asset_name);
-    std::error_code ec;
-    if (!std::filesystem::is_directory(asset_dir, ec)) return std::nullopt;
-    // TODO: Read json, check files and file sizes (not sha256, too expensive).
-    return asset_dir;
-  } catch (...) {
-    return std::nullopt;
-  }
+std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) {
+  auto asset_dir = cache_dir() / path_from_utf8(asset_name);
+  std::error_code ec;
+  if (!std::filesystem::is_directory(asset_dir, ec)) return std::nullopt;
+  // TODO: Read json, check files and file sizes (not sha256, too expensive).
+  return asset_dir;
 }
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
