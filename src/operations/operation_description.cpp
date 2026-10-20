@@ -36,7 +36,7 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
       if (token.find('=') != std::string_view::npos)
         throw LinpipeError{"OperationDescription::parse_descriptions: Operation name cannot contain '=' in '", token, "'; named arguments are written as '--name=value'"};
 
-      descriptions.push_back({.operation = std::string{token.substr(1)}, .args = {}, .kwargs = {}});
+      descriptions.emplace_back(std::string{token.substr(1)});
       continue;
     }
 
