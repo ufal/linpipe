@@ -1,0 +1,83 @@
+name: Build PyPI
+
+on:
+  push:
+    branches:
+      - build-python
+      - build-python-testpypi
+      - build-python-full
+      - build-python-full-pypi
+      - build-python-full-testpypi
+
+jobs:
+  sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx install swig==4.5.1
+      - run: make -C bindings/pypi prepare
+      - run: pipx run build --sdist
+        working-directory: bindings/pypi
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: bindings/pypi/dist/*.tar.gz
+
+  wheels:
+    needs: sdist
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-26.04-arm
+          - windows-latest
+          - windows-11-arm
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: sdist
+          path: sdist
+
+      - id: sdist
+        shell: bash
+        run: echo "path=$(ls sdist/*.tar.gz)" >> "$GITHUB_OUTPUT"
+
+      - uses: pypa/cibuildwheel@v4.3.1
+        with:
+          package-dir: ${{ steps.sdist.outputs.path }}
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: ${{ startsWith(github.ref_name, 'build-python-full') && 'cp3*' || 'cp314-*' }}
+          CIBW_SKIP: ${{ !startsWith(github.ref_name, 'build-python-full') && '*-musllinux_*' || '' }}
+          CIBW_ARCHS: native
+          CIBW_ENVIRONMENT: CMAKE_BUILD_PARALLEL_LEVEL=4
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  publish:
+    needs: [sdist, wheels]
+    if: endsWith(github.ref_name, 'pypi')
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ endsWith(github.ref_name, 'testpypi') && 'testpypi' || 'pypi' }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+
+      - run: ls -l dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ endsWith(github.ref_name, 'testpypi') && 'https://test.pypi.org/legacy/' || 'https://upload.pypi.org/legacy/' }}
+          skip-existing: ${{ endsWith(github.ref_name, 'testpypi') }}
