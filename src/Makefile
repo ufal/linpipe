@@ -9,6 +9,7 @@
 
 CPP_STANDARD = c++20
 include Makefile.builtem
+include Makefile.include
 
 # Targets
 .PHONY: default lib test_compile test all
@@ -18,21 +19,6 @@ test_compile: $(call exe,linpipe_test)
 test: test_compile
 	$(call platform_name,./$(call exe,linpipe_test)) $(if $(CI),-fc)
 all: default lib test_compile
-
-# Compilation flags
-C_FLAGS := $(patsubst -O3,-O2,$(C_FLAGS))
-C_FLAGS += $(call include_dir,.)
-C_FLAGS += $(treat_warnings_as_errors)
-C_FLAGS += $(if $(filter release,$(MODE)),$(disable_assert))
-C_FLAGS += $(and $(CI),$(findstring -gcc-,$(PLATFORM))$(findstring -clang-,$(PLATFORM)),-fdiagnostics-color=always)
-LD_FLAGS += $(use_threads)
-LD_FLAGS += $(if $(filter win-vs-%,$(PLATFORM)),$(foreach lib,advapi32 bcrypt user32 ws2_32,$(call use_library,$(lib))))
-LD_FLAGS += $(if $(filter macos-%,$(PLATFORM)),-framework CoreFoundation -framework Security)
-
-# Collect all Makefile.include files
-LINPIPE_OBJECTS =
-LINPIPE_TESTS =
-include $(wildcard Makefile.include */Makefile.include */*/Makefile.include)
 
 # Main targets
 $(call exe,linpipe): $(call obj,linpipe $(LINPIPE_OBJECTS) utils/win_wmain_utf8)
