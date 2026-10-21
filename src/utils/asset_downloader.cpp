@@ -129,15 +129,21 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
     auto file_name = json_extract_key<std::string>(caller, file, "name");
     auto file_path = asset_dir / path_from_utf8(file_name);
 
-    if (!std::filesystem::is_regular_file(file_path)) // TODO: throw or return nullopt?
-      throw LinpipeError{caller, ": missing file ", file_name, " of asset ", asset_name};
+    if (!std::filesystem::is_regular_file(file_path)) {
+      LOG(ERROR, fmt::format("{}: missing file {} of asset {}", caller, file_name, asset_name));
+      return std::nullopt;
+    }
 
     auto expected_size = json_extract_key<uint64_t>(caller, file, "size");
     auto actual_size = std::filesystem::file_size(file_path, ec);
-    if (ec) // TODO throw or return nullopt?
-      throw LinpipeError{caller, ": cannot get size of file ", file_name, " of asset ", asset_name};
-    if (actual_size != expected_size) // TODO: throw or return nullopt?
-      throw LinpipeError{caller, ": file ", file_name, " of asset ", asset_name, " has size ", std::to_string(actual_size), " instead of ", std::to_string(expected_size)};
+    if (ec) {
+      LOG(ERROR, fmt::format("{}: cannot get size of file {} of asset {}", caller, file_name, asset_name));
+      return std::nullopt;
+    }
+    if (actual_size != expected_size) {
+      LOG(ERROR, fmt::format("{}: file {} of asset {} has size {} instead of {}", caller, file_name, asset_name, actual_size, expected_size));
+      return std::nullopt;
+    }
   }
 
   return asset_dir;
