@@ -71,7 +71,6 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
 void download_to_file(std::string_view /*file_url*/, const std::filesystem::path& /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
 }
 
-[[maybe_unused]]
 void download_asset(std::string_view /*asset_json_url*/, const std::filesystem::path& /*path*/) {
     // Downloads the entire asset:
     // 1. Opens/creates path.lock and locks it exclusively (never delete it).
@@ -155,15 +154,25 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
   }
 
   if (offline_mode())
-    throw LinpipeError{"Cannot download missing asset in offline mode: ", asset_name};
+    throw LinpipeError{"AssetDownloader::get_asset: Cannot download missing asset in offline mode: ", asset_name};
 
-  // const auto& assets = assets_json();
+  constexpr std::string_view caller = "AssetDownloader::get_asset";
+  const auto& entries = json_get_object(caller, assets_json(), "entries");
+  auto entry = entries.find(asset_name);
+  if (entry == entries.end())
+    throw LinpipeError{caller, ": Unknown ", family_, " ", asset_name};
+
+  const auto& asset_json_url = json_get_key(caller, *entry, "url");
+  if (!asset_json_url.is_string())
+    throw LinpipeError{caller, ": The url of ", family_, " ", asset_name, " is not a string"};
+
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
+  download_asset(asset_json_url.get_ref<const std::string&>(), asset_dir);
 
-  // - Find asset_name in assets, get corresponding asset_json_url.
-  // - download_asset(asset_json_url, asset_dir);
+  if (auto path = get_downloaded_asset(asset_name); path)
+    return path.value();
 
-  return asset_dir;
+  throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(asset_dir), " is not valid"};
 }
 
 } // namespace linpipe
