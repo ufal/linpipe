@@ -93,10 +93,11 @@ TEST_CASE("OperationDescription::parse_descriptions") {
     check_description(descriptions[1], "save", {"-"}, {});
   }
 
-  SUBCASE("treats all tokens after '--' as positional arguments") {
-    auto descriptions = parse({"-load", "--format", "text", "in.txt", "--", "-save", "--format=lif", "-", "--", "-1"});
-    REQUIRE(descriptions.size() == 1);
-    check_description(descriptions[0], "load", {"in.txt", "-save", "--format=lif", "-", "--", "-1"}, {{"format", "text"}});
+  SUBCASE("treats tokens between '--' and '--' as positional arguments") {
+    auto descriptions = parse({"-load", "--format", "text", "in.txt", "--", "-save", "--format=lif", "-", "-1", "--", "--batch_size", "32", "-save", "--format=lif", "out.txt"});
+    REQUIRE(descriptions.size() == 2);
+    check_description(descriptions[0], "load", {"in.txt", "-save", "--format=lif", "-", "-1"}, {{"format", "text"}, {"batch_size", "32"}});
+    check_description(descriptions[1], "save", {"out.txt"}, {{"format", "lif"}});
   }
 
   SUBCASE("accepts '--' at the end of the pipeline") {

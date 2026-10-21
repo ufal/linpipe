@@ -26,9 +26,12 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
   for (size_t i = 0; i < tokens.size(); i++) {
     std::string_view token = tokens[i];
 
-    // after "--", all remaining tokens are positional arguments of the current operation
+    // "--" toggles a mode in which all tokens are positional arguments of the current operation
     if (only_positional) {
-      descriptions.back().args.emplace_back(token);
+      if (token == "--")
+        only_positional = false;
+      else
+        descriptions.back().args.emplace_back(token);
       continue;
     }
 
