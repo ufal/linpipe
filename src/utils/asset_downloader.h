@@ -11,6 +11,7 @@
 
 #include <filesystem>
 #include <mutex>
+#include <set>
 
 #include "common.h"
 
@@ -31,6 +32,11 @@ class AssetDownloader {
   std::filesystem::path get_asset(std::string_view asset_name);
 
  private:
+  static constexpr size_t max_requirements_depth = 16;
+
+  std::filesystem::path get_asset(std::string_view asset_name, std::vector<std::string>& stack, std::set<std::string, std::less<>>& done);
+  std::filesystem::path get_single_asset(std::string_view asset_name);
+
   std::string assets_json_url_;
   std::string family_;  // "model", "lib"
 

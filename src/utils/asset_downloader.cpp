@@ -7,6 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
 #include <fstream>
 
 #include "lib/json/json.h"
@@ -149,6 +150,41 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
 }
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
+  std::vector<std::string> stack;
+  std::set<std::string, std::less<>> done;  // resolved, including deps
+  return get_asset(asset_name, stack, done);
+}
+
+std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, std::vector<std::string>& stack, std::set<std::string, std::less<>>& done) {
+  constexpr std::string_view caller = "AssetDownloader::get_asset";
+
+  if (done.contains(asset_name))  // resolved, including deps
+    return cache_dir() / path_from_utf8(asset_name);
+
+  if (auto it = std::ranges::find(stack, asset_name); it != stack.end())
+    throw LinpipeError{caller, ": Circular requirements of ", family_, " ", asset_name, ": ", fmt::format("{} -> {}", fmt::join(it, stack.end(), " -> "), asset_name)};
+
+  if (stack.size() >= max_requirements_depth)
+    throw LinpipeError{caller, ": Requirements of ", family_, " ", asset_name, " are nested deeper than ", std::to_string(max_requirements_depth), ": ", fmt::format("{} -> {}", fmt::join(stack, " -> "), asset_name)};
+
+  auto asset_dir = get_single_asset(asset_name);
+
+  // Find requirements
+  auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json = json_parse_path(caller, json_path);
+  if (json.contains("requirements")) {
+    auto requirements = json_extract_key<std::vector<std::string>>(caller, json, "requirements");
+    stack.emplace_back(asset_name);
+    for (const auto& requirement : requirements)
+      get_asset(requirement, stack, done);
+    stack.pop_back();
+  }
+
+  done.emplace(asset_name);
+  return asset_dir;
+}
+
+std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_name) {
   if (auto path = get_downloaded_asset(asset_name); path) {
     return path.value();
   }
