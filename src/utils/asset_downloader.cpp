@@ -89,7 +89,7 @@ AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family
 
 const Json& AssetDownloader::assets_json() {
   std::call_once(assets_json_once_, [this] {
-    auto path = cache_dir() / path_from_utf8(fmt::format("{}.json", family_));
+    auto path = cache_dir() / path_from_utf8(fmt::format("{}s.json", family_));
     if (!offline_mode())
       download_to_file(assets_json_url_, path);
     assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
