@@ -78,18 +78,17 @@ std::vector<std::string> OperationDescription::tokenize(std::string_view descrip
   std::vector<std::string> tokens;
   std::string token;
   bool in_token = false;
-  bool in_quotes = false;
+  char quote = 0;
 
   for (size_t i = 0; i < description.size(); i++) {
     char c = description[i];
-
-    if (c == '\\' && i + 1 < description.size() && (description[i + 1] == '"' || description[i + 1] == '\\')) {
+    if (c == '\\' && i + 1 < description.size() && (description[i + 1] == '"' || description[i + 1] == '\'' || description[i + 1] == '\\')) {
       token.push_back(description[++i]);
       in_token = true;
-    } else if (c == '"') {
-      in_quotes = !in_quotes;
+    } else if ((c == '"' || c == '\'') && (!quote || c == quote)) {
+      quote = quote ? '\0' : c;
       in_token = true;
-    } else if (!in_quotes && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
+    } else if (!quote && (c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
       if (in_token) {
         tokens.push_back(std::move(token));
         token.clear();
@@ -101,7 +100,7 @@ std::vector<std::string> OperationDescription::tokenize(std::string_view descrip
     }
   }
 
-  if (in_quotes)
+  if (quote)
     throw LinpipeError{"OperationDescription::tokenize: Closing quote missing in description '", description, "'"};
 
   if (in_token)

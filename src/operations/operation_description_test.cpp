@@ -157,8 +157,8 @@ TEST_CASE("OperationDescription::tokenize") {
     CHECK(OperationDescription::tokenize("\"\" a \"\"") == Tokens{"", "a", ""});
   }
 
-  SUBCASE("does not treat single quotes specially") {
-    CHECK(OperationDescription::tokenize("'a b'") == Tokens{"'a", "b'"});
+  SUBCASE("groups single-quoted whitespace into one token") {
+    CHECK(OperationDescription::tokenize("-load '/tmp/my file.txt'") == Tokens{"-load", "/tmp/my file.txt"});
   }
 }
 
