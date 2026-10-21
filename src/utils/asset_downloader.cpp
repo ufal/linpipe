@@ -99,12 +99,7 @@ const Json& AssetDownloader::assets_json() {
 
 const std::filesystem::path& AssetDownloader::cache_dir() {
   std::call_once(cache_dir_once_, [this] {
-    auto dirname = determine_cache_dirname(family_);
-    std::error_code ec;
-    std::filesystem::create_directories(dirname, ec);
-    if (ec || !std::filesystem::is_directory(dirname, ec))
-      throw LinpipeError{"AssetDownloader: Cannot create cache directory ", path_to_utf8(dirname)};
-    cache_dir_ = std::move(dirname);
+    cache_dir_ = determine_cache_dirname(family_);
   });
   return cache_dir_;
 }
