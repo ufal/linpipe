@@ -114,9 +114,38 @@ bool AssetDownloader::offline_mode() {
 
 std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) {
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
+
   std::error_code ec;
-  if (!std::filesystem::is_directory(asset_dir, ec)) return std::nullopt;
-  // TODO: Read json, check files and file sizes (not sha256, too expensive).
+  if (!std::filesystem::is_directory(asset_dir, ec))
+    return std::nullopt;
+
+  constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
+  std::string json_name = fmt::format("{}.json", family_);  // "model.json", "lib.json"
+  auto json_path = asset_dir / path_from_utf8(json_name);
+  auto json = json_parse_path(caller, json_path);
+
+  auto& files = json_get_array(caller, json, "files");
+  for (auto& file : files) {
+    auto file_name = json_extract_key<std::string>(caller, file, "name");
+    auto file_path = asset_dir / path_from_utf8(file_name);
+
+    if (!std::filesystem::is_regular_file(file_path)) // TODO: throw or return nullopt?
+      throw LinpipeError{caller, ": missing file ", file_name, " of asset ", asset_name};
+
+    // The 'size' is before decompression, so it can be checked only for
+    // uncompressed files.
+    // TODO: We may want to change this in the schemas. The 'size' field be the
+    // size for already uncompressed files, not before compression.
+    if (!file.contains("compression")) {
+      auto expected_size = json_extract_key<uint64_t>(caller, file, "size");
+      auto actual_size = std::filesystem::file_size(file_path, ec);
+      if (ec) // TODO throw or return nullopt?
+        throw LinpipeError{caller, ": cannot get size of file ", file_name, " of asset ", asset_name};
+      if (actual_size != expected_size) // TODO: throw or return nullopt?
+        throw LinpipeError{caller, ": file ", path_to_utf8(file_name), " has size ", std::to_string(actual_size), " instead of ", std::to_string(expected_size)};
+    }
+  }
+
   return asset_dir;
 }
 
