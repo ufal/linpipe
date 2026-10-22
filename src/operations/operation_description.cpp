@@ -78,7 +78,7 @@ std::vector<std::string> OperationDescription::tokenize(std::string_view descrip
   std::vector<std::string> tokens;
   std::string token;
   bool in_token = false;
-  char quote = 0;
+  char quote = '\0';
 
   for (size_t i = 0; i < description.size(); i++) {
     char c = description[i];
