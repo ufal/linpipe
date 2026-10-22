@@ -77,7 +77,8 @@ themselves start with a hyphen, e.g. `--threshold -1`, `--input -` or
 In the `--name=value` form the token is split on the first `=` only, so the
 value may contain further `=` characters (see
 [Format Descriptions](#format-descriptions)), it may start with a hyphen
-(`--name=-value`), and it may be empty (`--name=`).
+(`--name=-value`), and it may be empty (`--name=`). The name itself cannot be
+empty, so `--=value` is an error.
 
 If the same named argument is given twice for one operation, the later value
 wins.
@@ -105,21 +106,35 @@ Some tokens starting with a hyphen are positional arguments as well:
 
 A lone `--` ends option parsing, as usual for command-line programs. The `--`
 itself is dropped, and every token after it is a positional argument of the
-current operation, even if it looks like an operation, a named argument, or
-another `--`. This allows passing positional arguments that start with a
-hyphen, e.g. a file named `-data.txt`:
+current operation, even if it looks like an operation or a named argument.
+This allows passing positional arguments that start with a hyphen, e.g. a file
+named `-data.txt`:
 
 ```
 src/linpipe -load --format text -- -data.txt
 ```
 
-Because everything after `--` belongs to the current operation, no further
-operation can follow it, so `--` can only be used in the last operation of the
-pipeline. A `--` at the very end of the pipeline is allowed and has no effect.
+Another lone `--` resumes option parsing; it is dropped as well, and the
+following tokens are again parsed normally, so further named arguments and
+operations may follow. A `--` can therefore be used in any operation of the
+pipeline, not just the last one:
+
+```
+src/linpipe -load --format text -- -data.txt -- -save --format lif out.lif
+```
+
+The closing `--` may be omitted, in which case all remaining tokens of the
+pipeline are positional arguments of the current operation. A `--` at the very
+end of the pipeline is allowed and has no effect, and so is an empty pair
+`-- --`.
+
+Because every lone `--` either ends or resumes option parsing, a lone `--`
+cannot be passed as a positional argument.
 
 A `--` before the first operation is an error, like any other token there. A
 `--` that is the value of a named argument in the `--name value` form (e.g.
-`--separator --`) is just a value and does not end option parsing.
+`--separator --`) is just a value and does not end option parsing; the same
+holds for `--name=--`.
 
 ### Tokenization
 
@@ -137,25 +152,31 @@ src/linpipe -load "/tmp/my file.txt" -save --title="My corpus" out.txt
 tokens on whitespace (space, tab, newline and carriage return), with the
 following quoting rules:
 
-- Double quotes group characters, including whitespace, into one token, e.g.
-  `"/tmp/my file.txt"`. Quotes may appear anywhere in a token, so
-  `--title="My corpus"` is the single token `--title=My corpus`, and
-  `a"b c"d` is the single token `ab cd`.
-- A backslash is an escape character only when it is followed by `"` or `\`:
-  `\"` is a literal quote and `\\` is a literal backslash. This holds both
-  inside and outside double quotes, and an escaped quote never opens or closes
-  a quoted part, e.g. `--title="say \"hi\""` is the token `--title=say "hi"`.
+- Double quotes (`"`) and single quotes (`'`) group characters, including
+  whitespace, into one token, e.g. `"/tmp/my file.txt"` or
+  `'/tmp/my file.txt'`. Both kinds of quotes behave the same way. Quotes may
+  appear anywhere in a token, so `--title="My corpus"` is the single token
+  `--title=My corpus`, and `a"b c"d` is the single token `ab cd`.
+- A quoted part is closed only by the same kind of quote that opened it; the
+  other kind of quote is an ordinary character inside it. For example,
+  `"it's"` is the token `it's` and `'say "hi"'` is the token `say "hi"`.
+- A backslash is an escape character only when it is followed by `"`, `'` or
+  `\`: `\"` is a literal double quote, `\'` is a literal single quote and `\\`
+  is a literal backslash. This holds both inside and outside quotes (of either
+  kind), and an escaped quote never opens or closes a quoted part, e.g.
+  `--title="say \"hi\""` is the token `--title=say "hi"` and
+  `--title='it\'s'` is the token `--title=it's`.
 - Any other backslash is kept as is, so `C:\dir` needs no escaping.
-- Because `\\` and `\"` are escapes, a literal backslash must be doubled when it is followed by another backslash or by a double quote:
+- Because `\\`, `\"` and `\'` are escapes, a literal backslash must be doubled when it is followed by another backslash or by a quote of either kind:
     - Consecutive backslashes are interpreted in pairs. For example, `\\server\share` is read as `\server\share`; write `\\\\server\share` to obtain two consecutive literal backslashes.
-    - A backslash immediately before a quote must be escaped if the backslash is intended to be literal. For example, to represent a literal `\"`, write `\\\"`.
-    - A backslash at the end of a quoted part escapes the closing quote, so `"C:\my dir\"` is an error; write `"C:\my dir\\"` instead. Outside quotes, a trailing backslash needs no escaping (`C:\dir\` is fine).
-- `""` is an empty token.
+    - A backslash immediately before a quote must be escaped if the backslash is intended to be literal. For example, to represent a literal `\"`, write `\\\"`, and to represent a literal `\'`, write `\\\'`.
+    - A backslash at the end of a quoted part escapes the closing quote, so `"C:\my dir\"` and `'C:\my dir\'` are errors; write `"C:\my dir\\"` or `'C:\my dir\\'` instead. Outside quotes, a trailing backslash needs no escaping (`C:\dir\` is fine).
+- `""` and `''` are empty tokens.
 - A missing closing quote is an error.
 
 A description string is not processed by a shell, so only these rules apply;
-for example, single quotes have no special meaning. The command-line example
-above corresponds to this description string:
+for example, there is no variable expansion or globbing. The command-line
+example above corresponds to this description string:
 
 ```
 -load "/tmp/my file.txt" -save --title="My corpus" out.txt
@@ -175,7 +196,7 @@ In a description string, a format description can be written directly:
 ```
 
 If it contains spaces, enclose it (or the part containing spaces) in double
-quotes.
+or single quotes.
 
 The settings are parsed as follows:
 
@@ -201,16 +222,17 @@ These limitations apply to all entry points.
 
 - Any token starting with `-` followed by a name starts a new operation, even
   where a value is expected. Quoting does not change that, neither shell
-  quoting nor double quotes in a description string. Such a value must be
-  written as `--name=-value`.
+  quoting nor quotes in a description string. Such a value must be written as
+  `--name=-value`.
 - For the same reason, a positional argument starting with a single hyphen
   followed by a name (e.g. `-data.txt`) is read as an operation. Such an
-  argument must be written after `--` (see [End of Options](#end-of-options)),
-  which is only possible in the last operation of the pipeline.
+  argument must be written after `--` (see [End of Options](#end-of-options)).
 - A named argument at the end of the pipeline, or followed directly by an
   operation, is an error, because it has no value.
 - A lone `-` or `--` cannot be used as an operation or as a named argument; a
-  lone `-` is a positional argument and a lone `--` ends option parsing.
+  lone `-` is a positional argument and a lone `--` ends or resumes option
+  parsing. A lone `--` therefore cannot be a positional argument either; it can
+  only be the value of a named argument.
 - In a format description, the closing `)` is not checked: the last character
   after the `(` is always removed. A missing `)` is therefore not reported, and
   the last character of the final value is silently lost, e.g.
