@@ -120,8 +120,7 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
     return std::nullopt;
 
   constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
-  std::string json_name = fmt::format("{}.json", family_);  // "model.json", "lib.json"
-  auto json_path = asset_dir / path_from_utf8(json_name);
+  auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
   auto json = json_parse_path(caller, json_path);
 
   auto& files = json_get_array(caller, json, "files");
