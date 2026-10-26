@@ -31,6 +31,8 @@ class AssetDownloader {
   std::filesystem::path get_asset(std::string_view asset_name);
 
  private:
+  std::optional<std::filesystem::path> get_downloaded_asset(std::string_view asset_name, std::vector<std::string>& seen_assets);
+  std::optional<std::filesystem::path> get_single_downloaded_asset(std::string_view asset_name);
   std::filesystem::path get_asset(std::string_view asset_name, std::vector<std::string>& seen_assets);
   std::filesystem::path get_single_asset(std::string_view asset_name);
 

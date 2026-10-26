@@ -113,13 +113,38 @@ bool AssetDownloader::offline_mode() {
 }
 
 std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) {
+  std::vector<std::string> seen_assets;
+  return get_downloaded_asset(asset_name, seen_assets);
+}
+
+std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name, std::vector<std::string>& seen_assets) {
+  constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
+
+  if (std::ranges::find(seen_assets, asset_name) != seen_assets.end())
+    return cache_dir() / path_from_utf8(asset_name);
+  seen_assets.emplace_back(asset_name);
+
+  auto asset_dir = get_single_downloaded_asset(asset_name);
+  if (!asset_dir)
+    return std::nullopt;
+
+  auto json_path = *asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json = json_parse_path(caller, json_path);
+  if (json.contains("requirements"))
+    for (const auto& requirement : json_extract_key<std::vector<std::string>>(caller, json, "requirements"))
+      if (!get_downloaded_asset(requirement, seen_assets))
+        return std::nullopt;
+  return asset_dir;
+}
+
+std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asset(std::string_view asset_name) {
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
 
   std::error_code ec;
   if (!std::filesystem::is_directory(asset_dir, ec))
     return std::nullopt;
 
-  constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
+  constexpr std::string_view caller = "AssetDownloader::get_single_downloaded_asset";
   auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
   auto json = json_parse_path(caller, json_path);
 
@@ -171,7 +196,7 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, st
 }
 
 std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_name) {
-  if (auto path = get_downloaded_asset(asset_name); path) {
+  if (auto path = get_single_downloaded_asset(asset_name); path) {
     return path.value();
   }
 
@@ -191,7 +216,7 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
   download_asset(asset_json_url.get_ref<const std::string&>(), asset_dir);
 
-  if (auto path = get_downloaded_asset(asset_name); path)
+  if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
   throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(asset_dir), " is not valid"};
