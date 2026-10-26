@@ -12,6 +12,7 @@
 
 #include "lib/json/json.h"
 #include "utils/asset_downloader.h"
+#include "utils/file_lock.h"
 #include "utils/getenv_utf8.h"
 #include "utils/json_utils.h"
 #include "utils/path_utf8.h"
@@ -69,9 +70,11 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
 }
 
+// Does not lock. The caller must guarantee exclusive access to path (and path.tmp).
 void download_to_file(std::string_view /*file_url*/, const std::filesystem::path& /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
 }
 
+// Holds the lock for the entire asset directory.
 void download_asset(std::string_view /*asset_json_url*/, const std::filesystem::path& /*path*/) {
     // Downloads the entire asset:
     // 1. Opens/creates path.lock and locks it exclusively (never delete it).
@@ -90,8 +93,18 @@ AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family
 const Json& AssetDownloader::assets_json() {
   std::call_once(assets_json_once_, [this] {
     auto path = cache_dir() / path_from_utf8(fmt::format("{}s.json", family_));
-    if (!offline_mode())
+    if (!offline_mode()) {
+      auto lock_path = path;
+      lock_path += ".lock";
+
+      std::error_code ec;
+      std::filesystem::create_directories(path.parent_path(), ec);
+      if (ec)
+        throw LinpipeError{"AssetDownloader::assets_json: Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
+
+      FileLock lock(lock_path);
       download_to_file(assets_json_url_, path);
+    }
     assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
   });
   return assets_json_;
