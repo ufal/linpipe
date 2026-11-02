@@ -132,15 +132,69 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
 }
 
 // Holds the lock for the entire asset directory.
-void download_asset(std::string_view /*asset_json_url*/, const std::filesystem::path& /*path*/) {
-    // Downloads the entire asset:
-    // 1. Opens/creates path.lock and locks it exclusively (never delete it).
-    // 2. If path/ exists, another thread/process already finished; unlock and return.
-    // 3. Removes any stale path.tmp/ left over from a crashed run, creates it anew.
-    // 4. Downloads the asset JSON from asset_json_url to path.tmp/.
-    // 5. Downloads all files listed in the asset JSON to path.tmp/ using download_to_file().
-    // 6. Renames path.tmp/ to path/ (path/ does not exist).
-    // 7. Unlocks path.lock. On any failure, removes path.tmp/ before unlocking.
+void download_asset(std::string_view asset_json_url, const std::filesystem::path& path, const std::filesystem::path& json_name) {
+  constexpr std::string_view caller = "AssetDownloader::download_asset";
+
+  std::error_code ec;
+  std::filesystem::create_directories(path.parent_path(), ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
+
+  // 1. Lock path.lock exclusively; it is never deleted.
+  auto lock_path = path;
+  lock_path += ".lock";
+  FileLock lock(lock_path);
+
+  // 2. If path/ exists, another thread/process already finished.
+  bool exists = std::filesystem::exists(path, ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot check existence of ", path_to_utf8(path), ": ", ec.message()};
+  if (exists)
+    return;
+
+  // 3. Remove any stale path.tmp/ and create a new one.
+  auto tmp_path = path;
+  tmp_path += ".tmp";
+  std::filesystem::remove_all(tmp_path, ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot remove stale directory ", path_to_utf8(tmp_path), ": ", ec.message()};
+
+  try {
+    std::filesystem::create_directory(tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(tmp_path), ": ", ec.message()};
+
+    // 4. Download the asset JSON.
+    auto json_path = tmp_path / json_name;
+    download_to_file(asset_json_url, json_path);
+    auto json = json_parse_path(caller, json_path);
+
+    // 5. Download all files of the asset.
+    for (auto& file : json_get_array(caller, json, "files")) {
+      auto name = json_extract_key<std::string>(caller, file, "name");
+      auto file_name = path_from_utf8(name);
+      if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name)
+        throw LinpipeError{caller, ": Invalid file name '", name, "' in ", asset_json_url};
+
+      auto url = json_extract_key<std::string>(caller, file, "url");
+      auto size = json_extract_key<uint64_t>(caller, file, "size");
+      auto sha256 = json_extract_key<std::string>(caller, file, "sha256");
+      auto compression = file.contains("compression") ? json_extract_key<std::string>(caller, file, "compression") : std::string();
+
+      download_to_file(url, tmp_path / file_name, size, sha256, compression);
+    }
+
+    // 6. Rename path.tmp/ to path/.
+    std::filesystem::rename(tmp_path, path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot rename ", path_to_utf8(tmp_path), " to ", path_to_utf8(path), ": ", ec.message()};
+  } catch (...) {
+    // 7. On failure, remove path.tmp/ before unlocking.
+    std::error_code remove_ec;
+    std::filesystem::remove_all(tmp_path, remove_ec);
+    throw;
+  }
+  // 7. The lock is released by the FileLock destructor.
 }
 
 } // namespace
@@ -284,7 +338,7 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
     throw LinpipeError{caller, ": The url of ", family_, " ", asset_name, " is not a string"};
 
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
-  download_asset(asset_json_url.get_ref<const std::string&>(), asset_dir);
+  download_asset(asset_json_url.get_ref<const std::string&>(), asset_dir, path_from_utf8(fmt::format("{}.json", family_)));
 
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
