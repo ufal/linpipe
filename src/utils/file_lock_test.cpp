@@ -38,8 +38,12 @@ TEST_CASE("FileLock creates the lock file and keeps it") {
 
 TEST_CASE("FileLock can be taken again after release") {
   auto path = test_dir() / "relock.lock";
-  { FileLock lock(path); }
-  { FileLock lock(path); }
+  {
+    FileLock lock(path);
+  }
+  {
+    FileLock lock(path);
+  }
   CHECK(true);
 }
 

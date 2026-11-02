@@ -51,12 +51,16 @@ FileLock::FileLock(const std::filesystem::path& path) {
     throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
   }
 #else
-  do fd_ = open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0666); while (fd_ < 0 && errno == EINTR);
+  do {
+    fd_ = open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0666);
+  } while (fd_ < 0 && errno == EINTR);
   if (fd_ < 0)
     throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
 
-  int ret;
-  do ret = flock(fd_, LOCK_EX); while (ret < 0 && errno == EINTR);
+  int ret = 0;
+  do {
+    ret = flock(fd_, LOCK_EX);
+  } while (ret < 0 && errno == EINTR);
   if (ret < 0) {
     auto message = last_error_message();
     close(fd_);
