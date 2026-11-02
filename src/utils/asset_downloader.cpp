@@ -131,9 +131,14 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
   }
 }
 
+} // namespace
+
 // Holds the lock for the entire asset directory.
-void download_asset(std::string_view asset_json_url, const std::filesystem::path& path, const std::filesystem::path& json_name) {
+void AssetDownloader::download_asset(std::string_view asset_name, std::string_view asset_json_url) {
   constexpr std::string_view caller = "AssetDownloader::download_asset";
+
+  auto path = cache_dir() / path_from_utf8(asset_name);
+  auto json_name = path_from_utf8(fmt::format("{}.json", family_));
 
   std::error_code ec;
   std::filesystem::create_directories(path.parent_path(), ec);
@@ -145,19 +150,30 @@ void download_asset(std::string_view asset_json_url, const std::filesystem::path
   lock_path += ".lock";
   FileLock lock(lock_path);
 
-  // 2. If path/ exists, another thread/process already finished.
-  bool exists = std::filesystem::exists(path, ec);
-  if (ec)
-    throw LinpipeError{caller, ": Cannot check existence of ", path_to_utf8(path), ": ", ec.message()};
-  if (exists)
-    return;
-
-  // 3. Remove any stale path.tmp/ and create a new one.
+  // 2. Remove any stale path.tmp/ left over from a crashed run.
   auto tmp_path = path;
   tmp_path += ".tmp";
   std::filesystem::remove_all(tmp_path, ec);
   if (ec)
     throw LinpipeError{caller, ": Cannot remove stale directory ", path_to_utf8(tmp_path), ": ", ec.message()};
+
+  // 3. If path/ exists and is valid, another thread/process already finished.
+  //    If it exists but is invalid, move it away atomically and remove it.
+  bool exists = std::filesystem::exists(path, ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot check existence of ", path_to_utf8(path), ": ", ec.message()};
+  if (exists) {
+    if (get_single_downloaded_asset(asset_name).has_value())
+      return;
+
+    LOG(WARN, caller << ": Asset " << asset_name << " in " << path_to_utf8(path) << " is not valid, downloading it again");
+    std::filesystem::rename(path, tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot move invalid asset ", path_to_utf8(path), " to ", path_to_utf8(tmp_path), ": ", ec.message()};
+    std::filesystem::remove_all(tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot remove invalid asset ", path_to_utf8(tmp_path), ": ", ec.message()};
+  }
 
   try {
     std::filesystem::create_directory(tmp_path, ec);
@@ -194,10 +210,8 @@ void download_asset(std::string_view asset_json_url, const std::filesystem::path
     std::filesystem::remove_all(tmp_path, remove_ec);
     throw;
   }
-  // 7. The lock is released by the FileLock destructor.
+  // The lock is released by the FileLock destructor.
 }
-
-} // namespace
 
 AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family) : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
 
@@ -337,13 +351,12 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
   if (!asset_json_url.is_string())
     throw LinpipeError{caller, ": The url of ", family_, " ", asset_name, " is not a string"};
 
-  auto asset_dir = cache_dir() / path_from_utf8(asset_name);
-  download_asset(asset_json_url.get_ref<const std::string&>(), asset_dir, path_from_utf8(fmt::format("{}.json", family_)));
+  download_asset(asset_name, asset_json_url.get_ref<const std::string&>());
 
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
-  throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(asset_dir), " is not valid"};
+  throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(cache_dir() / path_from_utf8(asset_name)), " is not valid"};
 }
 
 } // namespace linpipe
