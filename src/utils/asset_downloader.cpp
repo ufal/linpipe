@@ -10,7 +10,10 @@
 #include <algorithm>
 #include <fstream>
 
+#include "lib/download.h"
 #include "lib/json/json.h"
+#include "lib/sha256.h"
+#include "lib/xz_stream.h"
 #include "utils/asset_downloader.h"
 #include "utils/file_lock.h"
 #include "utils/getenv_utf8.h"
@@ -71,7 +74,61 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
 }
 
 // Does not lock. The caller must guarantee exclusive access to path (and path.tmp).
-void download_to_file(std::string_view /*file_url*/, const std::filesystem::path& /*path*/, uint64_t /*size*/ = {}, std::string_view /*sha256*/ = {}, std::string_view /*compression*/ = {}) {
+void download_to_file(std::string_view file_url, const std::filesystem::path& path, uint64_t size = {}, std::string_view sha256 = {}, std::string_view compression = {}) {
+  constexpr std::string_view caller = "AssetDownloader::download_to_file";
+
+  if (!compression.empty() && compression != "xz")
+    throw LinpipeError{caller, ": Unsupported compression ", compression, " of ", file_url};
+
+  auto tmp_path = path;
+  tmp_path += ".tmp";
+
+  try {
+    {
+      std::ofstream file(tmp_path, std::ios::binary | std::ios::trunc);
+      if (!file)
+        throw LinpipeError{caller, ": Cannot open file ", path_to_utf8(tmp_path)};
+
+      if (compression.empty()) {
+        download_url(file_url, file, true);
+      } else {
+        XZOStream decompressor(file, XZMode::DECOMPRESS);
+        download_url(file_url, decompressor, true);
+        decompressor.close();
+        if (!decompressor)
+          throw LinpipeError{caller, ": Cannot decompress ", file_url};
+      }
+
+      file.close();
+      if (!file)
+        throw LinpipeError{caller, ": Cannot write file ", path_to_utf8(tmp_path)};
+    }
+
+    if (!sha256.empty()) {
+      std::error_code ec;
+      auto actual_size = std::filesystem::file_size(tmp_path, ec);
+      if (ec)
+        throw LinpipeError{caller, ": Cannot get size of ", path_to_utf8(tmp_path), ": ", ec.message()};
+      if (actual_size != size)
+        throw LinpipeError{caller, ": File ", file_url, " has size ", std::to_string(actual_size), " instead of ", std::to_string(size)};
+
+      std::string expected(sha256);
+      for (char& c : expected)
+        if (c >= 'A' && c <= 'F') c = static_cast<char>(c - 'A' + 'a');
+      auto actual_sha256 = SHA256::hexdigest(tmp_path);
+      if (actual_sha256 != expected)
+        throw LinpipeError{caller, ": File ", file_url, " has SHA-256 ", actual_sha256, " instead of ", expected};
+    }
+
+    std::error_code ec;
+    std::filesystem::rename(tmp_path, path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot rename ", path_to_utf8(tmp_path), " to ", path_to_utf8(path), ": ", ec.message()};
+  } catch (...) {
+    std::error_code ec;
+    std::filesystem::remove(tmp_path, ec);
+    throw;
+  }
 }
 
 // Holds the lock for the entire asset directory.
