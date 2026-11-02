@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include "common.h"
 
 namespace linpipe {
@@ -30,6 +32,8 @@ class SHA256 {
 
   std::array<std::byte, digest_size> digest() const;
   std::string hexdigest() const;
+
+  static std::string hexdigest(const std::filesystem::path& path);
 
  private:
   struct Impl;

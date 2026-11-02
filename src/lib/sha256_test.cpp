@@ -7,6 +7,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <filesystem>
+#include <fstream>
+
 #include "lib/doctest/doctest.h"
 #include "lib/sha256.h"
 
@@ -62,6 +65,16 @@ TEST_CASE("SHA256 digest has digest_size bytes matching the hexdigest") {
 
   std::string hex = fmt::format("{:02x}", fmt::join(digest, ""));
   CHECK(hex == abc_sha256);
+}
+
+TEST_CASE("SHA256 hashes a file") {
+  auto path = std::filesystem::temp_directory_path() / "linpipe_sha256_test.bin";
+  {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char*>(all_bytes.data()), all_bytes.size());
+  }
+  CHECK(SHA256::hexdigest(path) == all_bytes_sha256);
+  std::filesystem::remove(path);
 }
 
 } // namespace linpipe

@@ -7,6 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <fstream>
+
 #include "lib/mbedtls/include/psa/crypto.h"
 #include "lib/sha256.h"
 
@@ -68,6 +70,23 @@ std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
 
 std::string SHA256::hexdigest() const {
   return fmt::format("{:02x}", fmt::join(digest(), ""));
+}
+
+std::string SHA256::hexdigest(const std::filesystem::path& path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file)
+    throw LinpipeError{"SHA256::hexdigest: Cannot open file ", path.string()};
+
+  SHA256 sha256;
+  std::vector<char> buffer(64_uz * 1024);
+  while (file) {
+    file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+    sha256.update(std::string_view(buffer.data(), static_cast<size_t>(file.gcount())));
+  }
+  if (!file.eof())
+    throw LinpipeError{"SHA256::hexdigest: Cannot read file ", path.string()};
+
+  return sha256.hexdigest();
 }
 
 } // namespace linpipe
