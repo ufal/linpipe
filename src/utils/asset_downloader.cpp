@@ -1,0 +1,362 @@
+// This file is part of LinPipe <http://github.com/ufal/linpipe/>.
+//
+// Copyright 2022-2026 Institute of Formal and Applied Linguistics, Faculty
+// of Mathematics and Physics, Charles University in Prague, Czech Republic.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#include <algorithm>
+#include <fstream>
+
+#include "lib/download.h"
+#include "lib/json/json.h"
+#include "lib/sha256.h"
+#include "lib/xz_stream.h"
+#include "utils/asset_downloader.h"
+#include "utils/file_lock.h"
+#include "utils/getenv_utf8.h"
+#include "utils/json_utils.h"
+#include "utils/path_utf8.h"
+
+namespace linpipe {
+
+namespace {
+
+std::optional<std::filesystem::path> env_path(const std::string& name) {
+  auto value = getenv_utf8(name.c_str());
+  if (!value || value->empty()) return std::nullopt;
+  return path_from_utf8(*value);
+}
+
+std::optional<std::filesystem::path> system_cache_dir() {
+#ifdef WIN32
+  auto base = env_path("LOCALAPPDATA");
+  if (!base) {
+    if (auto profile = env_path("USERPROFILE")) base = *profile / "AppData" / "Local";
+  }
+#elif defined(__APPLE__)
+  std::optional<std::filesystem::path> base;
+  if (auto home = env_path("HOME")) base = *home / "Library" / "Caches";
+#else
+  auto base = env_path("XDG_CACHE_HOME");
+  if (!base || base->is_relative()) {
+    base.reset();
+    if (auto home = env_path("HOME")) base = *home / ".cache";
+  }
+#endif
+
+  if (base) *base /= "linpipe";
+  return base;
+}
+
+std::filesystem::path determine_cache_dirname(std::string_view family) {
+  std::string family_dirname = fmt::format("{}s", family);  // "model" -> "models", "lib" -> "libs"
+
+  // 1. LINPIPE_<FAMILY>_DIR.
+  std::string family_env = "LINPIPE_";
+  for (char c : family_dirname)
+    family_env += c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c;
+  family_env += "_DIR";
+  if (auto dir = env_path(family_env))
+    return *dir;
+
+  // 2. LINPIPE_CACHE_DIR/<family_dirname>.
+  if (auto base = env_path("LINPIPE_CACHE_DIR"))
+    return *base / path_from_utf8(family_dirname);
+
+  // 3. <system cache dir>/<family_dirname>.
+  if (auto base = system_cache_dir())
+    return *base / path_from_utf8(family_dirname);
+
+  throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
+}
+
+// Does not lock. The caller must guarantee exclusive access to path (and path.tmp).
+void download_to_file(std::string_view file_url, const std::filesystem::path& path, uint64_t size = {}, std::string_view sha256 = {}, std::string_view compression = {}) {
+  constexpr std::string_view caller = "AssetDownloader::download_to_file";
+
+  if (!compression.empty() && compression != "xz")
+    throw LinpipeError{caller, ": Unsupported compression ", compression, " of ", file_url};
+
+  auto tmp_path = path;
+  tmp_path += ".tmp";
+
+  try {
+    {
+      std::ofstream file(tmp_path, std::ios::binary | std::ios::trunc);
+      if (!file)
+        throw LinpipeError{caller, ": Cannot open file ", path_to_utf8(tmp_path)};
+
+      if (compression.empty()) {
+        download_url(file_url, file, true);
+      } else {
+        XZOStream decompressor(file, XZMode::DECOMPRESS);
+        download_url(file_url, decompressor, true);
+        decompressor.close();
+        if (!decompressor)
+          throw LinpipeError{caller, ": Cannot decompress ", file_url};
+      }
+
+      file.close();
+      if (!file)
+        throw LinpipeError{caller, ": Cannot write file ", path_to_utf8(tmp_path)};
+    }
+
+    if (!sha256.empty()) {
+      std::error_code ec;
+      auto actual_size = std::filesystem::file_size(tmp_path, ec);
+      if (ec)
+        throw LinpipeError{caller, ": Cannot get size of ", path_to_utf8(tmp_path), ": ", ec.message()};
+      if (actual_size != size)
+        throw LinpipeError{caller, ": File ", file_url, " has size ", std::to_string(actual_size), " instead of ", std::to_string(size)};
+
+      std::string expected(sha256);
+      for (char& c : expected)
+        if (c >= 'A' && c <= 'F') c = static_cast<char>(c - 'A' + 'a');
+      auto actual_sha256 = SHA256::hexdigest(tmp_path);
+      if (actual_sha256 != expected)
+        throw LinpipeError{caller, ": File ", file_url, " has SHA-256 ", actual_sha256, " instead of ", expected};
+    }
+
+    std::error_code ec;
+    std::filesystem::rename(tmp_path, path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot rename ", path_to_utf8(tmp_path), " to ", path_to_utf8(path), ": ", ec.message()};
+  } catch (...) {
+    std::error_code ec;
+    std::filesystem::remove(tmp_path, ec);
+    throw;
+  }
+}
+
+} // namespace
+
+// Holds the lock for the entire asset directory.
+void AssetDownloader::download_asset(std::string_view asset_name, std::string_view asset_json_url) {
+  constexpr std::string_view caller = "AssetDownloader::download_asset";
+
+  auto path = cache_dir() / path_from_utf8(asset_name);
+  auto json_name = path_from_utf8(fmt::format("{}.json", family_));
+
+  std::error_code ec;
+  std::filesystem::create_directories(path.parent_path(), ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
+
+  // 1. Lock path.lock exclusively; it is never deleted.
+  auto lock_path = path;
+  lock_path += ".lock";
+  FileLock lock(lock_path);
+
+  // 2. Remove any stale path.tmp/ left over from a crashed run.
+  auto tmp_path = path;
+  tmp_path += ".tmp";
+  std::filesystem::remove_all(tmp_path, ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot remove stale directory ", path_to_utf8(tmp_path), ": ", ec.message()};
+
+  // 3. If path/ exists and is valid, another thread/process already finished.
+  //    If it exists but is invalid, move it away atomically and remove it.
+  bool exists = std::filesystem::exists(path, ec);
+  if (ec)
+    throw LinpipeError{caller, ": Cannot check existence of ", path_to_utf8(path), ": ", ec.message()};
+  if (exists) {
+    if (get_single_downloaded_asset(asset_name).has_value())
+      return;
+
+    LOG(WARN, caller << ": Asset " << asset_name << " in " << path_to_utf8(path) << " is not valid, downloading it again");
+    std::filesystem::rename(path, tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot move invalid asset ", path_to_utf8(path), " to ", path_to_utf8(tmp_path), ": ", ec.message()};
+    std::filesystem::remove_all(tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot remove invalid asset ", path_to_utf8(tmp_path), ": ", ec.message()};
+  }
+
+  try {
+    std::filesystem::create_directory(tmp_path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(tmp_path), ": ", ec.message()};
+
+    // 4. Download the asset JSON.
+    auto json_path = tmp_path / json_name;
+    download_to_file(asset_json_url, json_path);
+    auto json = json_parse_path(caller, json_path);
+
+    // 5. Download all files of the asset.
+    for (auto& file : json_get_array(caller, json, "files")) {
+      auto name = json_extract_key<std::string>(caller, file, "name");
+      auto file_name = path_from_utf8(name);
+      if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name)
+        throw LinpipeError{caller, ": Invalid file name '", name, "' in ", asset_json_url};
+
+      auto url = json_extract_key<std::string>(caller, file, "url");
+      auto size = json_extract_key<uint64_t>(caller, file, "size");
+      auto sha256 = json_extract_key<std::string>(caller, file, "sha256");
+      auto compression = file.contains("compression") ? json_extract_key<std::string>(caller, file, "compression") : std::string();
+
+      download_to_file(url, tmp_path / file_name, size, sha256, compression);
+    }
+
+    // 6. Rename path.tmp/ to path/.
+    std::filesystem::rename(tmp_path, path, ec);
+    if (ec)
+      throw LinpipeError{caller, ": Cannot rename ", path_to_utf8(tmp_path), " to ", path_to_utf8(path), ": ", ec.message()};
+  } catch (...) {
+    // 7. On failure, remove path.tmp/ before unlocking.
+    std::error_code remove_ec;
+    std::filesystem::remove_all(tmp_path, remove_ec);
+    throw;
+  }
+  // The lock is released by the FileLock destructor.
+}
+
+AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family) : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
+
+const Json& AssetDownloader::assets_json() {
+  std::call_once(assets_json_once_, [this] {
+    auto path = cache_dir() / path_from_utf8(fmt::format("{}s.json", family_));
+    if (!offline_mode()) {
+      auto lock_path = path;
+      lock_path += ".lock";
+
+      std::error_code ec;
+      std::filesystem::create_directories(path.parent_path(), ec);
+      if (ec)
+        throw LinpipeError{"AssetDownloader::assets_json: Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
+
+      FileLock lock(lock_path);
+      download_to_file(assets_json_url_, path);
+    }
+    assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
+  });
+  return assets_json_;
+}
+
+const std::filesystem::path& AssetDownloader::cache_dir() {
+  std::call_once(cache_dir_once_, [this] {
+    cache_dir_ = determine_cache_dirname(family_);
+  });
+  return cache_dir_;
+}
+
+bool AssetDownloader::offline_mode() {
+  std::call_once(offline_mode_once_, [this] {
+    auto value = getenv_utf8("LINPIPE_OFFLINE");
+    offline_mode_ = value && !value->empty() && *value != "0";
+  });
+  return offline_mode_;
+}
+
+std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name) {
+  std::vector<std::string> seen_assets;
+  return get_downloaded_asset(asset_name, seen_assets);
+}
+
+std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name, std::vector<std::string>& seen_assets) {
+  constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
+
+  if (std::ranges::find(seen_assets, asset_name) != seen_assets.end())
+    return cache_dir() / path_from_utf8(asset_name);
+  seen_assets.emplace_back(asset_name);
+
+  auto asset_dir = get_single_downloaded_asset(asset_name);
+  if (!asset_dir)
+    return std::nullopt;
+
+  auto json_path = *asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json = json_parse_path(caller, json_path);
+  if (json.contains("requirements"))
+    for (const auto& requirement : json_extract_key<std::vector<std::string>>(caller, json, "requirements"))
+      if (!get_downloaded_asset(requirement, seen_assets))
+        return std::nullopt;
+  return asset_dir;
+}
+
+std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asset(std::string_view asset_name) {
+  auto asset_dir = cache_dir() / path_from_utf8(asset_name);
+
+  std::error_code ec;
+  if (!std::filesystem::is_directory(asset_dir, ec))
+    return std::nullopt;
+
+  constexpr std::string_view caller = "AssetDownloader::get_single_downloaded_asset";
+  auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json = json_parse_path(caller, json_path);
+
+  auto& files = json_get_array(caller, json, "files");
+  for (auto& file : files) {
+    auto file_name = json_extract_key<std::string>(caller, file, "name");
+    auto file_path = asset_dir / path_from_utf8(file_name);
+
+    if (!std::filesystem::is_regular_file(file_path)) {
+      LOG(ERROR, fmt::format("{}: missing file {} of asset {}", caller, file_name, asset_name));
+      return std::nullopt;
+    }
+
+    auto expected_size = json_extract_key<uint64_t>(caller, file, "size");
+    auto actual_size = std::filesystem::file_size(file_path, ec);
+    if (ec) {
+      LOG(ERROR, fmt::format("{}: cannot get size of file {} of asset {}", caller, file_name, asset_name));
+      return std::nullopt;
+    }
+    if (actual_size != expected_size) {
+      LOG(ERROR, fmt::format("{}: file {} of asset {} has size {} instead of {}", caller, file_name, asset_name, actual_size, expected_size));
+      return std::nullopt;
+    }
+  }
+
+  return asset_dir;
+}
+
+std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
+  std::vector<std::string> seen_assets;
+  return get_asset(asset_name, seen_assets);
+}
+
+std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, std::vector<std::string>& seen_assets) {
+  constexpr std::string_view caller = "AssetDownloader::get_asset";
+
+  if (std::ranges::find(seen_assets, asset_name) != seen_assets.end())
+    return cache_dir() / path_from_utf8(asset_name);
+  seen_assets.emplace_back(asset_name);
+
+  auto asset_dir = get_single_asset(asset_name);
+
+  auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json = json_parse_path(caller, json_path);
+  if (json.contains("requirements"))
+    for (const auto& requirement : json_extract_key<std::vector<std::string>>(caller, json, "requirements"))
+      get_asset(requirement, seen_assets);
+  return asset_dir;
+}
+
+std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_name) {
+  if (auto path = get_single_downloaded_asset(asset_name); path) {
+    return path.value();
+  }
+
+  if (offline_mode())
+    throw LinpipeError{"AssetDownloader::get_asset: Cannot download missing asset in offline mode: ", asset_name};
+
+  constexpr std::string_view caller = "AssetDownloader::get_asset";
+  const auto& entries = json_get_object(caller, assets_json(), "entries");
+  auto entry = entries.find(asset_name);
+  if (entry == entries.end())
+    throw LinpipeError{caller, ": Unknown ", family_, " ", asset_name};
+
+  const auto& asset_json_url = json_get_key(caller, *entry, "url");
+  if (!asset_json_url.is_string())
+    throw LinpipeError{caller, ": The url of ", family_, " ", asset_name, " is not a string"};
+
+  download_asset(asset_name, asset_json_url.get_ref<const std::string&>());
+
+  if (auto path = get_single_downloaded_asset(asset_name); path)
+    return path.value();
+
+  throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(cache_dir() / path_from_utf8(asset_name)), " is not valid"};
+}
+
+} // namespace linpipe
