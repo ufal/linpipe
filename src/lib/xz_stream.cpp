@@ -133,12 +133,7 @@ XZOStream::XZOStream(std::ostream& target, XZMode mode, uint32_t preset)
 }
 
 void XZOStream::close() {
-  bool ok = false;
-  try {
-    ok = buf_.finish();
-  } catch (...) {  // NOLINT(bugprone-empty-catch)
-  }
-  if (!ok)
+  if (!buf_.finish())
     setstate(std::ios::badbit);
 }
 
