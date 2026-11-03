@@ -78,8 +78,7 @@ TEST_CASE("XZOStream decompress") {
   }
   SUBCASE("truncated stream") {
     os << compressed.substr(0, compressed.size() / 2);
-    os.close();
-    CHECK(os.bad());
+    CHECK_THROWS_AS(os.close(), LinpipeError);
   }
 }
 
