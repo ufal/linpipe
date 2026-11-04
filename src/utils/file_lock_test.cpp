@@ -7,8 +7,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <atomic>
 #include <chrono>
+#include <fstream>
 #include <thread>
 
 #include "lib/doctest/doctest.h"
@@ -26,14 +26,26 @@ std::filesystem::path test_dir() {
 
 } // namespace
 
-TEST_CASE("FileLock creates the lock file and keeps it") {
+TEST_CASE("FileLock creates the lock file and removes it on release") {
   auto path = test_dir() / "create.lock";
   std::filesystem::remove(path);
   {
     FileLock lock(path);
     CHECK(std::filesystem::is_regular_file(path));
   }
-  CHECK(std::filesystem::is_regular_file(path));
+  CHECK(!std::filesystem::exists(path));
+}
+
+TEST_CASE("FileLock reuses and removes a stale lock file") {
+  auto path = test_dir() / "stale.lock";
+  {
+    std::ofstream stale(path);
+  }
+  REQUIRE(std::filesystem::is_regular_file(path));
+  {
+    FileLock lock(path);
+  }
+  CHECK(!std::filesystem::exists(path));
 }
 
 TEST_CASE("FileLock can be taken again after release") {

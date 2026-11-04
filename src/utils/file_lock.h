@@ -27,6 +27,7 @@ class FileLock {
 #ifdef _WIN32
   void* handle_;
 #else
+  std::filesystem::path path_;
   int fd_;
 #endif
 };

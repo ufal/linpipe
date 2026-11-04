@@ -17,6 +17,7 @@
 #include <cerrno>
 #include <fcntl.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
@@ -37,45 +38,84 @@ std::string last_error_message() {
 
 } // namespace
 
-FileLock::FileLock(const std::filesystem::path& path) {
+FileLock::FileLock(const std::filesystem::path& path)
+#ifndef _WIN32
+    : path_(path)
+#endif
+{
 #ifdef _WIN32
-  handle_ = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-                        nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-  if (handle_ == INVALID_HANDLE_VALUE)
-    throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
+  for (;;) {
+    // DELETE access is needed to remove the file in the destructor.
+    handle_ = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE | DELETE,
+                          FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                          nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (handle_ == INVALID_HANDLE_VALUE)
+      throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
 
-  OVERLAPPED overlapped{};
-  if (!LockFileEx(handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &overlapped)) {
-    auto message = last_error_message();
+    OVERLAPPED overlapped{};
+    if (!LockFileEx(handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &overlapped)) {
+      auto message = last_error_message();
+      CloseHandle(handle_);
+      throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
+    }
+
+    // If the previous holder deleted the file, we locked a stale file, retry.
+    FILE_STANDARD_INFO info;
+    if (!GetFileInformationByHandleEx(handle_, FileStandardInfo, &info, sizeof(info))) {
+      auto message = last_error_message();
+      CloseHandle(handle_);
+      throw LinpipeError{"FileLock: Cannot query lock file ", path_to_utf8(path), ": ", message};
+    }
+    if (!info.DeletePending)
+      break;
     CloseHandle(handle_);
-    throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
   }
 #else
-  do {
-    fd_ = open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0666);
-  } while (fd_ < 0 && errno == EINTR);
-  if (fd_ < 0)
-    throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
+  for (;;) {
+    do {
+      fd_ = open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0666);
+    } while (fd_ < 0 && errno == EINTR);
+    if (fd_ < 0)
+      throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
 
-  int ret = 0;
-  do {
-    ret = flock(fd_, LOCK_EX);
-  } while (ret < 0 && errno == EINTR);
-  if (ret < 0) {
-    auto message = last_error_message();
+    int ret = 0;
+    do {
+      ret = flock(fd_, LOCK_EX);
+    } while (ret < 0 && errno == EINTR);
+    if (ret < 0) {
+      auto message = last_error_message();
+      close(fd_);
+      throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
+    }
+
+    // Verify that the path still refers to the file we have locked.
+    struct stat fd_stat, path_stat;
+    if (fstat(fd_, &fd_stat) < 0) {
+      auto message = last_error_message();
+      close(fd_);
+      throw LinpipeError{"FileLock: Cannot stat lock file ", path_to_utf8(path), ": ", message};
+    }
+    if (stat(path.c_str(), &path_stat) == 0) {
+      if (fd_stat.st_dev == path_stat.st_dev && fd_stat.st_ino == path_stat.st_ino)
+        break;
+    } else if (errno != ENOENT) {
+      auto message = last_error_message();
+      close(fd_);
+      throw LinpipeError{"FileLock: Cannot stat lock file ", path_to_utf8(path), ": ", message};
+    }
     close(fd_);
-    throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
   }
 #endif
 }
 
 FileLock::~FileLock() {
 #ifdef _WIN32
-  OVERLAPPED overlapped{};
-  UnlockFileEx(handle_, 0, MAXDWORD, MAXDWORD, &overlapped);
+  FILE_DISPOSITION_INFO_EX disposition{};
+  disposition.Flags = FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS;
+  SetFileInformationByHandle(handle_, FileDispositionInfoEx, &disposition, sizeof(disposition));
   CloseHandle(handle_);
 #else
-  flock(fd_, LOCK_UN);
+  unlink(path_.c_str());
   close(fd_);
 #endif
 }
