@@ -73,6 +73,14 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
 }
 
+std::filesystem::path asset_file_path(std::string_view caller, std::string_view family, std::string_view asset_name,
+                                      const std::filesystem::path& asset_dir, const std::filesystem::path& json_name, const std::string& name) {
+  auto file_name = path_from_utf8(name);
+  if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name || name.ends_with(".lock") || name.ends_with(".tmp"))
+    throw LinpipeError{caller, ": Invalid file name '", name, "' of ", family, " ", asset_name};
+  return asset_dir / file_name;
+}
+
 bool is_downloaded_file(const std::filesystem::path& path, uint64_t size = {}) {
   std::error_code ec;
   if (!std::filesystem::is_regular_file(path, ec))
@@ -191,17 +199,14 @@ void AssetDownloader::download_asset(std::string_view asset_name) {
   // Download all files of the asset.
   for (auto& file : json_get_array(caller, json, "files")) {
     auto name = json_extract<std::string>(caller, file, "name");
-    auto file_name = path_from_utf8(name);
-    if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name ||
-        name.ends_with(".lock") || name.ends_with(".tmp"))
-      throw LinpipeError{caller, ": Invalid file name '", name, "' of ", family_, " ", asset_name};
+    auto file_path = asset_file_path(caller, family_, asset_name, asset_dir, json_name, name);
 
     auto url = json_extract<std::string>(caller, file, "url");
     auto size = json_extract<uint64_t>(caller, file, "size");
     auto sha256 = json_extract<std::string>(caller, file, "sha256");
     auto compression = file.contains("compression") ? json_extract<std::string>(caller, file, "compression") : std::string();
 
-    download_to_file(url, asset_dir / file_name, size, sha256, compression);
+    download_to_file(url, file_path, size, sha256, compression);
   }
 }
 
@@ -265,14 +270,15 @@ std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asse
   constexpr std::string_view caller = "AssetDownloader::get_single_downloaded_asset";
 
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
-  auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
+  auto json_name = path_from_utf8(fmt::format("{}.json", family_));
+  auto json_path = asset_dir / json_name;
   if (!is_downloaded_file(json_path))
     return std::nullopt;
 
   auto json = json_parse_path(caller, json_path);
   for (auto& file : json_get_array(caller, json, "files")) {
     auto file_name = json_extract<std::string>(caller, file, "name");
-    auto file_path = asset_dir / path_from_utf8(file_name);
+    auto file_path = asset_file_path(caller, family_, asset_name, asset_dir, json_name, file_name);
 
     std::error_code ec;
     if (!std::filesystem::is_regular_file(file_path, ec))
