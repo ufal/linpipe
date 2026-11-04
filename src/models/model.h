@@ -15,14 +15,9 @@ namespace linpipe {
 
 class Model {
  public:
-  virtual ~Model() = default;
-  const std::string& name();
-
-  static std::unique_ptr<Model> create(std::string& name, std::istream& input);
-
- protected:
-  Model(std::string_view name) : name_(name) {}
-  std::string name_;
+  virtual ~Model() = 0;
 };
+
+inline Model::~Model() = default;
 
 } // namespace linpipe
