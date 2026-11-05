@@ -145,7 +145,7 @@ void AssetDownloader::download_asset(std::string_view asset_name, std::string_vi
   if (ec)
     throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
 
-  // 1. Lock path.lock exclusively; it is never deleted.
+  // 1. Lock path.lock exclusively.
   auto lock_path = path;
   lock_path += ".lock";
   FileLock lock(lock_path);
