@@ -10,7 +10,6 @@
 #include <system_error>
 
 #ifdef _WIN32
-#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #else
@@ -44,13 +43,21 @@ FileLock::FileLock(const std::filesystem::path& path)
 #endif
 {
 #ifdef _WIN32
-  for (;;) {
-    // DELETE access is needed to remove the file in the destructor.
+  for (DWORD delay_ms = 1;;) {
     handle_ = CreateFileW(path.c_str(), GENERIC_READ | GENERIC_WRITE | DELETE,
                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                           nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (handle_ == INVALID_HANDLE_VALUE)
+    if (handle_ == INVALID_HANDLE_VALUE) {
+      // A file pending deletion cannot be opened until its last handle is closed, which is
+      // reported as ERROR_ACCESS_DENIED; back off for up to ~2s before treating it as genuine.
+      if (GetLastError() == ERROR_ACCESS_DENIED && delay_ms <= 1024) {
+        Sleep(delay_ms);
+        delay_ms *= 2;
+        continue;
+      }
       throw LinpipeError{"FileLock: Cannot open lock file ", path_to_utf8(path), ": ", last_error_message()};
+    }
+    delay_ms = 1;
 
     OVERLAPPED overlapped{};
     if (!LockFileEx(handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &overlapped)) {
@@ -59,14 +66,19 @@ FileLock::FileLock(const std::filesystem::path& path)
       throw LinpipeError{"FileLock: Cannot lock file ", path_to_utf8(path), ": ", message};
     }
 
-    // If the previous holder deleted the file, we locked a stale file, retry.
-    FILE_STANDARD_INFO info;
-    if (!GetFileInformationByHandleEx(handle_, FileStandardInfo, &info, sizeof(info))) {
-      auto message = last_error_message();
-      CloseHandle(handle_);
-      throw LinpipeError{"FileLock: Cannot query lock file ", path_to_utf8(path), ": ", message};
-    }
-    if (!info.DeletePending)
+    // Verify that the path still refers to the file we have locked.
+    BY_HANDLE_FILE_INFORMATION locked, named;
+    HANDLE probe = CreateFileW(path.c_str(), 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                               nullptr, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, nullptr);
+    bool current = probe != INVALID_HANDLE_VALUE &&
+        GetFileInformationByHandle(handle_, &locked) &&
+        GetFileInformationByHandle(probe, &named) &&
+        locked.dwVolumeSerialNumber == named.dwVolumeSerialNumber &&
+        locked.nFileIndexHigh == named.nFileIndexHigh &&
+        locked.nFileIndexLow == named.nFileIndexLow;
+    if (probe != INVALID_HANDLE_VALUE)
+      CloseHandle(probe);
+    if (current)
       break;
     CloseHandle(handle_);
   }
@@ -110,9 +122,10 @@ FileLock::FileLock(const std::filesystem::path& path)
 
 FileLock::~FileLock() {
 #ifdef _WIN32
-  FILE_DISPOSITION_INFO_EX disposition{};
-  disposition.Flags = FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS;
-  SetFileInformationByHandle(handle_, FileDispositionInfoEx, &disposition, sizeof(disposition));
+  FILE_DISPOSITION_INFO disposition{TRUE};  // delete the file on close
+  SetFileInformationByHandle(handle_, FileDispositionInfo, &disposition, sizeof(disposition));
+  OVERLAPPED overlapped{};
+  UnlockFileEx(handle_, 0, MAXDWORD, MAXDWORD, &overlapped);
   CloseHandle(handle_);
 #else
   unlink(path_.c_str());
