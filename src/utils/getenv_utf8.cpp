@@ -16,6 +16,22 @@
 
 namespace linpipe {
 
+#ifdef _WIN32
+namespace {
+
+std::optional<std::wstring> utf8_to_wide(const char* str) {
+  int wstr_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, nullptr, 0);
+  if (wstr_len <= 0)
+    return std::nullopt;
+
+  std::wstring wstr(wstr_len - 1, L'\0');
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wstr.data(), wstr_len);
+  return wstr;
+}
+
+} // namespace
+#endif
+
 std::optional<std::string> getenv_utf8(const char* name) {
   if (!name) return std::nullopt;
 
@@ -59,6 +75,25 @@ std::optional<std::string> getenv_utf8(const char* name) {
   std::optional<std::string> result(std::in_place, value_len - 1, '\0');
   WideCharToMultiByte(CP_UTF8, 0, wvalue.c_str(), -1, result->data(), value_len, nullptr, nullptr);
   return result;
+
+#endif
+}
+
+bool setenv_utf8(const char* name, const char* value) {
+  if (!name || !*name) return false;
+
+#ifndef _WIN32
+  return (value ? setenv(name, value, 1) : unsetenv(name)) == 0;
+
+#else
+  auto wname = utf8_to_wide(name);
+  if (!wname) return false;
+
+  if (!value) return SetEnvironmentVariableW(wname->c_str(), nullptr) || GetLastError() == ERROR_ENVVAR_NOT_FOUND;
+
+  auto wvalue = utf8_to_wide(value);
+  if (!wvalue) return false;
+  return SetEnvironmentVariableW(wname->c_str(), wvalue->c_str());
 
 #endif
 }

@@ -14,6 +14,7 @@
 #include <random>
 
 #include "common.h"
+#include "utils/getenv_utf8.h"
 #include "utils/path_utf8.h"
 
 namespace linpipe {
@@ -54,27 +55,17 @@ class TempDir {
 
 class EnvGuard {
  public:
-  EnvGuard(const char* name, const char* value) : name_(name) {
-    if (const char* old = std::getenv(name)) old_value_ = old;
-    set(name, value);
+  EnvGuard(const char* name, const char* value) : name_(name), old_value_(getenv_utf8(name)) {
+    setenv_utf8(name, value);
   }
-  ~EnvGuard() { set(name_.c_str(), old_value_ ? old_value_->c_str() : nullptr); }
+  ~EnvGuard() {
+    setenv_utf8(name_.c_str(), old_value_ ? old_value_->c_str() : nullptr);
+  }
 
   EnvGuard(const EnvGuard&) = delete;
   EnvGuard& operator=(const EnvGuard&) = delete;
 
  private:
-  static void set(const char* name, const char* value) {
-#ifdef _WIN32
-    _putenv_s(name, value ? value : "");  // An empty value removes the variable.
-#else
-    if (value)
-      setenv(name, value, 1);
-    else
-      unsetenv(name);
-#endif
-  }
-
   std::string name_;
   std::optional<std::string> old_value_;
 };
