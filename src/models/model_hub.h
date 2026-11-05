@@ -26,6 +26,7 @@ class ModelHub {
   // The name is either a verbatim model name, or "family-language".
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
+
  private:
   // Lazily built from models.json: "family-language" -> newest model name.
   const std::unordered_map<std::string, std::string>& catalog();
