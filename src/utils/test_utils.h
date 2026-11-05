@@ -22,12 +22,12 @@ namespace linpipe {
 class TempDir {
  public:
   explicit TempDir(std::string_view prefix = "linpipe_test") {
-    static const uint64_t process_id = (static_cast<uint64_t>(std::random_device{}()) << 32) | std::random_device{}();
+    static const uint64_t rand_num = (static_cast<uint64_t>(std::random_device{}()) << 32) | std::random_device{}();
     static std::atomic<uint64_t> counter = 0;
     constexpr int max_attempts = 100;
     auto temp_dir = std::filesystem::temp_directory_path();
     for (int attempt = 0; attempt < max_attempts && path_.empty(); attempt++) {
-      auto candidate = temp_dir / fmt::format("{}_{:016x}_{}", prefix, process_id, counter++);
+      auto candidate = temp_dir / fmt::format("{}_{:016x}_{}", prefix, rand_num, counter++);
       std::error_code ec;
       if (std::filesystem::create_directory(candidate, ec))
         path_ = std::move(candidate);
