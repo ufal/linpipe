@@ -241,9 +241,14 @@ struct JsonExtractor<std::tuple<Ts...>> {
     if (json.size() != sizeof...(Ts))
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be an array of size ",
                          std::to_string(sizeof...(Ts)), ", but has size ", std::to_string(json.size())};
-    return [&]<size_t... Is>(std::index_sequence<Is...>) {
-      return std::tuple<Ts...>{JsonExtractor<Ts>::convert(caller, json[Is], JsonExtractorPath{&path, Is})...};
-    }(std::index_sequence_for<Ts...>{});
+    return convert_(caller, json, path, std::index_sequence_for<Ts...>{});
+  }
+
+ private:
+  // A static helper instead of a template lambda to side-step a bug of older MSVC.
+  template<typename J, size_t... Is>
+  static std::tuple<Ts...> convert_(std::string_view caller, J& json, const JsonExtractorPath& path, std::index_sequence<Is...> /*is*/) {
+    return std::tuple<Ts...>{JsonExtractor<Ts>::convert(caller, json[Is], JsonExtractorPath{&path, Is})...};
   }
 };
 
