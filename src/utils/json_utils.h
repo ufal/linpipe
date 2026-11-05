@@ -35,8 +35,11 @@ inline const Json& json_get_array(std::string_view caller, const Json& json, std
 inline Json& json_get_object(std::string_view caller, Json& json, std::string_view key);
 inline const Json& json_get_object(std::string_view caller, const Json& json, std::string_view key);
 
-template<typename T>
-T json_extract_key(std::string_view caller, Json& json, std::string_view key);
+template<typename T> T json_get(std::string_view caller, const Json& json);
+template<typename T> T json_get(std::string_view caller, const Json& json, std::string_view key);
+
+template<typename T> T json_extract(std::string_view caller, Json& json);
+template<typename T> T json_extract(std::string_view caller, Json& json, std::string_view key);
 
 // Definitions.
 Json json_parse(std::string_view caller, std::string_view input) {
@@ -97,7 +100,7 @@ Json& json_get_object(std::string_view caller, Json& json, std::string_view key)
   return const_cast<Json&>(json_get_object(caller, std::as_const(json), key));
 }
 
-// A helper struct allowing partial specialization handling of json_extract_key for container types.
+// A helper struct allowing partial specialization handling of json_get and json_extract.
 template<typename T> struct JsonExtractor;
 
 // A helper class for efficient reporting of JSON errors.
@@ -123,13 +126,28 @@ class JsonExtractorPath {
 };
 
 template<typename T>
-T json_extract_key(std::string_view caller, Json& json, std::string_view key) {
-  return JsonExtractor<T>::extract(caller, json_get_key(caller, json, key), JsonExtractorPath{nullptr, key});
+T json_get(std::string_view caller, const Json& json) {
+  return JsonExtractor<T>::convert(caller, json, JsonExtractorPath{nullptr, std::string_view()});
+}
+
+template<typename T>
+T json_get(std::string_view caller, const Json& json, std::string_view key) {
+  return JsonExtractor<T>::convert(caller, json_get_key(caller, json, key), JsonExtractorPath{nullptr, key});
+}
+
+template<typename T>
+T json_extract(std::string_view caller, Json& json) {
+  return JsonExtractor<T>::convert(caller, json, JsonExtractorPath{nullptr, std::string_view()});
+}
+
+template<typename T>
+T json_extract(std::string_view caller, Json& json, std::string_view key) {
+  return JsonExtractor<T>::convert(caller, json_get_key(caller, json, key), JsonExtractorPath{nullptr, key});
 }
 
 template<>
 struct JsonExtractor<bool> {
-  static bool extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  static bool convert(std::string_view caller, const Json& json, const JsonExtractorPath& path) {
     if (!json.is_boolean())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a boolean, but is a '", json.type_name(), "'"};
     return json.get<bool>();
@@ -139,7 +157,7 @@ struct JsonExtractor<bool> {
 template<std::integral T>
   requires (!std::same_as<T, bool>)
 struct JsonExtractor<T> {
-  static T extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  static T convert(std::string_view caller, const Json& json, const JsonExtractorPath& path) {
     if (json.is_number_unsigned()) {
       if (auto value = json.get<std::uint64_t>(); std::in_range<T>(value))
         return static_cast<T>(value);
@@ -156,7 +174,7 @@ struct JsonExtractor<T> {
 
 template<std::floating_point T>
 struct JsonExtractor<T> {
-  static T extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  static T convert(std::string_view caller, const Json& json, const JsonExtractorPath& path) {
     if (!json.is_number())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a number, but is a '", json.type_name(), "'"};
     return json.get<T>();
@@ -164,51 +182,67 @@ struct JsonExtractor<T> {
 };
 
 template<>
-struct JsonExtractor<std::string> {
-  static std::string extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+struct JsonExtractor<const std::string&> {
+  static const std::string& convert(std::string_view caller, const Json& json, const JsonExtractorPath& path) {
     if (!json.is_string())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a string, but is a '", json.type_name(), "'"};
-    return std::move(json.get_ref<std::string&>());
+    return json.get_ref<const std::string&>();
+  }
+};
+
+template<>
+struct JsonExtractor<std::string> {
+  template<typename J>
+  static std::string convert(std::string_view caller, J& json, const JsonExtractorPath& path) {
+    if (!json.is_string())
+      throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a string, but is a '", json.type_name(), "'"};
+    if constexpr (std::is_const_v<J>)
+      return json.template get<std::string>();
+    else
+      return std::move(json.template get_ref<std::string&>());
   }
 };
 
 template<typename T>
 struct JsonExtractor<std::vector<T>> {
-  static std::vector<T> extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  template<typename J>
+  static std::vector<T> convert(std::string_view caller, J& json, const JsonExtractorPath& path) {
     if (!json.is_array())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be an array, but is a '", json.type_name(), "'"};
     std::vector<T> output;
     output.reserve(json.size());
     size_t index = 0;
     for (auto& item : json)
-      output.push_back(JsonExtractor<T>::extract(caller, item, JsonExtractorPath{&path, index++}));
+      output.push_back(JsonExtractor<T>::convert(caller, item, JsonExtractorPath{&path, index++}));
     return output;
   }
 };
 
 template<typename T, typename U>
 struct JsonExtractor<std::pair<T, U>> {
-  static std::pair<T, U> extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  template<typename J>
+  static std::pair<T, U> convert(std::string_view caller, J& json, const JsonExtractorPath& path) {
     if (!json.is_array())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a pair as an array, but is a '", json.type_name(), "'"};
     if (json.size() != 2)
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be an array of size 2, but has size ", std::to_string(json.size())};
     return {
-      JsonExtractor<T>::extract(caller, json[0], JsonExtractorPath{&path, 0}),
-      JsonExtractor<U>::extract(caller, json[1], JsonExtractorPath{&path, 1})};
+      JsonExtractor<T>::convert(caller, json[0], JsonExtractorPath{&path, 0}),
+      JsonExtractor<U>::convert(caller, json[1], JsonExtractorPath{&path, 1})};
   }
 };
 
 template<typename... Ts>
 struct JsonExtractor<std::tuple<Ts...>> {
-  static std::tuple<Ts...> extract(std::string_view caller, Json& json, const JsonExtractorPath& path) {
+  template<typename J>
+  static std::tuple<Ts...> convert(std::string_view caller, J& json, const JsonExtractorPath& path) {
     if (!json.is_array())
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be a tuple as an array, but is a '", json.type_name(), "'"};
     if (json.size() != sizeof...(Ts))
       throw LinpipeError{caller, ": A JSON value at '", path.str(), "' should be an array of size ",
                          std::to_string(sizeof...(Ts)), ", but has size ", std::to_string(json.size())};
     return [&]<size_t... Is>(std::index_sequence<Is...>) {
-      return std::tuple<Ts...>{JsonExtractor<Ts>::extract(caller, json[Is], JsonExtractorPath{&path, Is})...};
+      return std::tuple<Ts...>{JsonExtractor<Ts>::convert(caller, json[Is], JsonExtractorPath{&path, Is})...};
     }(std::index_sequence_for<Ts...>{});
   }
 };
