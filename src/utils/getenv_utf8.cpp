@@ -87,7 +87,7 @@ bool setenv_utf8(const char* name, const char* value) {
   auto wname = utf8_to_wide(name);
   if (!wname) return false;
 
-  if (!value) return SetEnvironmentVariableW(wname->c_str(), nullptr) || GetLastError() == ERROR_ENVVAR_NOT_FOUND;
+  if (!value) return SetEnvironmentVariableW(wname->c_str(), nullptr);
 
   auto wvalue = utf8_to_wide(value);
   if (!wvalue) return false;
@@ -106,7 +106,7 @@ bool unsetenv_utf8(const char* name) {
   auto wname = utf8_to_wide(name);
   if (!wname) return false;
 
-  return SetEnvironmentVariableW(wname->c_str(), nullptr) || GetLastError() == ERROR_ENVVAR_NOT_FOUND;
+  return SetEnvironmentVariableW(wname->c_str(), nullptr);
 #endif
 }
 
