@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <filesystem>
+
 #include "common.h"
 #include "lib/json/json.h"
 #include "models/model.h"
