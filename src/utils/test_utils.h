@@ -20,14 +20,24 @@ namespace linpipe {
 class TempDir {
  public:
   explicit TempDir(std::string_view prefix = "linpipe_test", bool create = false) {
+    constexpr int max_attempts = 100;
     std::random_device random;
-    path_ = std::filesystem::temp_directory_path() / fmt::format("{}_{}", prefix, random());
-    std::filesystem::remove_all(path_);
-    if (create) std::filesystem::create_directories(path_);
+    auto temp_dir = std::filesystem::temp_directory_path();
+    for (int attempt = 0; attempt < max_attempts && root_.empty(); attempt++) {
+      auto candidate = temp_dir / fmt::format("{}_{:08x}{:08x}", prefix, random(), random());
+      std::error_code ec;
+      if (std::filesystem::create_directory(candidate, ec))
+        root_ = std::move(candidate);
+      else if (ec)
+        throw LinpipeError{"TempDir: Cannot create directory ", path_to_utf8(candidate), ": ", ec.message()};
+    }
+    if (root_.empty())
+      throw LinpipeError{"TempDir: Cannot create a unique directory in ", path_to_utf8(temp_dir)};
+    path_ = create ? root_ : root_ / "dir";
   }
   ~TempDir() {
     std::error_code ec;
-    std::filesystem::remove_all(path_, ec);
+    std::filesystem::remove_all(root_, ec);
   }
 
   TempDir(const TempDir&) = delete;
@@ -37,7 +47,7 @@ class TempDir {
   std::string utf8() const { return path_to_utf8(path_); }
 
  private:
-  std::filesystem::path path_;
+  std::filesystem::path root_, path_;
 };
 
 class EnvGuard {
