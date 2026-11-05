@@ -187,15 +187,15 @@ void AssetDownloader::download_asset(std::string_view asset_name, std::string_vi
 
     // 5. Download all files of the asset.
     for (auto& file : json_get_array(caller, json, "files")) {
-      auto name = json_extract_key<std::string>(caller, file, "name");
+      auto name = json_extract<std::string>(caller, file, "name");
       auto file_name = path_from_utf8(name);
       if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name)
         throw LinpipeError{caller, ": Invalid file name '", name, "' in ", asset_json_url};
 
-      auto url = json_extract_key<std::string>(caller, file, "url");
-      auto size = json_extract_key<uint64_t>(caller, file, "size");
-      auto sha256 = json_extract_key<std::string>(caller, file, "sha256");
-      auto compression = file.contains("compression") ? json_extract_key<std::string>(caller, file, "compression") : std::string();
+      auto url = json_extract<std::string>(caller, file, "url");
+      auto size = json_extract<uint64_t>(caller, file, "size");
+      auto sha256 = json_extract<std::string>(caller, file, "sha256");
+      auto compression = file.contains("compression") ? json_extract<std::string>(caller, file, "compression") : std::string();
 
       download_to_file(url, tmp_path / file_name, size, sha256, compression);
     }
@@ -269,7 +269,7 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
   auto json_path = *asset_dir / path_from_utf8(fmt::format("{}.json", family_));
   auto json = json_parse_path(caller, json_path);
   if (json.contains("requirements"))
-    for (const auto& requirement : json_extract_key<std::vector<std::string>>(caller, json, "requirements"))
+    for (const auto& requirement : json_extract<std::vector<std::string>>(caller, json, "requirements"))
       if (!get_downloaded_asset(requirement, seen_assets))
         return std::nullopt;
   return asset_dir;
@@ -288,7 +288,7 @@ std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asse
 
   auto& files = json_get_array(caller, json, "files");
   for (auto& file : files) {
-    auto file_name = json_extract_key<std::string>(caller, file, "name");
+    auto file_name = json_extract<std::string>(caller, file, "name");
     auto file_path = asset_dir / path_from_utf8(file_name);
 
     if (!std::filesystem::is_regular_file(file_path)) {
@@ -296,7 +296,7 @@ std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asse
       return std::nullopt;
     }
 
-    auto expected_size = json_extract_key<uint64_t>(caller, file, "size");
+    auto expected_size = json_extract<uint64_t>(caller, file, "size");
     auto actual_size = std::filesystem::file_size(file_path, ec);
     if (ec) {
       LOG(ERROR, fmt::format("{}: cannot get size of file {} of asset {}", caller, file_name, asset_name));
@@ -328,7 +328,7 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, st
   auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
   auto json = json_parse_path(caller, json_path);
   if (json.contains("requirements"))
-    for (const auto& requirement : json_extract_key<std::vector<std::string>>(caller, json, "requirements"))
+    for (const auto& requirement : json_extract<std::vector<std::string>>(caller, json, "requirements"))
       get_asset(requirement, seen_assets);
   return asset_dir;
 }
@@ -347,11 +347,8 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
   if (entry == entries.end())
     throw LinpipeError{caller, ": Unknown ", family_, " ", asset_name};
 
-  const auto& asset_json_url = json_get_key(caller, *entry, "url");
-  if (!asset_json_url.is_string())
-    throw LinpipeError{caller, ": The url of ", family_, " ", asset_name, " is not a string"};
-
-  download_asset(asset_name, asset_json_url.get_ref<const std::string&>());
+  const auto& asset_json_url = json_get<const std::string&>(caller, *entry, "url");
+  download_asset(asset_name, asset_json_url);
 
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
