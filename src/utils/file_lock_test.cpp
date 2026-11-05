@@ -61,17 +61,31 @@ TEST_CASE("FileLock can be taken again after release") {
 }
 
 TEST_CASE("FileLock excludes other threads") {
-  auto path = test_dir() / "threads.lock";
-  std::atomic<bool> second_locked = false;
-  std::thread second;
-  {
-    FileLock lock(path);
-    second = std::thread([&] { FileLock lock(path); second_locked = true; });
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    CHECK(!second_locked);
-  }
-  second.join();
-  CHECK(second_locked);
+  // With the lock file removed during unlocking, a possible problem is a waiter ending up
+  // locking an already deleted file while a newcomer locks a newly-created one. We use more than
+  // the three threads needed to manifest this issue to make it more likely to happen.
+  auto path = test_dir() / "contention.lock";
+  std::filesystem::remove(path);
+
+  constexpr int threads = 8, iterations = 500;
+  std::atomic<int> inside = 0, violations = 0;
+  std::vector<std::thread> workers;
+  workers.reserve(threads);
+  for (int t = 0; t < threads; t++)
+    workers.emplace_back([&] {
+      for (int i = 0; i < iterations; i++) {
+        FileLock lock(path);
+        if (inside.fetch_add(1) != 0)
+          violations++;
+        std::this_thread::yield();
+        inside.fetch_sub(1);
+      }
+    });
+  for (auto& worker : workers)
+    worker.join();
+
+  CHECK(violations == 0);
+  CHECK(!std::filesystem::exists(path));
 }
 
 TEST_CASE("FileLock throws when the directory does not exist") {
