@@ -42,13 +42,11 @@ std::optional<std::string> getenv_utf8(const char* name) {
   return value;
 
 #else
-  int wname_len = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
-  if (wname_len <= 0) return std::nullopt;
+  auto wname = utf8_to_wide(name);
+  if (!wname)
+    return std::nullopt;
 
-  std::wstring wname(wname_len - 1, L'\0');
-  MultiByteToWideChar(CP_UTF8, 0, name, -1, wname.data(), wname_len);
-
-  auto wvalue_len = GetEnvironmentVariableW(wname.c_str(), nullptr, 0);
+  auto wvalue_len = GetEnvironmentVariableW(wname->c_str(), nullptr, 0);
   if (wvalue_len == 0) return std::nullopt;
 
   std::wstring wvalue;
@@ -56,7 +54,7 @@ std::optional<std::string> getenv_utf8(const char* name) {
     wvalue.resize(wvalue_len - 1);
 
     SetLastError(ERROR_SUCCESS);
-    auto new_len = GetEnvironmentVariableW(wname.c_str(), wvalue.data(), wvalue_len);
+    auto new_len = GetEnvironmentVariableW(wname->c_str(), wvalue.data(), wvalue_len);
     if (new_len == 0) {
       if (GetLastError() != ERROR_SUCCESS) return std::nullopt;
       return "";
