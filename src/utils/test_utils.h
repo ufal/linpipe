@@ -59,7 +59,7 @@ class EnvGuard {
     setenv_utf8(name, value);
   }
   ~EnvGuard() {
-    setenv_utf8(name_.c_str(), old_value_ ? old_value_->c_str() : nullptr);
+    old_value_ ? setenv_utf8(name_.c_str(), old_value_->c_str()) : unsetenv_utf8(name_.c_str());
   }
 
   EnvGuard(const EnvGuard&) = delete;

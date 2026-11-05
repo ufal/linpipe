@@ -98,4 +98,18 @@ bool setenv_utf8(const char* name, const char* value) {
 #endif
 }
 
+bool unsetenv_utf8(const char* name) {
+  if (!name || !*name) return false;
+
+#ifndef _WIN32
+  return unsetenv(name) == 0;
+
+#else
+  auto wname = utf8_to_wide(name);
+  if (!wname) return false;
+
+  return SetEnvironmentVariableW(wname->c_str(), nullptr) || GetLastError() == ERROR_ENVVAR_NOT_FOUND;
+#endif
+}
+
 } // namespace linpipe
