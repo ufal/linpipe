@@ -7,12 +7,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "lib/json/json.h"
-#include "models/model_hub.h"
-#include "models/model_factory.h"
-#include "utils/json_utils.h"
-
 #include <utility>
+
+#include "lib/json/json.h"
+#include "models/model_factory.h"
+#include "models/model_hub.h"
+#include "utils/json_utils.h"
 
 namespace linpipe {
 
