@@ -9,6 +9,10 @@
 
 #pragma once
 
+#include <filesystem>
+#include <mutex>
+#include <unordered_map>
+
 #include "common.h"
 #include "models/model.h"
 #include "utils/asset_downloader.h"
@@ -19,13 +23,22 @@ class ModelHub {
  public:
   explicit ModelHub(std::string repo_url = {});
 
+  // The name is either a verbatim model name, or "family-language".
   std::unique_ptr<Model> get_model(std::string_view name);
 
  private:
+  std::filesystem::path locate_model(std::string_view name);
+
+  // Lazily built from models.json: "family-language" -> newest model name.
+  const std::unordered_map<std::string, std::string>& catalog();
+
   static constexpr std::string_view default_repo_url_ = "https://huggingface.com/ufal/linpipe/repo/models";
   static constexpr std::string_view family_ = "model";
 
   AssetDownloader asset_downloader_;
+
+  std::unordered_map<std::string, std::string> catalog_;
+  std::once_flag catalog_once_;
 };
 
 } // namespace linpipe
