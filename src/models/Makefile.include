@@ -8,3 +8,4 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += models/model_hub
+LINPIPE_OBJECTS += models/model_factory
