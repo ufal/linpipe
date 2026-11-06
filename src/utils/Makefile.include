@@ -8,8 +8,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 LINPIPE_OBJECTS += utils/asset_downloader
+LINPIPE_OBJECTS += utils/env_utf8
 LINPIPE_OBJECTS += utils/file_lock
-LINPIPE_OBJECTS += utils/getenv_utf8
 LINPIPE_OBJECTS += utils/languages
 LINPIPE_OBJECTS += utils/logging
 LINPIPE_OBJECTS += utils/path_utf8
