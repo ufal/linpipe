@@ -116,7 +116,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     if (is_downloaded_file(path, size))
       return;
     if (std::filesystem::exists(path, ec))
-      LOG(WARN, caller << ": File " << path_to_utf8(path) << " is not valid, downloading it again");
+      LOG(WARN, "File {} is not valid, downloading it again", path_to_utf8(path));
   }
 
   // Download to path.tmp.
@@ -287,11 +287,11 @@ std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asse
     auto expected_size = json_extract<uint64_t>(caller, file, "size");
     auto actual_size = std::filesystem::file_size(file_path, ec);
     if (ec) {
-      LOG(ERROR, fmt::format("{}: cannot get size of file {} of asset {}", caller, file_name, asset_name));
+      LOG(ERROR, "Cannot get size of file {} of asset {}", file_name, asset_name);
       return std::nullopt;
     }
     if (actual_size != expected_size) {
-      LOG(ERROR, fmt::format("{}: file {} of asset {} has size {} instead of {}", caller, file_name, asset_name, actual_size, expected_size));
+      LOG(ERROR, "File {} of asset {} has size {} instead of {}", file_name, asset_name, actual_size, expected_size);
       return std::nullopt;
     }
   }

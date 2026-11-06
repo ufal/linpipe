@@ -7,10 +7,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <cstring>
 #include <ctime>
 #include <fstream>
 #include <mutex>
-#include <syncstream>
 
 #include "utils/env_utf8.h"
 #include "utils/logging.h"
@@ -70,40 +70,54 @@ void logging_set_level(std::string_view level) {
   else if (level == "f" || level == "F" || level == "fatal" || level == "FATAL")
     logging_level = LoggingLevel::LEVEL_FATAL;
   else
-    LOG(ERROR, "logging_set_level: Cannot parse logging level '" << level << "'");
+    LOG(ERROR, "logging_set_level: Cannot parse logging level '{}'", level);
 }
 
 void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
-    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '" << path_to_utf8(path) << "'");
+    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '{}'", path_to_utf8(path));
   else
     logging_to_file = true;
 }
 
-LoggingStream::LoggingStream(LoggingLevel level, const char* source, int line) {
-  if (level != LoggingLevel::LEVEL_PROGRESS && logging_last_progress) buf_.put('\n');
+void logging_write(LoggingLevel level, std::string_view message, std::source_location location /*= std::source_location::current()*/) {
+  std::string log;
+  log.reserve(1 + 13 + (logging_sources ? 1 + std::strlen(location.file_name()) + 1 + 10 : 0) + 3 + message.size() + 1);
+
+  if (level != LoggingLevel::LEVEL_PROGRESS && logging_last_progress) log.push_back('\n');
   logging_last_progress = level == LoggingLevel::LEVEL_PROGRESS;
 
   time_t now = 0;
   time(&now);
-  char date_time[6 + 1 + 6 + 1];
-  strftime(date_time, std::size(date_time), "%y%m%d-%H%M%S", localtime(&now));
-  buf_.write(date_time, sizeof(date_time) - 1);
 
-  if (logging_sources)
-    buf_ << ' ' << source << ':' << line;
+  std::tm tm{};
+#ifdef _WIN32
+  localtime_s(&tm, &now);
+#else
+  localtime_r(&now, &tm);
+#endif
 
-  buf_.put(' ');
-  buf_.put("TIPWEF"[static_cast<int>(level)]);
-  buf_.put(' ');
-}
+  log.resize(log.size() + 13);
+  strftime(log.data() + log.size() - 13, 13 + 1, "%y%m%d-%H%M%S", &tm);
 
-LoggingStream::~LoggingStream() {
+  if (logging_sources) {
+    log.push_back(' ');
+    log.append(location.file_name());
+    log.push_back(':');
+    log.append(std::to_string(location.line()));
+  }
+
+  log.push_back(' ');
+  log.push_back("TIPWEF"[static_cast<int>(level)]);
+  log.push_back(' ');
+  log.append(message);
+  log.push_back(level == LoggingLevel::LEVEL_PROGRESS ? '\r' : '\n');
+
   std::ostream& logger = logging_to_file ? logging_file : std::cerr;
 
   std::scoped_lock lock(logging_mutex);
-  logger.write(buf_.view().data(), static_cast<std::streamsize>(buf_.view().size()));
+  logger.write(log.data(), static_cast<std::streamsize>(log.size()));
   if (!(logger.flags() & std::ios::unitbuf))
     logger.flush();
 }
