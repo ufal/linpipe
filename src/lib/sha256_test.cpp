@@ -12,6 +12,7 @@
 
 #include "lib/doctest/doctest.h"
 #include "lib/sha256.h"
+#include "utils/test_utils.h"
 
 namespace linpipe {
 
@@ -68,13 +69,13 @@ TEST_CASE("SHA256 digest has digest_size bytes matching the hexdigest") {
 }
 
 TEST_CASE("SHA256 hashes a file") {
-  auto path = std::filesystem::temp_directory_path() / "linpipe_sha256_test.bin";
+  TempDir dir("linpipe_sha256_test");
+  auto path = dir.path() / "all_bytes.bin";
   {
     std::ofstream file(path, std::ios::binary);
     file.write(reinterpret_cast<const char*>(all_bytes.data()), all_bytes.size());
   }
   CHECK(SHA256::hexdigest(path) == all_bytes_sha256);
-  std::filesystem::remove(path);
 }
 
 } // namespace linpipe
