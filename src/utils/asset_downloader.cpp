@@ -15,8 +15,8 @@
 #include "lib/sha256.h"
 #include "lib/xz_stream.h"
 #include "utils/asset_downloader.h"
+#include "utils/env_utf8.h"
 #include "utils/file_lock.h"
-#include "utils/getenv_utf8.h"
 #include "utils/json_utils.h"
 #include "utils/path_utf8.h"
 

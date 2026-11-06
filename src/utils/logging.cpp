@@ -12,7 +12,7 @@
 #include <mutex>
 #include <syncstream>
 
-#include "utils/getenv_utf8.h"
+#include "utils/env_utf8.h"
 #include "utils/logging.h"
 #include "utils/path_utf8.h"
 

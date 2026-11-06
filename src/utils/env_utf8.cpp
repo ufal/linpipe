@@ -12,7 +12,7 @@
 #include <windows.h>
 #endif
 
-#include "getenv_utf8.h"
+#include "env_utf8.h"
 
 namespace linpipe {
 
