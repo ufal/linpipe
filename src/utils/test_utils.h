@@ -27,7 +27,7 @@ class TempDir {
     constexpr int max_attempts = 100;
     auto temp_dir = std::filesystem::temp_directory_path();
     for (int attempt = 0; attempt < max_attempts && path_.empty(); attempt++) {
-      auto candidate = temp_dir / fmt::format("{}_{:016x}_{}", prefix, rand_num, counter++);
+      auto candidate = temp_dir / path_from_utf8(fmt::format("{}_{}_{}", prefix, rand_num, counter++));
       std::error_code ec;
       if (std::filesystem::create_directory(candidate, ec))
         path_ = std::move(candidate);
