@@ -29,6 +29,16 @@ std::optional<std::wstring> utf8_to_wide(const char* str) {
   return wstr;
 }
 
+std::optional<std::string> wide_to_utf8(const wchar_t* wstr) {
+  int str_len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, nullptr, 0, nullptr, nullptr);
+  if (str_len <= 0)
+    return std::nullopt;
+
+  std::string str(str_len - 1, '\0');
+  WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str.data(), str_len, nullptr, nullptr);
+  return str;
+}
+
 } // namespace
 #endif
 
@@ -67,12 +77,7 @@ std::optional<std::string> getenv_utf8(const char* name) {
     wvalue_len = new_len;
   }
 
-  int value_len = WideCharToMultiByte(CP_UTF8, 0, wvalue.c_str(), -1, nullptr, 0, nullptr, nullptr);
-  if (value_len <= 0) return std::nullopt;
-
-  std::optional<std::string> result(std::in_place, value_len - 1, '\0');
-  WideCharToMultiByte(CP_UTF8, 0, wvalue.c_str(), -1, result->data(), value_len, nullptr, nullptr);
-  return result;
+  return wide_to_utf8(wvalue.c_str());
 
 #endif
 }
