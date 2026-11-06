@@ -22,20 +22,16 @@ namespace linpipe {
 class TempDir {
  public:
   explicit TempDir(std::string_view prefix = "linpipe_test") {
-    static const uint64_t rand_num = (static_cast<uint64_t>(std::random_device{}()) << 32) | std::random_device{}();
-    static std::atomic<uint64_t> counter = 0;
-    constexpr int max_attempts = 100;
+    static std::atomic<unsigned> rand_num = std::random_device{}();
     auto temp_dir = std::filesystem::temp_directory_path();
-    for (int attempt = 0; attempt < max_attempts && path_.empty(); attempt++) {
-      auto candidate = temp_dir / path_from_utf8(fmt::format("{}_{}_{}", prefix, rand_num, counter++));
+    while (path_.empty()) {
+      auto candidate = temp_dir / path_from_utf8(fmt::format("{}_{}", prefix, rand_num++));
       std::error_code ec;
       if (std::filesystem::create_directory(candidate, ec))
         path_ = std::move(candidate);
       else if (ec)
         throw LinpipeError{"TempDir: Cannot create directory ", path_to_utf8(candidate), ": ", ec.message()};
     }
-    if (path_.empty())
-      throw LinpipeError{"TempDir: Cannot create a unique directory in ", path_to_utf8(temp_dir)};
   }
   ~TempDir() {
     std::error_code ec;
