@@ -47,9 +47,9 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    LOG(INFO, "LinPipe " << Version::current().as_string() << " is up and running");
+    LOG(INFO, "LinPipe {} is up and running", Version::current().as_string());
   } catch (const LinpipeError& error) {
-    LOG(FATAL, "An unhandled exception has occurred, terminating: " << error.what());
+    LOG(FATAL, "An unhandled exception has occurred, terminating: {}", error.what());
     return 1;
   }
 

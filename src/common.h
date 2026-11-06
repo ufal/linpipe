@@ -23,8 +23,8 @@
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <source_location>
 #include <span>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -89,32 +89,14 @@ enum class LoggingLevel : int {
 extern LoggingLevel logging_level;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 extern bool logging_to_file;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-class LoggingStream {
- public:
-  explicit LoggingStream(LoggingLevel level, const char* source, int line);
-  ~LoggingStream();
+void logging_write(LoggingLevel level, std::string_view message, std::source_location location = std::source_location::current());
 
-  template<class T> LoggingStream& operator<<(const T& v) {
-    buf_ << v;
-    return *this;
-  }
-
- private:
-  std::ostringstream buf_;
-};
-
-// NOLINTBEGIN(bugprone-macro-parentheses,cppcoreguidelines-macro-usage)
-#define LOG(level, message)                                                                                   \
-  do {                                                                                                        \
-    if constexpr (linpipe::LoggingLevel::LEVEL_##level == linpipe::LoggingLevel::LEVEL_PROGRESS) {            \
-      if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_PROGRESS && !linpipe::logging_to_file)       \
-        linpipe::LoggingStream(linpipe::LoggingLevel::LEVEL_PROGRESS, __FILE__, __LINE__) << message << '\r'; \
-    } else {                                                                                                  \
-      if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_##level)                                     \
-        linpipe::LoggingStream(linpipe::LoggingLevel::LEVEL_##level, __FILE__, __LINE__) << message << '\n';  \
-    }                                                                                                         \
+#define LOG(level, ...)                                                                                               \
+  do {                                                                                                                \
+    if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_##level &&                                             \
+        (linpipe::LoggingLevel::LEVEL_##level != linpipe::LoggingLevel::LEVEL_PROGRESS || !linpipe::logging_to_file)) \
+      linpipe::logging_write(linpipe::LoggingLevel::LEVEL_##level, fmt::format(__VA_ARGS__));                         \
   } while (false)
-// NOLINTEND(bugprone-macro-parentheses,cppcoreguidelines-macro-usage)
 
 // Additional formatters for {fmt}
 template<>

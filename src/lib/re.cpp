@@ -78,7 +78,7 @@ bool oniguruma_match(OnigRegexType* re, std::basic_string_view<Char> str, Match*
   if (r != ONIG_MISMATCH) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
-    LOG(ERROR, "RE::match: An error occurred during matching: " << s);
+    LOG(ERROR, "RE::match: An error occurred during matching: {}", s);
   }
   return false;
 }
@@ -115,7 +115,7 @@ bool oniguruma_search(OnigRegexType* re, std::basic_string_view<Char> str, Match
   if (r != ONIG_MISMATCH) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
-    LOG(ERROR, "RE::search: An error occurred during searching: " << s);
+    LOG(ERROR, "RE::search: An error occurred during searching: {}", s);
   }
   return false;
 }
@@ -139,7 +139,7 @@ size_t oniguruma_split(OnigRegexType* re, std::basic_string_view<Char> str,
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
-        LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
+        LOG(ERROR, "RE::split: An error occurred during splitting: {}", s);
       }
       break;
     }
@@ -179,7 +179,7 @@ size_t oniguruma_sub(OnigRegexType* re, std::basic_string_view<Char> str, std::b
       if (r != ONIG_MISMATCH) {
         char s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(reinterpret_cast<UChar*>(s), r);
-        LOG(ERROR, "RE::split: An error occurred during splitting: " << s);
+        LOG(ERROR, "RE::split: An error occurred during splitting: {}", s);
       }
       break;
     }

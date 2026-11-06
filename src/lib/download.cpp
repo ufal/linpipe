@@ -48,7 +48,7 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
   uint64_t total = 0, received = 0, last_logged = 0;
   int last_percent = -1;
 
-  LOG(TRACE, "Downloading " << url);
+  LOG(TRACE, "Downloading {}", url);
   auto result = client.Get(
       path.empty() ? std::string{"/"} : std::string{path},  // path
       [&](const httplib::Response& response) {              // response handler
@@ -69,11 +69,11 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
             int percent = static_cast<int>(received * 100 / total);
             if (percent != last_percent) {
               last_percent = percent;
-              LOG(PROGRESS, "Downloading " << url.substr(0, 60) << ": " << percent << "%");
+              LOG(PROGRESS, "Downloading {}: {}%", url.substr(0, 60), percent);
             }
           } else if (received - last_logged >= (1 << 20)) {
             last_logged = received;
-            LOG(PROGRESS, "Downloading " << url.substr(0, 60) << ": " << (received >> 20) << " MiB");
+            LOG(PROGRESS, "Downloading {}: {} MiB", url.substr(0, 60), received >> 20);
           }
         }
         return true;
@@ -81,7 +81,7 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
 
   bool bad_status = status != 0 && (status < 200 || status >= 300);
   if (bad_status || write_failed || !result || !write_buffer()) {
-    LOG(ERROR, "Downloading " << url << " failed");
+    LOG(ERROR, "Downloading {} failed", url);
 
     if (bad_status)
       throw LinpipeError{"download: Cannot download URL ", url, ": HTTP status ", std::to_string(status)};
@@ -90,7 +90,7 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
     throw LinpipeError{"download: Cannot download URL '", url, "': ", httplib::to_string(result.error())};
   }
 
-  LOG(TRACE, "Downloaded " << url);
+  LOG(TRACE, "Downloaded {}", url);
 }
 
 } // namespace linpipe
