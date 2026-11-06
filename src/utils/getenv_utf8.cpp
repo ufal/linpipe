@@ -16,6 +16,32 @@
 
 namespace linpipe {
 
+#ifdef _WIN32
+namespace {
+
+std::optional<std::wstring> utf8_to_wide(const char* str) {
+  int wstr_len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, nullptr, 0);
+  if (wstr_len <= 0)
+    return std::nullopt;
+
+  std::wstring wstr(wstr_len - 1, L'\0');
+  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wstr.data(), wstr_len);
+  return wstr;
+}
+
+std::optional<std::string> wide_to_utf8(const wchar_t* wstr) {
+  int str_len = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, nullptr, 0, nullptr, nullptr);
+  if (str_len <= 0)
+    return std::nullopt;
+
+  std::string str(str_len - 1, '\0');
+  WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str.data(), str_len, nullptr, nullptr);
+  return str;
+}
+
+} // namespace
+#endif
+
 std::optional<std::string> getenv_utf8(const char* name) {
   if (!name) return std::nullopt;
 
@@ -26,13 +52,11 @@ std::optional<std::string> getenv_utf8(const char* name) {
   return value;
 
 #else
-  int wname_len = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
-  if (wname_len <= 0) return std::nullopt;
+  auto wname = utf8_to_wide(name);
+  if (!wname)
+    return std::nullopt;
 
-  std::wstring wname(wname_len - 1, L'\0');
-  MultiByteToWideChar(CP_UTF8, 0, name, -1, wname.data(), wname_len);
-
-  auto wvalue_len = GetEnvironmentVariableW(wname.c_str(), nullptr, 0);
+  auto wvalue_len = GetEnvironmentVariableW(wname->c_str(), nullptr, 0);
   if (wvalue_len == 0) return std::nullopt;
 
   std::wstring wvalue;
@@ -40,7 +64,7 @@ std::optional<std::string> getenv_utf8(const char* name) {
     wvalue.resize(wvalue_len - 1);
 
     SetLastError(ERROR_SUCCESS);
-    auto new_len = GetEnvironmentVariableW(wname.c_str(), wvalue.data(), wvalue_len);
+    auto new_len = GetEnvironmentVariableW(wname->c_str(), wvalue.data(), wvalue_len);
     if (new_len == 0) {
       if (GetLastError() != ERROR_SUCCESS) return std::nullopt;
       return "";
@@ -53,13 +77,41 @@ std::optional<std::string> getenv_utf8(const char* name) {
     wvalue_len = new_len;
   }
 
-  int value_len = WideCharToMultiByte(CP_UTF8, 0, wvalue.c_str(), -1, nullptr, 0, nullptr, nullptr);
-  if (value_len <= 0) return std::nullopt;
+  return wide_to_utf8(wvalue.c_str());
 
-  std::optional<std::string> result(std::in_place, value_len - 1, '\0');
-  WideCharToMultiByte(CP_UTF8, 0, wvalue.c_str(), -1, result->data(), value_len, nullptr, nullptr);
-  return result;
+#endif
+}
 
+bool setenv_utf8(const char* name, const char* value) {
+  if (!name || !*name) return false;
+
+#ifndef _WIN32
+  return (value ? setenv(name, value, 1) : unsetenv(name)) == 0;
+
+#else
+  auto wname = utf8_to_wide(name);
+  if (!wname) return false;
+
+  if (!value) return SetEnvironmentVariableW(wname->c_str(), nullptr);
+
+  auto wvalue = utf8_to_wide(value);
+  if (!wvalue) return false;
+  return SetEnvironmentVariableW(wname->c_str(), wvalue->c_str());
+
+#endif
+}
+
+bool unsetenv_utf8(const char* name) {
+  if (!name || !*name) return false;
+
+#ifndef _WIN32
+  return unsetenv(name) == 0;
+
+#else
+  auto wname = utf8_to_wide(name);
+  if (!wname) return false;
+
+  return SetEnvironmentVariableW(wname->c_str(), nullptr);
 #endif
 }
 

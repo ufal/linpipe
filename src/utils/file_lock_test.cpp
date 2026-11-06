@@ -8,28 +8,19 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <atomic>
-#include <chrono>
 #include <fstream>
 #include <thread>
+#include <vector>
 
 #include "lib/doctest/doctest.h"
 #include "utils/file_lock.h"
+#include "utils/test_utils.h"
 
 namespace linpipe {
 
-namespace {
-
-std::filesystem::path test_dir() {
-  auto dir = std::filesystem::temp_directory_path() / "linpipe_file_lock_test";
-  std::filesystem::create_directories(dir);
-  return dir;
-}
-
-} // namespace
-
 TEST_CASE("FileLock creates the lock file and removes it on release") {
-  auto path = test_dir() / "create.lock";
-  std::filesystem::remove(path);
+  TempDir dir("linpipe_file_lock_test");
+  auto path = dir.path() / "create.lock";
   {
     FileLock lock(path);
     CHECK(std::filesystem::is_regular_file(path));
@@ -38,7 +29,8 @@ TEST_CASE("FileLock creates the lock file and removes it on release") {
 }
 
 TEST_CASE("FileLock reuses and removes a stale lock file") {
-  auto path = test_dir() / "stale.lock";
+  TempDir dir("linpipe_file_lock_test");
+  auto path = dir.path() / "stale.lock";
   {
     std::ofstream stale(path);
   }
@@ -50,7 +42,8 @@ TEST_CASE("FileLock reuses and removes a stale lock file") {
 }
 
 TEST_CASE("FileLock can be taken again after release") {
-  auto path = test_dir() / "relock.lock";
+  TempDir dir("linpipe_file_lock_test");
+  auto path = dir.path() / "relock.lock";
   {
     FileLock lock(path);
   }
@@ -64,8 +57,8 @@ TEST_CASE("FileLock excludes other threads") {
   // With the lock file removed during unlocking, a possible problem is a waiter ending up
   // locking an already deleted file while a newcomer locks a newly-created one. We use more than
   // the three threads needed to manifest this issue to make it more likely to happen.
-  auto path = test_dir() / "contention.lock";
-  std::filesystem::remove(path);
+  TempDir dir("linpipe_file_lock_test");
+  auto path = dir.path() / "contention.lock";
 
   constexpr int threads = 8, iterations = 500;
   std::atomic<int> inside = 0, violations = 0;
@@ -89,8 +82,8 @@ TEST_CASE("FileLock excludes other threads") {
 }
 
 TEST_CASE("FileLock throws when the directory does not exist") {
-  auto path = test_dir() / "missing_dir" / "x.lock";
-  std::filesystem::remove_all(path.parent_path());
+  TempDir dir("linpipe_file_lock_test");
+  auto path = dir.path() / "missing_dir" / "x.lock";
   CHECK_THROWS_WITH_AS(FileLock{path}, doctest::Contains("Cannot open lock file"), LinpipeError);
 }
 
