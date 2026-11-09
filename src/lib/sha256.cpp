@@ -75,7 +75,7 @@ std::string SHA256::hexdigest() const {
 std::string SHA256::hexdigest(const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary);
   if (!file)
-    throw LinpipeError("Cannot open file {}", path.string());
+    throw LinpipeError("Cannot open file {}", path);
 
   SHA256 sha256;
   std::vector<char> buffer(64_uz * 1024);
@@ -84,7 +84,7 @@ std::string SHA256::hexdigest(const std::filesystem::path& path) {
     sha256.update(std::string_view(buffer.data(), static_cast<size_t>(file.gcount())));
   }
   if (!file.eof())
-    throw LinpipeError("Cannot read file {}", path.string());
+    throw LinpipeError("Cannot read file {}", path);
 
   return sha256.hexdigest();
 }

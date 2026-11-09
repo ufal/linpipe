@@ -101,7 +101,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
   std::error_code ec;
   std::filesystem::create_directories(path.parent_path(), ec);
   if (ec)
-    throw LinpipeError("Cannot create directory {}: {}", path_to_utf8(path.parent_path()), ec.message());
+    throw LinpipeError("Cannot create directory {}: {}", path.parent_path(), ec.message());
 
   // Lock path.lock.
   auto lock_path = path;
@@ -113,7 +113,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     if (is_downloaded_file(path, size))
       return;
     if (std::filesystem::exists(path, ec))
-      LOG(WARN, "File {} is not valid, downloading it again", path_to_utf8(path));
+      LOG(WARN, "File {} is not valid, downloading it again", path);
   }
 
   // Download to path.tmp.
@@ -124,7 +124,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     {
       std::ofstream file(tmp_path, std::ios::binary | std::ios::trunc);
       if (!file)
-        throw LinpipeError("Cannot open file {}", path_to_utf8(tmp_path));
+        throw LinpipeError("Cannot open file {}", tmp_path);
 
       if (compression.empty()) {
         download_url(file_url, file, true);
@@ -138,14 +138,14 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
 
       file.close();
       if (!file)
-        throw LinpipeError("Cannot write file {}", path_to_utf8(tmp_path));
+        throw LinpipeError("Cannot write file {}", tmp_path);
     }
 
     // Verify size and checksum, if given.
     if (size) {
       auto actual_size = std::filesystem::file_size(tmp_path, ec);
       if (ec)
-        throw LinpipeError("Cannot get size of {}: {}", path_to_utf8(tmp_path), ec.message());
+        throw LinpipeError("Cannot get size of {}: {}", tmp_path, ec.message());
       if (actual_size != size)
         throw LinpipeError("File {} has size {} instead of {}", file_url, actual_size, size);
     }
@@ -162,7 +162,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     // Move the file from tmp to target path.
     std::filesystem::rename(tmp_path, path, ec);
     if (ec)
-      throw LinpipeError("Cannot rename {} to {}: {}", path_to_utf8(tmp_path), path_to_utf8(path), ec.message());
+      throw LinpipeError("Cannot rename {} to {}: {}", tmp_path, path, ec.message());
   } catch (...) {
     // On failure, remove path.tmp before unlocking.
     std::error_code remove_ec;
@@ -322,7 +322,7 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
-  throw LinpipeError("The downloaded {} {} in {} is not valid", family_, asset_name, path_to_utf8(cache_dir() / path_from_utf8(asset_name)));
+  throw LinpipeError("The downloaded {} {} in {} is not valid", family_, asset_name, cache_dir() / path_from_utf8(asset_name));
 }
 
 } // namespace linpipe

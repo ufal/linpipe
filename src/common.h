@@ -122,4 +122,12 @@ struct fmt::formatter<std::byte> : fmt::formatter<unsigned> {
   }
 };
 
+std::string path_to_utf8(const std::filesystem::path& path);
+template<>
+struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string> {
+  auto format(const std::filesystem::path& path, fmt::format_context& ctx) const {
+    return fmt::formatter<std::string>::format(path_to_utf8(path), ctx);
+  }
+};
+
 } // namespace linpipe

@@ -52,11 +52,11 @@ Json json_parse(std::string_view input, std::source_location location) {
 Json json_parse_path(const std::filesystem::path& path, std::source_location location) {
   std::ifstream is(path);
   if (!is.is_open())
-    throw LinpipeError(location, "Cannot open file '{}'", path.string());
+    throw LinpipeError(location, "Cannot open file '{}'", path);
   try {
     return Json::parse(is);
   } catch (const Json::parse_error& error) {
-    throw LinpipeError(location, "Cannot parse JSON from file '{}': {}", path.string(), error.what());
+    throw LinpipeError(location, "Cannot parse JSON from file '{}': {}", path, error.what());
   }
 }
 
