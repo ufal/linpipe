@@ -40,7 +40,7 @@ const std::unordered_map<std::string_view, Factory>& factories() {
 std::unique_ptr<Model> create_model(std::string_view name, const std::filesystem::path& dir, Json& config) {
   constexpr std::string_view caller = "create_model";
 
-  auto family = json_extract_key<std::string>(caller, config, "family");
+  auto family = json_extract<std::string>(caller, config, "family");
   auto factory = factories().find(family);
   if (factory == factories().end())
     throw LinpipeError{caller, ": Model ", name, " has an unknown family ", family};
