@@ -69,14 +69,14 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   if (auto base = system_cache_dir())
     return *base / path_from_utf8(family_dirname);
 
-  throw LinpipeError{"AssetDownloader: Cannot determine the cache directory for '", family_dirname, "' assets, please set the ", family_env, " or LINPIPE_CACHE_DIR environment variable"};
+  throw LinpipeError("Cannot determine the cache directory for '{}' assets, please set the {} or LINPIPE_CACHE_DIR environment variable", family_dirname, family_env);
 }
 
-std::filesystem::path asset_file_path(std::string_view caller, std::string_view family, std::string_view asset_name,
+std::filesystem::path asset_file_path(std::string_view family, std::string_view asset_name,
                                       const std::filesystem::path& asset_dir, const std::filesystem::path& json_name, const std::string& name) {
   auto file_name = path_from_utf8(name);
   if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name || name.ends_with(".lock") || name.ends_with(".tmp"))
-    throw LinpipeError{caller, ": Invalid file name '", name, "' of ", family, " ", asset_name};
+    throw LinpipeError("Invalid file name '{}' of {} {}", name, family, asset_name);
   return asset_dir / file_name;
 }
 
@@ -91,10 +91,8 @@ bool is_downloaded_file(const std::filesystem::path& path, uint64_t size = {}) {
 }
 
 void download_to_file(std::string_view file_url, const std::filesystem::path& path, uint64_t size = {}, std::string_view sha256 = {}, std::string_view compression = {}, bool replace = false) {
-  constexpr std::string_view caller = "AssetDownloader::download_to_file";
-
   if (!compression.empty() && compression != "xz")
-    throw LinpipeError{caller, ": Unsupported compression ", compression, " of ", file_url};
+    throw LinpipeError("Unsupported compression {} of {}", compression, file_url);
 
   // First check, without the lock.
   if (!replace && is_downloaded_file(path, size))
@@ -103,7 +101,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
   std::error_code ec;
   std::filesystem::create_directories(path.parent_path(), ec);
   if (ec)
-    throw LinpipeError{caller, ": Cannot create directory ", path_to_utf8(path.parent_path()), ": ", ec.message()};
+    throw LinpipeError("Cannot create directory {}: {}", path_to_utf8(path.parent_path()), ec.message());
 
   // Lock path.lock.
   auto lock_path = path;
@@ -126,7 +124,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     {
       std::ofstream file(tmp_path, std::ios::binary | std::ios::trunc);
       if (!file)
-        throw LinpipeError{caller, ": Cannot open file ", path_to_utf8(tmp_path)};
+        throw LinpipeError("Cannot open file {}", path_to_utf8(tmp_path));
 
       if (compression.empty()) {
         download_url(file_url, file, true);
@@ -135,21 +133,21 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
         download_url(file_url, decompressor, true);
         decompressor.close();
         if (!decompressor)
-          throw LinpipeError{caller, ": Cannot decompress ", file_url};
+          throw LinpipeError("Cannot decompress {}", file_url);
       }
 
       file.close();
       if (!file)
-        throw LinpipeError{caller, ": Cannot write file ", path_to_utf8(tmp_path)};
+        throw LinpipeError("Cannot write file {}", path_to_utf8(tmp_path));
     }
 
     // Verify size and checksum, if given.
     if (size) {
       auto actual_size = std::filesystem::file_size(tmp_path, ec);
       if (ec)
-        throw LinpipeError{caller, ": Cannot get size of ", path_to_utf8(tmp_path), ": ", ec.message()};
+        throw LinpipeError("Cannot get size of {}: {}", path_to_utf8(tmp_path), ec.message());
       if (actual_size != size)
-        throw LinpipeError{caller, ": File ", file_url, " has size ", std::to_string(actual_size), " instead of ", std::to_string(size)};
+        throw LinpipeError("File {} has size {} instead of {}", file_url, actual_size, size);
     }
 
     if (!sha256.empty()) {
@@ -158,13 +156,13 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
         if (c >= 'A' && c <= 'F') c = static_cast<char>(c - 'A' + 'a');
       auto actual_sha256 = SHA256::hexdigest(tmp_path);
       if (actual_sha256 != expected)
-        throw LinpipeError{caller, ": File ", file_url, " has SHA-256 ", actual_sha256, " instead of ", expected};
+        throw LinpipeError("File {} has SHA-256 {} instead of {}", file_url, actual_sha256, expected);
     }
 
     // Move the file from tmp to target path.
     std::filesystem::rename(tmp_path, path, ec);
     if (ec)
-      throw LinpipeError{caller, ": Cannot rename ", path_to_utf8(tmp_path), " to ", path_to_utf8(path), ": ", ec.message()};
+      throw LinpipeError("Cannot rename {} to {}: {}", path_to_utf8(tmp_path), path_to_utf8(path), ec.message());
   } catch (...) {
     // On failure, remove path.tmp before unlocking.
     std::error_code remove_ec;
@@ -177,33 +175,31 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
 } // namespace
 
 void AssetDownloader::download_asset(std::string_view asset_name) {
-  constexpr std::string_view caller = "AssetDownloader::download_asset";
-
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
   auto json_name = path_from_utf8(fmt::format("{}.json", family_));
   auto json_path = asset_dir / json_name;
 
   // Download the asset JSON.
   if (!is_downloaded_file(json_path)) {
-    const auto& entries = json_get_object(caller, assets_json(), "entries");
+    const auto& entries = json_get_object(assets_json(), "entries");
     auto entry = entries.find(asset_name);
     if (entry == entries.end())
-      throw LinpipeError{caller, ": Unknown ", family_, " ", asset_name};
+      throw LinpipeError("Unknown {} {}", family_, asset_name);
 
-    const auto& asset_json_url = json_get<const std::string&>(caller, *entry, "url");
+    const auto& asset_json_url = json_get<const std::string&>(*entry, "url");
     download_to_file(asset_json_url, json_path);
   }
-  auto json = json_parse_path(caller, json_path);
+  auto json = json_parse_path(json_path);
 
   // Download all files of the asset.
-  for (auto& file : json_get_array(caller, json, "files")) {
-    auto name = json_extract<std::string>(caller, file, "name");
-    auto file_path = asset_file_path(caller, family_, asset_name, asset_dir, json_name, name);
+  for (auto& file : json_get_array(json, "files")) {
+    auto name = json_extract<std::string>(file, "name");
+    auto file_path = asset_file_path(family_, asset_name, asset_dir, json_name, name);
 
-    auto url = json_extract<std::string>(caller, file, "url");
-    auto size = json_extract<uint64_t>(caller, file, "size");
-    auto sha256 = json_extract<std::string>(caller, file, "sha256");
-    auto compression = file.contains("compression") ? json_extract<std::string>(caller, file, "compression") : std::string();
+    auto url = json_extract<std::string>(file, "url");
+    auto size = json_extract<uint64_t>(file, "size");
+    auto sha256 = json_extract<std::string>(file, "sha256");
+    auto compression = file.contains("compression") ? json_extract<std::string>(file, "compression") : std::string();
 
     download_to_file(url, file_path, size, sha256, compression);
   }
@@ -217,7 +213,7 @@ const Json& AssetDownloader::assets_json() {
     // The index is the only mutable file, so it is always refreshed when online.
     if (!offline_mode())
       download_to_file(assets_json_url_, path, {}, {}, {}, true);
-    assets_json_ = json_parse_path("AssetDownloader::assets_json", path);
+    assets_json_ = json_parse_path(path);
   });
   return assets_json_;
 }
@@ -243,8 +239,6 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
 }
 
 std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::string_view asset_name, std::vector<std::string>& seen_assets) {
-  constexpr std::string_view caller = "AssetDownloader::get_downloaded_asset";
-
   if (std::ranges::find(seen_assets, asset_name) != seen_assets.end())
     return cache_dir() / path_from_utf8(asset_name);
   seen_assets.emplace_back(asset_name);
@@ -254,9 +248,9 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
     return std::nullopt;
 
   auto json_path = *asset_dir / path_from_utf8(fmt::format("{}.json", family_));
-  auto json = json_parse_path(caller, json_path);
+  auto json = json_parse_path(json_path);
   if (json.contains("requirements"))
-    for (const auto& requirement : json_extract<std::vector<std::string>>(caller, json, "requirements"))
+    for (const auto& requirement : json_extract<std::vector<std::string>>(json, "requirements"))
       if (!get_downloaded_asset(requirement, seen_assets))
         return std::nullopt;
   return asset_dir;
@@ -266,24 +260,22 @@ std::optional<std::filesystem::path> AssetDownloader::get_downloaded_asset(std::
 // its JSON and all files listed in it exist. A missing file is a normal state (the asset
 // is not downloaded, or is being downloaded); a size mismatch indicates damage.
 std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asset(std::string_view asset_name) {
-  constexpr std::string_view caller = "AssetDownloader::get_single_downloaded_asset";
-
   auto asset_dir = cache_dir() / path_from_utf8(asset_name);
   auto json_name = path_from_utf8(fmt::format("{}.json", family_));
   auto json_path = asset_dir / json_name;
   if (!is_downloaded_file(json_path))
     return std::nullopt;
 
-  auto json = json_parse_path(caller, json_path);
-  for (auto& file : json_get_array(caller, json, "files")) {
-    auto file_name = json_extract<std::string>(caller, file, "name");
-    auto file_path = asset_file_path(caller, family_, asset_name, asset_dir, json_name, file_name);
+  auto json = json_parse_path(json_path);
+  for (auto& file : json_get_array(json, "files")) {
+    auto file_name = json_extract<std::string>(file, "name");
+    auto file_path = asset_file_path(family_, asset_name, asset_dir, json_name, file_name);
 
     std::error_code ec;
     if (!std::filesystem::is_regular_file(file_path, ec))
       return std::nullopt;
 
-    auto expected_size = json_extract<uint64_t>(caller, file, "size");
+    auto expected_size = json_extract<uint64_t>(file, "size");
     auto actual_size = std::filesystem::file_size(file_path, ec);
     if (ec) {
       LOG(ERROR, "Cannot get size of file {} of asset {}", file_name, asset_name);
@@ -304,8 +296,6 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name) {
 }
 
 std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, std::vector<std::string>& seen_assets) {
-  constexpr std::string_view caller = "AssetDownloader::get_asset";
-
   if (std::ranges::find(seen_assets, asset_name) != seen_assets.end())
     return cache_dir() / path_from_utf8(asset_name);
   seen_assets.emplace_back(asset_name);
@@ -313,28 +303,26 @@ std::filesystem::path AssetDownloader::get_asset(std::string_view asset_name, st
   auto asset_dir = get_single_asset(asset_name);
 
   auto json_path = asset_dir / path_from_utf8(fmt::format("{}.json", family_));
-  auto json = json_parse_path(caller, json_path);
+  auto json = json_parse_path(json_path);
   if (json.contains("requirements"))
-    for (const auto& requirement : json_extract<std::vector<std::string>>(caller, json, "requirements"))
+    for (const auto& requirement : json_extract<std::vector<std::string>>(json, "requirements"))
       get_asset(requirement, seen_assets);
   return asset_dir;
 }
 
 std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_name) {
-  constexpr std::string_view caller = "AssetDownloader::get_asset";
-
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
   if (offline_mode())
-    throw LinpipeError{caller, ": Cannot download missing asset in offline mode: ", asset_name};
+    throw LinpipeError("Cannot download missing asset in offline mode: {}", asset_name);
 
   download_asset(asset_name);
 
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
-  throw LinpipeError{caller, ": The downloaded ", family_, " ", asset_name, " in ", path_to_utf8(cache_dir() / path_from_utf8(asset_name)), " is not valid"};
+  throw LinpipeError("The downloaded {} {} in {} is not valid", family_, asset_name, path_to_utf8(cache_dir() / path_from_utf8(asset_name)));
 }
 
 } // namespace linpipe

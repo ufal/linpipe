@@ -32,31 +32,31 @@ TEST_CASE("json_utils key extraction") {
   })"sv;
 
   SUBCASE("parsing json from string") {
-    CHECK(json_object == json_parse("json_utils_test", json_string));
+    CHECK(json_object == json_parse(json_string));
   }
 
   SUBCASE("parsing from a path") {
-    CHECK_THROWS_AS(json_parse_path("json_utils_test", "nonexistent.json"), LinpipeError);
+    CHECK_THROWS_AS(json_parse_path("nonexistent.json"), LinpipeError);
   }
 
   SUBCASE("json_assert_object") {
-    CHECK_NOTHROW(json_assert_object("json_utils_test", json_object));
-    CHECK_THROWS_AS(json_assert_object("json_utils_test", json_object["list"]), LinpipeError);
+    CHECK_NOTHROW(json_assert_object(json_object));
+    CHECK_THROWS_AS(json_assert_object(json_object["list"]), LinpipeError);
   }
 
   SUBCASE("json_get_key") {
-    CHECK(&json_get_key("json_utils_test", json_object, "string") == &json_object["string"]);
-    CHECK_THROWS_AS(json_get_key("json_utils_test", json_object, "nonexistent"), LinpipeError);
+    CHECK(&json_get_key(json_object, "string") == &json_object["string"]);
+    CHECK_THROWS_AS(json_get_key(json_object, "nonexistent"), LinpipeError);
   }
 
   SUBCASE("json_get_array") {
-    CHECK(&json_get_array("json_utils_test", json_object, "list") == &json_object["list"]);
-    CHECK_THROWS_AS(json_get_array("json_utils_test", json_object, "string"), LinpipeError);
+    CHECK(&json_get_array(json_object, "list") == &json_object["list"]);
+    CHECK_THROWS_AS(json_get_array(json_object, "string"), LinpipeError);
   }
 
   SUBCASE("json_get_object") {
-    CHECK(&json_get_object("json_utils_test", json_object, "object") == &json_object["object"]);
-    CHECK_THROWS_AS(json_get_object("json_utils_test", json_object, "list"), LinpipeError);
+    CHECK(&json_get_object(json_object, "object") == &json_object["object"]);
+    CHECK_THROWS_AS(json_get_object(json_object, "list"), LinpipeError);
   }
 }
 
@@ -66,9 +66,9 @@ struct JsonExtract {};
 template<typename Op, typename T, typename... Args>
 T json_get_or_extract(Args&&... args) {
   if constexpr (std::is_same_v<Op, JsonGet>)
-    return json_get<T>("json_utils_test", std::forward<Args>(args)...);
+    return json_get<T>(std::forward<Args>(args)...);
   else
-    return json_extract<T>("json_utils_test", std::forward<Args>(args)...);
+    return json_extract<T>(std::forward<Args>(args)...);
 }
 
 TEST_CASE_TEMPLATE("json_utils extracting basic types", Op, JsonGet, JsonExtract) {
