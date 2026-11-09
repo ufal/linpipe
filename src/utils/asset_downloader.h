@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <filesystem>
 #include <mutex>
 
 #include "common.h"

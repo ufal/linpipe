@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <initializer_list>
 #include <iomanip>
 #include <iostream>
