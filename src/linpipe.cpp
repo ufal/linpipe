@@ -51,6 +51,12 @@ int main(int argc, char* argv[]) {
   } catch (const LinpipeError& error) {
     LOG(FATAL, "An unhandled exception has occurred, terminating: {}", error.what());
     return 1;
+  } catch (const std::exception& error) {
+    LOG(FATAL, "An unhandled exception occured, terminating: {}: {}", typeid(error).name(), error.what());
+    return 1;
+  } catch (...) {
+    LOG(FATAL, "An unhandled exception occured, terminating.");
+    return 1;
   }
 
   return 0;
