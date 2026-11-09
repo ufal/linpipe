@@ -21,7 +21,6 @@
 #endif
 
 #include "utils/file_lock.h"
-#include "utils/path_utf8.h"
 
 namespace linpipe {
 
@@ -55,7 +54,7 @@ FileLock::FileLock(const std::filesystem::path& path)
         delay_ms *= 2;
         continue;
       }
-      throw LinpipeError("Cannot open lock file {}: {}", path_to_utf8(path), last_error_message());
+      throw LinpipeError("Cannot open lock file {}: {}", path, last_error_message());
     }
     delay_ms = 1;
 
@@ -63,7 +62,7 @@ FileLock::FileLock(const std::filesystem::path& path)
     if (!LockFileEx(handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD, &overlapped)) {
       auto message = last_error_message();
       CloseHandle(handle_);
-      throw LinpipeError("Cannot lock file {}: {}", path_to_utf8(path), message);
+      throw LinpipeError("Cannot lock file {}: {}", path, message);
     }
 
     // Verify that the path still refers to the file we have locked.
@@ -88,7 +87,7 @@ FileLock::FileLock(const std::filesystem::path& path)
       fd_ = open(path.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 0666);
     } while (fd_ < 0 && errno == EINTR);
     if (fd_ < 0)
-      throw LinpipeError("Cannot open lock file {}: {}", path_to_utf8(path), last_error_message());
+      throw LinpipeError("Cannot open lock file {}: {}", path, last_error_message());
 
     int ret = 0;
     do {
@@ -97,7 +96,7 @@ FileLock::FileLock(const std::filesystem::path& path)
     if (ret < 0) {
       auto message = last_error_message();
       close(fd_);
-      throw LinpipeError("Cannot lock file {}: {}", path_to_utf8(path), message);
+      throw LinpipeError("Cannot lock file {}: {}", path, message);
     }
 
     // Verify that the path still refers to the file we have locked.
@@ -105,7 +104,7 @@ FileLock::FileLock(const std::filesystem::path& path)
     if (fstat(fd_, &fd_stat) < 0) {
       auto message = last_error_message();
       close(fd_);
-      throw LinpipeError("Cannot stat lock file {}: {}", path_to_utf8(path), message);
+      throw LinpipeError("Cannot stat lock file {}: {}", path, message);
     }
     if (stat(path.c_str(), &path_stat) == 0) {
       if (fd_stat.st_dev == path_stat.st_dev && fd_stat.st_ino == path_stat.st_ino)
@@ -113,7 +112,7 @@ FileLock::FileLock(const std::filesystem::path& path)
     } else if (errno != ENOENT) {
       auto message = last_error_message();
       close(fd_);
-      throw LinpipeError("Cannot stat lock file {}: {}", path_to_utf8(path), message);
+      throw LinpipeError("Cannot stat lock file {}: {}", path, message);
     }
     close(fd_);
   }

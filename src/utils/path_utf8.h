@@ -15,6 +15,7 @@ namespace linpipe {
 
 std::filesystem::path path_from_utf8(std::string_view str);
 
+// NOLINTNEXTLINE(readability-redundant-declaration)
 std::string path_to_utf8(const std::filesystem::path& path);
 
 } // namespace linpipe

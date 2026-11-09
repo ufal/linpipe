@@ -76,7 +76,7 @@ void logging_set_level(std::string_view level) {
 void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
   if (!logging_file.is_open())
-    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '{}'", path_to_utf8(path));
+    LOG(ERROR, "logging_set_file: Cannot redirect logs to file '{}'", path);
   else
     logging_to_file = true;
 }
