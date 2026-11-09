@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include "lib/json/json.h"
+#include "utils/path_utf8.h"
 
 namespace linpipe {
 
@@ -199,6 +200,15 @@ struct JsonExtractor<std::string> {
       return json.template get<std::string>();
     else
       return std::move(json.template get_ref<std::string&>());
+  }
+};
+
+template<>
+struct JsonExtractor<std::filesystem::path> {
+  static std::filesystem::path convert(const Json& json, const JsonExtractorPath& path, std::source_location location) {
+    if (!json.is_string())
+      throw LinpipeError(location, "A JSON value at '{}' should be a string path, but is a '{}'", path.str(), json.type_name());
+    return std::filesystem::path(json.get_ref<const std::string&>());
   }
 };
 
