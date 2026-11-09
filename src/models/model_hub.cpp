@@ -18,14 +18,14 @@ namespace linpipe {
 
 namespace {
 
-std::optional<std::string_view> family_language(std::string_view name) {
+std::optional<std::array<std::string_view, 2>> catalog_keys(std::string_view name) {
   auto family_end = name.find('-');
   if (family_end == 0 || family_end == std::string_view::npos)
     return std::nullopt;
   auto language_end = name.find('-', family_end + 1);
   if (language_end == family_end + 1 || language_end == std::string_view::npos)
     return std::nullopt;
-  return name.substr(0, language_end);
+  return std::array{name.substr(0, family_end), name.substr(0, language_end)};
 }
 
 } // namespace
@@ -55,17 +55,19 @@ const std::unordered_map<std::string, std::string>& ModelHub::catalog() {
   std::call_once(catalog_once_, [this] {
     constexpr std::string_view caller = "ModelHub::catalog";
 
-    // "family-language" -> (timestamp, name) of the newest model so far.
+    // "family" or "family-language" -> (timestamp, name) of the newest model so far.
     std::unordered_map<std::string, std::pair<std::string, std::string>> newest;
     for (const auto& entry : json_get_object(caller, asset_downloader_.assets_json(), "entries").items()) {
-      auto key = family_language(entry.key());
-      if (!key)
+      auto keys = catalog_keys(entry.key());
+      if (!keys)
         continue;
 
       std::pair<std::string, std::string> candidate{json_get<std::string>(caller, entry.value(), "timestamp"), entry.key()};
-      auto [it, inserted] = newest.try_emplace(std::string(*key), candidate);
-      if (!inserted && it->second < candidate)
-        it->second = std::move(candidate);
+      for (auto key : *keys) {
+        auto [it, inserted] = newest.try_emplace(std::string(key), candidate);
+        if (!inserted && it->second < candidate)
+          it->second = candidate;
+      }
     }
 
     std::unordered_map<std::string, std::string> catalog;
