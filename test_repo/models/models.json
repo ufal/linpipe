@@ -2,7 +2,7 @@
   "timestamp": "2026-10-05T12:00:00Z",
   "entries": {
     "test_model-en-261005": {
-      "url": "https://github.com/ufal/linpipe/test_repo/models/test_model-en-261005",
+      "url": "https://raw.githubusercontent.com/ufal/linpipe/master/test_repo/models/test_model-en-261005",
       "timestamp": "2026-10-05T12:00:00Z",
       "family": "TestModel",
       "languages": ["en"],

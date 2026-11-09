@@ -8,13 +8,13 @@
   "files": [
     {
       "name": "README.md",
-      "url": "https://github.com/ufal/linpipe/test_repo/models/test_model-en-261005/README.md",
+      "url": "https://raw.githubusercontent.com/ufal/linpipe/master/test_repo/models/test_model-en-261005/README.md",
       "sha256": "d0919d5bb7576d4b1a495856f1e561985d1063a8e22c74dfb90a5267c165331d",
       "size": 56
     },
     {
       "name": "test_model.xz",
-      "url": "https://github.com/ufal/linpipe/test_repo/models/test_model-en-261005/test_model.xz",
+      "url": "https://raw.githubusercontent.com/ufal/linpipe/master/test_repo/models/test_model-en-261005/test_model.xz",
       "sha256": "83dd2e4ccaf3e1a95ca5501f1f9aa2c239fb15c91d30a2087755c545fa03457e",
       "size": 34
     }
