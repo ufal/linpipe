@@ -7,6 +7,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <algorithm>
 #include <utility>
 
 #include "lib/json/json.h"
@@ -44,11 +45,25 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
+  constexpr std::string_view caller = "ModelHub::locate_model";
+
   if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
     return *model_dir;
 
-  if (auto it = catalog().find(std::string(name)); it != catalog().end())
+  if (auto it = catalog().find(std::string(name)); it != catalog().end()) {
+    LOG(INFO, "Resolved model " << name << " to " << it->second);
     return asset_downloader_.get_asset(it->second);
+  }
+
+  if (!json_get_object(caller, asset_downloader_.assets_json(), "entries").contains(name)) {
+    std::vector<std::string_view> families;
+    for (const auto& [key, model] : catalog())
+      if (key.find('-') == std::string::npos)
+        families.push_back(key);
+    std::ranges::sort(families);
+
+    throw LinpipeError{caller, ": Unknown model '", name, "', which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: ", fmt::format("{}", fmt::join(families, ", "))};
+  }
 
   return asset_downloader_.get_asset(name);
 }
