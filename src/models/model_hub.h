@@ -23,12 +23,12 @@ class ModelHub {
  public:
   explicit ModelHub(std::string repo_url = {});
 
-  // The name is either a verbatim model name, or "family-language".
+  // The name is either a verbatim model name, "family-language", or "family".
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
 
  private:
-  // Lazily built from models.json: "family-language" -> newest model name.
+  // Lazily built from models.json: "family-language" and "family" -> newest model name.
   const std::unordered_map<std::string, std::string>& catalog();
 
   static constexpr std::string_view default_repo_url_ = "https://huggingface.com/ufal/linpipe/repo/models";
