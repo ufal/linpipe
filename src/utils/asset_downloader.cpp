@@ -11,7 +11,6 @@
 #include <fstream>
 
 #include "lib/download.h"
-#include "lib/json/json.h"
 #include "lib/sha256.h"
 #include "lib/xz_stream.h"
 #include "utils/asset_downloader.h"
