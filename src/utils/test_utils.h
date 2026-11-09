@@ -41,7 +41,6 @@ class TempDir {
   TempDir& operator=(const TempDir&) = delete;
 
   const std::filesystem::path& path() const { return path_; }
-  std::string utf8() const { return path_to_utf8(path_); }
 
  private:
   std::filesystem::path path_;
