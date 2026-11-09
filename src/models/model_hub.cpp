@@ -62,11 +62,7 @@ const std::unordered_map<std::string, std::string>& ModelHub::catalog() {
       if (!key)
         continue;
 
-      const auto& timestamp = json_get_key(caller, entry.value(), "timestamp");
-      if (!timestamp.is_string())
-        throw LinpipeError{caller, ": The timestamp of model ", entry.key(), " is not a string"};
-
-      std::pair<std::string, std::string> candidate{timestamp.get<std::string>(), entry.key()};
+      std::pair<std::string, std::string> candidate{json_get<std::string>(caller, entry.value(), "timestamp"), entry.key()};
       auto [it, inserted] = newest.try_emplace(std::string(*key), candidate);
       if (!inserted && it->second < candidate)
         it->second = std::move(candidate);
