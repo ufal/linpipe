@@ -66,12 +66,10 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   throw LinpipeError("Cannot determine the cache directory for '{}' assets, please set the {} or LINPIPE_CACHE_DIR environment variable", family_dirname, family_env);
 }
 
-std::filesystem::path asset_file_path(std::string_view family, std::string_view asset_name,
-                                      const std::filesystem::path& asset_dir, const std::filesystem::path& json_name, const std::string& name) {
-  auto file_name = path_from_utf8(name);
-  if (name.empty() || file_name != file_name.filename() || file_name == "." || file_name == ".." || file_name == json_name || name.ends_with(".lock") || name.ends_with(".tmp"))
-    throw LinpipeError("Invalid file name '{}' of {} {}", name, family, asset_name);
-  return asset_dir / file_name;
+std::filesystem::path allow_only_simple_filename(const std::filesystem::path& path, std::source_location location = std::source_location::current()) {
+  if (path.empty() || path != path.filename() || path == "." || path == "..")
+    throw LinpipeError(location, "Invalid asset file name '{}'", path);
+  return path;
 }
 
 bool is_downloaded_file(const std::filesystem::path& path, uint64_t size = {}) {
@@ -170,10 +168,8 @@ void AssetDownloader::download_asset(std::string_view asset_name) {
 
   // Download all files of the asset.
   for (auto& file : json_get_array(json, "files")) {
-    auto name = json_extract<std::string>(file, "name");
-    auto file_path = asset_file_path(family_, asset_name, asset_dir, json_name, name);
-
     auto url = json_extract<std::string>(file, "url");
+    auto file_path = asset_dir / allow_only_simple_filename(json_extract<std::filesystem::path>(file, "name"));
     auto size = json_extract<uint64_t>(file, "size");
     auto sha256 = json_extract<std::string>(file, "sha256");
     auto compression = file.contains("compression") ? json_extract<std::string>(file, "compression") : std::string();
@@ -245,8 +241,8 @@ std::optional<std::filesystem::path> AssetDownloader::get_single_downloaded_asse
 
   auto json = json_parse_path(json_path);
   for (auto& file : json_get_array(json, "files")) {
-    auto file_name = json_extract<std::string>(file, "name");
-    auto file_path = asset_file_path(family_, asset_name, asset_dir, json_name, file_name);
+    auto file_name = allow_only_simple_filename(json_extract<std::filesystem::path>(file, "name"));
+    auto file_path = asset_dir / file_name;
 
     std::error_code ec;
     if (!std::filesystem::is_regular_file(file_path, ec))
