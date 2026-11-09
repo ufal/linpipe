@@ -13,7 +13,6 @@
 #include <limits>
 #include <tuple>
 #include <type_traits>
-#include <utility>
 
 #include "common.h"
 #include "lib/json/json.h"
