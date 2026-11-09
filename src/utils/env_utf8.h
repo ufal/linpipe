@@ -14,6 +14,8 @@
 namespace linpipe {
 
 std::optional<std::string> getenv_utf8(const char* name);
+std::optional<std::filesystem::path> getenv_utf8_path(const char* name);
+
 bool setenv_utf8(const char* name, const char* value);
 bool unsetenv_utf8(const char* name);
 

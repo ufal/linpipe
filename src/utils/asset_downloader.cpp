@@ -23,26 +23,20 @@ namespace linpipe {
 
 namespace {
 
-std::optional<std::filesystem::path> env_path(const std::string& name) {
-  auto value = getenv_utf8(name.c_str());
-  if (!value || value->empty()) return std::nullopt;
-  return path_from_utf8(*value);
-}
-
 std::optional<std::filesystem::path> system_cache_dir() {
 #ifdef WIN32
-  auto base = env_path("LOCALAPPDATA");
+  auto base = getenv_utf8_path("LOCALAPPDATA");
   if (!base) {
-    if (auto profile = env_path("USERPROFILE")) base = *profile / "AppData" / "Local";
+    if (auto profile = getenv_utf8_path("USERPROFILE")) base = *profile / "AppData" / "Local";
   }
 #elif defined(__APPLE__)
   std::optional<std::filesystem::path> base;
-  if (auto home = env_path("HOME")) base = *home / "Library" / "Caches";
+  if (auto home = getenv_utf8_path("HOME")) base = *home / "Library" / "Caches";
 #else
-  auto base = env_path("XDG_CACHE_HOME");
+  auto base = getenv_utf8_path("XDG_CACHE_HOME");
   if (!base || base->is_relative()) {
     base.reset();
-    if (auto home = env_path("HOME")) base = *home / ".cache";
+    if (auto home = getenv_utf8_path("HOME")) base = *home / ".cache";
   }
 #endif
 
@@ -58,11 +52,11 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   for (char c : family_dirname)
     family_env += c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c;
   family_env += "_DIR";
-  if (auto dir = env_path(family_env))
+  if (auto dir = getenv_utf8_path(family_env.c_str()))
     return *dir;
 
   // 2. LINPIPE_CACHE_DIR/<family_dirname>.
-  if (auto base = env_path("LINPIPE_CACHE_DIR"))
+  if (auto base = getenv_utf8_path("LINPIPE_CACHE_DIR"))
     return *base / path_from_utf8(family_dirname);
 
   // 3. <system cache dir>/<family_dirname>.

@@ -12,7 +12,8 @@
 #include <windows.h>
 #endif
 
-#include "env_utf8.h"
+#include "utils/env_utf8.h"
+#include "utils/path_utf8.h"
 
 namespace linpipe {
 
@@ -80,6 +81,12 @@ std::optional<std::string> getenv_utf8(const char* name) {
   return wide_to_utf8(wvalue.c_str());
 
 #endif
+}
+
+std::optional<std::filesystem::path> getenv_utf8_path(const char* name) {
+  auto value = getenv_utf8(name);
+  if (!value || value->empty()) return std::nullopt;
+  return {path_from_utf8(*value)};
 }
 
 bool setenv_utf8(const char* name, const char* value) {
