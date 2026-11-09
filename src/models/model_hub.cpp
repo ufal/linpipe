@@ -30,7 +30,7 @@ std::optional<std::array<std::string_view, 2>> catalog_keys(std::string_view nam
 
 } // namespace
 
-ModelHub::ModelHub(std::string repo_url) : asset_downloader_(repo_url.empty() ? std::string(default_repo_url_) : std::move(repo_url), std::string(family_)) {}
+ModelHub::ModelHub(std::string models_json_url) : asset_downloader_(models_json_url.empty() ? std::string(default_models_json_url_) : std::move(models_json_url), std::string(family_)) {}
 
 std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
   constexpr std::string_view caller = "ModelHub::get_model";
