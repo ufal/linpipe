@@ -31,7 +31,8 @@ class ModelHub {
   // Lazily built from models.json: "family-language" and "family" -> newest model name.
   const std::unordered_map<std::string, std::string>& catalog();
 
-  static constexpr std::string_view default_repo_url_ = "https://huggingface.com/ufal/linpipe/repo/models";
+  // TODO: Not published yet; the URL must point directly to the models.json index.
+  static constexpr std::string_view default_repo_url_ = "https://huggingface.co/ufal/linpipe/resolve/main/models.json";
   static constexpr std::string_view family_ = "model";
 
   AssetDownloader asset_downloader_;
