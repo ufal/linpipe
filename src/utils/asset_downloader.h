@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include "common.h"
+#include "lib/json/json.h"
 
 namespace linpipe {
 
