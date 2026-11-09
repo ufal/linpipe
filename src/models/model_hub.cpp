@@ -13,6 +13,7 @@
 #include "models/model_factory.h"
 #include "models/model_hub.h"
 #include "utils/json_utils.h"
+#include "utils/path_utf8.h"
 
 namespace linpipe {
 
@@ -36,9 +37,10 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
   constexpr std::string_view caller = "ModelHub::get_model";
 
   auto model_dir = locate_model(name);
+  auto model_name = path_to_utf8(model_dir.filename());
 
   Json config = json_parse_path(caller, model_dir / "model.json");
-  return create_model(name, model_dir, config);
+  return create_model(model_name, model_dir, config);
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
