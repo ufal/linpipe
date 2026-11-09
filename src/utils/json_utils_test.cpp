@@ -88,6 +88,7 @@ TEST_CASE_TEMPLATE("json_utils extracting basic types", Op, JsonGet, JsonExtract
   CHECK(json_get_or_extract<Op, float>(json, "float") == doctest::Approx(3.14f));
   CHECK(json_get_or_extract<Op, double>(json, "float") == doctest::Approx(3.14));
   CHECK(json_get_or_extract<Op, const std::string&>(json, "string") == "abc");
+  CHECK(json_get_or_extract<Op, std::filesystem::path>(json, "string") == "abc");
   CHECK(json_get_or_extract<Op, std::string>(json, "string") == "abc");
   CHECK(json["string"] == (std::is_same_v<Op, JsonGet> ? "abc" : ""));
 }
