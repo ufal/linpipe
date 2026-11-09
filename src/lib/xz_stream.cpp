@@ -31,7 +31,7 @@ XZOStreamBuf::XZOStreamBuf(std::ostream& target, XZMode mode, uint32_t preset)
     ret = lzma_stream_decoder(&coder_->stream, UINT64_MAX, LZMA_CONCATENATED);
 
   if (ret != LZMA_OK)
-    throw LinpipeError{"XZOStreamBuf: Cannot initialize the LZMA ", mode == XZMode::COMPRESS ? "encoder" : "decoder"};
+    throw LinpipeError("Cannot initialize the LZMA {}", mode == XZMode::COMPRESS ? "encoder" : "decoder");
 
   setp(input_.data(), input_.data() + input_.size());
 }
@@ -77,7 +77,7 @@ bool XZOStreamBuf::run_coder(bool finish) {
     stream.avail_out = output_.size();
     ret = lzma_code(&stream, finish ? LZMA_FINISH : LZMA_RUN);
     if (ret != LZMA_OK && ret != LZMA_STREAM_END)
-      throw LinpipeError{"XZOStreamBuf: An error occurred during LZMA coding"};
+      throw LinpipeError("An error occurred during LZMA coding");
     if (!target_.write(output_.data(), static_cast<std::streamsize>(output_.size() - stream.avail_out)))
       return false;
   } while (ret != LZMA_STREAM_END && (finish || stream.avail_in || !stream.avail_out));
@@ -90,7 +90,7 @@ bool XZOStreamBuf::run_coder(bool finish) {
 XZIStreamBuf::XZIStreamBuf(std::istream& source)
     : source_(source), coder_(std::make_unique<XZCoder>()), input_(XZ_BUFFER_SIZE), output_(XZ_BUFFER_SIZE) {
   if (lzma_stream_decoder(&coder_->stream, UINT64_MAX, LZMA_CONCATENATED) != LZMA_OK)
-    throw LinpipeError{"XZIStreamBuf: Cannot initialize the LZMA decoder"};
+    throw LinpipeError("Cannot initialize the LZMA decoder");
 }
 
 XZIStreamBuf::~XZIStreamBuf() = default;
@@ -119,7 +119,7 @@ XZIStreamBuf::int_type XZIStreamBuf::underflow() {
       break;
     }
     if (ret != LZMA_OK)
-      throw LinpipeError{"XZIStreamBuf: An error occurred during LZMA decoding"};
+      throw LinpipeError("An error occurred during LZMA decoding");
   }
 
   setg(output_.data(), output_.data(), reinterpret_cast<char*>(stream.next_out));

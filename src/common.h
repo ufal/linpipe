@@ -18,7 +18,6 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
-#include <initializer_list>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -68,15 +67,30 @@ using Json = nlohmann::json;
 
 // Errors
 class LinpipeError : public std::exception {
+ private:
+  template<typename... Args>
+  struct FormatWithLocation {
+    FMT_CONSTEVAL FormatWithLocation(const char* format, std::source_location location = std::source_location::current())
+        : format(format), location(location) {}
+    fmt::format_string<Args...> format;
+    std::source_location location;
+  };
+
  public:
-  LinpipeError(const std::string_view text) : text_(text) {}
-  LinpipeError(std::initializer_list<std::string_view> texts) {
-    for (auto&& text : texts) text_ += text;
-  }
+  template<typename... Args>
+  explicit LinpipeError(FormatWithLocation<std::type_identity_t<Args>...> format, Args&&... args)
+      : text_(fmt::format(format.format, std::forward<Args>(args)...)), location_(format.location) {}
+
+  template<typename... Args>
+  LinpipeError(std::source_location location, fmt::format_string<Args...> format, Args&&... args)
+      : text_(fmt::format(format, std::forward<Args>(args)...)), location_(location) {}
+
   const char* what() const noexcept override { return text_.c_str(); }
+  const std::source_location& location() const noexcept { return location_; }
 
  private:
   std::string text_;
+  std::source_location location_;
 };
 
 // Logging

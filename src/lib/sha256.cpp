@@ -25,11 +25,11 @@ struct SHA256::Impl {
 SHA256::SHA256() : impl(std::make_unique<Impl>()) {
   psa_status_t status = psa_crypto_init();
   if (status != PSA_SUCCESS)
-    throw LinpipeError{"SHA256: Cannot initialize PSA crypto, error ", std::to_string(status)};
+    throw LinpipeError("Cannot initialize PSA crypto, error {}", status);
 
   status = psa_hash_setup(&impl->operation, PSA_ALG_SHA_256);
   if (status != PSA_SUCCESS)
-    throw LinpipeError{"SHA256: Cannot set up SHA-256, error ", std::to_string(status)};
+    throw LinpipeError("Cannot set up SHA-256, error {}", status);
 }
 
 SHA256::~SHA256() = default;
@@ -45,7 +45,7 @@ SHA256& SHA256::update(std::span<const std::byte> data) {
 
   psa_status_t status = psa_hash_update(&impl->operation, reinterpret_cast<const uint8_t*>(data.data()), data.size());
   if (status != PSA_SUCCESS)
-    throw LinpipeError{"SHA256::update: Cannot update SHA-256, error ", std::to_string(status)};
+    throw LinpipeError("Cannot update SHA-256, error {}", status);
 
   return *this;
 }
@@ -55,7 +55,7 @@ std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
   psa_status_t status = psa_hash_clone(&impl->operation, &clone);
   if (status != PSA_SUCCESS) {
     psa_hash_abort(&clone);
-    throw LinpipeError{"SHA256::digest: Cannot clone SHA-256, error ", std::to_string(status)};
+    throw LinpipeError("Cannot clone SHA-256, error {}", status);
   }
 
   std::array<std::byte, SHA256::digest_size> hash;
@@ -63,7 +63,7 @@ std::array<std::byte, SHA256::digest_size> SHA256::digest() const {
   status = psa_hash_finish(&clone, reinterpret_cast<uint8_t*>(hash.data()), hash.size(), &hash_length);
   psa_hash_abort(&clone);
   if (status != PSA_SUCCESS)
-    throw LinpipeError{"SHA256::digest: Cannot compute SHA-256, error ", std::to_string(status)};
+    throw LinpipeError("Cannot compute SHA-256, error {}", status);
 
   return hash;
 }
@@ -75,7 +75,7 @@ std::string SHA256::hexdigest() const {
 std::string SHA256::hexdigest(const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary);
   if (!file)
-    throw LinpipeError{"SHA256::hexdigest: Cannot open file ", path.string()};
+    throw LinpipeError("Cannot open file {}", path.string());
 
   SHA256 sha256;
   std::vector<char> buffer(64_uz * 1024);
@@ -84,7 +84,7 @@ std::string SHA256::hexdigest(const std::filesystem::path& path) {
     sha256.update(std::string_view(buffer.data(), static_cast<size_t>(file.gcount())));
   }
   if (!file.eof())
-    throw LinpipeError{"SHA256::hexdigest: Cannot read file ", path.string()};
+    throw LinpipeError("Cannot read file {}", path.string());
 
   return sha256.hexdigest();
 }

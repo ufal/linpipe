@@ -232,7 +232,7 @@ RE::RE(std::string_view pattern, REOptions options) {
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(reinterpret_cast<UChar*>(s), r, &einfo);
-    throw LinpipeError{"RE::RE: Cannot parse regular expression '", pattern, "': ", s};
+    throw LinpipeError("Cannot parse regular expression '{}': {}", pattern, s);
   }
 }
 
@@ -281,7 +281,7 @@ RE32::RE32(std::u32string_view pattern, REOptions options) {
   if (r != ONIG_NORMAL) {
     char s[ONIG_MAX_ERROR_MESSAGE_LEN];
     onig_error_code_to_str(reinterpret_cast<UChar*>(s), r, &einfo);
-    throw LinpipeError{"RE32::RE32: Cannot parse regular expression '", unilib::utf::encoded(pattern), "': ", s};
+    throw LinpipeError("Cannot parse regular expression '{}': {}", unilib::utf::encoded(pattern), s);
   }
 }
 
