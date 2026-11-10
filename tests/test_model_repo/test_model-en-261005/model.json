@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-10-05T12:00:00Z",
+  "name": "test_model-en-261005",
+  "family": "TestModel",
+  "languages": ["en"],
+  "operations": ["test_operation"],
+  "requirements": [],
+  "files": [
+    {
+      "name": "README.md",
+      "url": "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/test_model-en-261005/README.md",
+      "sha256": "2de947dffaa6e1a78ce7f186c7fbb47023a29d84d83e26284547038ca3e735c2",
+      "size": 56
+    },
+    {
+      "name": "test_model.txt",
+      "url": "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/test_model-en-261005/test_model.txt.xz",
+      "compression": "xz",
+      "sha256": "a2adb988546cc76c256c45cc174110c17c90dec1f495e19227a4d74bc1a09891",
+      "size": 34
+    }
+  ]
+}
