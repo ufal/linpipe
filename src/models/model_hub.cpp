@@ -35,34 +35,30 @@ std::optional<std::array<std::string_view, 2>> catalog_keys(std::string_view nam
 ModelHub::ModelHub(std::string models_json_url) : asset_downloader_(models_json_url.empty() ? std::string(default_models_json_url_) : std::move(models_json_url), std::string(family_)) {}
 
 std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
-  constexpr std::string_view caller = "ModelHub::get_model";
-
   auto model_dir = locate_model(name);
   auto model_name = path_to_utf8(model_dir.filename());
 
-  Json config = json_parse_path(caller, model_dir / "model.json");
+  Json config = json_parse_path(model_dir / "model.json");
   return create_model(model_name, model_dir, config);
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
-  constexpr std::string_view caller = "ModelHub::locate_model";
-
   if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
     return *model_dir;
 
   if (auto it = catalog().find(std::string(name)); it != catalog().end()) {
-    LOG(INFO, "Resolved model " << name << " to " << it->second);
+    LOG(INFO, "Resolved model {} to {}", name, it->second);
     return asset_downloader_.get_asset(it->second);
   }
 
-  if (!json_get_object(caller, asset_downloader_.assets_json(), "entries").contains(name)) {
+  if (!json_get_object(asset_downloader_.assets_json(), "entries").contains(name)) {
     std::vector<std::string_view> families;
     for (const auto& [key, model] : catalog())
       if (key.find('-') == std::string::npos)
         families.push_back(key);
     std::ranges::sort(families);
 
-    throw LinpipeError{caller, ": Unknown model '", name, "', which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: ", fmt::format("{}", fmt::join(families, ", "))};
+    throw LinpipeError{"Unknown model {}, which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: {}", name, fmt::format("{}", fmt::join(families, ", "))};
   }
 
   return asset_downloader_.get_asset(name);
@@ -70,16 +66,14 @@ std::filesystem::path ModelHub::locate_model(std::string_view name) {
 
 const std::unordered_map<std::string, std::string>& ModelHub::catalog() {
   std::call_once(catalog_once_, [this] {
-    constexpr std::string_view caller = "ModelHub::catalog";
-
     // "family" or "family-language" -> (timestamp, name) of the newest model so far.
     std::unordered_map<std::string, std::pair<std::string, std::string>> newest;
-    for (const auto& entry : json_get_object(caller, asset_downloader_.assets_json(), "entries").items()) {
+    for (const auto& entry : json_get_object(asset_downloader_.assets_json(), "entries").items()) {
       auto keys = catalog_keys(entry.key());
       if (!keys)
         continue;
 
-      std::pair<std::string, std::string> candidate{json_get<std::string>(caller, entry.value(), "timestamp"), entry.key()};
+      std::pair<std::string, std::string> candidate{json_get<std::string>(entry.value(), "timestamp"), entry.key()};
       for (auto key : *keys) {
         auto [it, inserted] = newest.try_emplace(std::string(key), candidate);
         if (!inserted && it->second < candidate)
