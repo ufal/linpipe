@@ -33,22 +33,15 @@ std::string read_file(const std::filesystem::path& path) {
   return content.str();
 }
 
-struct CleanEnv {
-  EnvGuard models_dir{"LINPIPE_MODELS_DIR", ""};
-  EnvGuard cache_dir{"LINPIPE_CACHE_DIR", ""};
-  EnvGuard offline{"LINPIPE_OFFLINE", ""};
-};
-
 struct ModelCache {
-  CleanEnv clean_env;
   TempDir dir{"linpipe_asset_downloader_test"};
   EnvGuard models_dir{"LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str()};
+  EnvGuard offline{"LINPIPE_OFFLINE", ""};
 };
 
 } // namespace
 
 TEST_CASE("AssetDownloader cache_dir") {
-  CleanEnv env;
   TempDir dir;
 
   SUBCASE("LINPIPE_MODELS_DIR") {
@@ -57,6 +50,7 @@ TEST_CASE("AssetDownloader cache_dir") {
   }
 
   SUBCASE("LINPIPE_CACHE_DIR") {
+    EnvGuard models_dir("LINPIPE_MODELS_DIR", "");
     EnvGuard cache_dir("LINPIPE_CACHE_DIR", path_to_utf8(dir.path()).c_str());
     CHECK(AssetDownloader(TEST_MODELS_JSON_URL, "model").cache_dir() == dir.path() / "models");
   }
@@ -86,7 +80,6 @@ TEST_CASE("AssetDownloader rejects a file with a wrong SHA-256" * doctest::may_f
   ModelCache cache;
   auto model_dir = cache.dir.path() / TEST_MODEL;
 
-  // A schema-valid model.json whose single file has a wrong checksum.
   Json json = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", TEST_MODEL}, {"files", {{{"name", "README.md"}, {"url", fmt::format("{}/{}/README.md", TEST_REPO_URL, TEST_MODEL)}, {"sha256", std::string(64, '0')}, {"size", std::string_view(TEST_README_CONTENT).size()}}}}};
   std::filesystem::create_directories(model_dir);
   std::ofstream(model_dir / "model.json") << json.dump(2);
