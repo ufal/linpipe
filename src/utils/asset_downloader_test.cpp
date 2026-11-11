@@ -18,7 +18,6 @@ namespace linpipe {
 
 namespace {
 
-constexpr const char* TEST_REPO_URL = "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo";
 constexpr const char* TEST_MODELS_JSON_URL = "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/models.json";
 constexpr const char* TEST_MODEL = "test_model-en-261005";
 
@@ -32,12 +31,6 @@ std::string read_file(const std::filesystem::path& path) {
   content << file.rdbuf();
   return content.str();
 }
-
-struct ModelCache {
-  TempDir dir{"linpipe_asset_downloader_test"};
-  EnvGuard models_dir{"LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str()};
-  EnvGuard offline{"LINPIPE_OFFLINE", ""};
-};
 
 } // namespace
 
@@ -56,35 +49,41 @@ TEST_CASE("AssetDownloader cache_dir") {
   }
 }
 
-TEST_CASE("AssetDownloader downloads the model index" * doctest::may_fail(true)) {
-  ModelCache cache;
+TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(true)) {
+  TempDir dir("linpipe_asset_downloader_test");
+  EnvGuard models_dir("LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str());
+  EnvGuard offline("LINPIPE_OFFLINE", "");
+
   AssetDownloader downloader(TEST_MODELS_JSON_URL, "model");
+  auto model_dir = dir.path() / TEST_MODEL;
 
-  CHECK(downloader.assets_json()["entries"].contains(TEST_MODEL));
-  CHECK(std::filesystem::is_regular_file(cache.dir.path() / "models.json"));
-}
-
-TEST_CASE("AssetDownloader downloads a model" * doctest::may_fail(true)) {
-  ModelCache cache;
-  AssetDownloader downloader(TEST_MODELS_JSON_URL, "model");
-
+  // Nothing is downloaded yet.
   CHECK(!downloader.get_downloaded_asset(TEST_MODEL));
-  auto model_dir = downloader.get_asset(TEST_MODEL);
-  CHECK(model_dir == cache.dir.path() / TEST_MODEL);
+
+  // The single download: the model index and the model.
+  REQUIRE(downloader.get_asset(TEST_MODEL) == model_dir);
+
+  // The model index.
+  CHECK(std::filesystem::is_regular_file(dir.path() / "models.json"));
+  CHECK(downloader.assets_json()["entries"].contains(TEST_MODEL));
+
+  // The model.
   CHECK(read_file(model_dir / "README.md") == TEST_README_CONTENT);
   CHECK(read_file(model_dir / "test_model.txt") == TEST_MODEL_TXT_CONTENT);
   CHECK(downloader.get_downloaded_asset(TEST_MODEL) == model_dir);
-}
 
-TEST_CASE("AssetDownloader rejects a file with a wrong SHA-256" * doctest::may_fail(true)) {
-  ModelCache cache;
-  auto model_dir = cache.dir.path() / TEST_MODEL;
+  // Damage the downloaded model.
+  Json model_json = Json::parse(read_file(model_dir / "model.json"));
+  bool readme_found = false;
+  for (auto& file : model_json["files"])
+    if (file["name"] == "README.md") {
+      file["sha256"] = std::string(64, '0');
+      readme_found = true;
+    }
+  REQUIRE(readme_found);
+  std::ofstream(model_dir / "model.json") << model_json.dump(2);
+  std::filesystem::remove(model_dir / "README.md");
 
-  Json json = {{"timestamp", "2026-10-05T12:00:00Z"}, {"name", TEST_MODEL}, {"files", {{{"name", "README.md"}, {"url", fmt::format("{}/{}/README.md", TEST_REPO_URL, TEST_MODEL)}, {"sha256", std::string(64, '0')}, {"size", std::string_view(TEST_README_CONTENT).size()}}}}};
-  std::filesystem::create_directories(model_dir);
-  std::ofstream(model_dir / "model.json") << json.dump(2);
-
-  AssetDownloader downloader(TEST_MODELS_JSON_URL, "model");
   CHECK_THROWS_WITH_AS(downloader.get_asset(TEST_MODEL), doctest::Contains("SHA-256"), LinpipeError);
   CHECK(!std::filesystem::exists(model_dir / "README.md"));
 }
