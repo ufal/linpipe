@@ -16,6 +16,7 @@
 #include "utils/file_lock.h"
 #include "utils/json_utils.h"
 #include "utils/path_utf8.h"
+#include "utils/str_icase.h"
 #include "utils/streams.h"
 
 namespace linpipe {
@@ -136,12 +137,9 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     }
 
     if (!sha256.empty()) {
-      std::string expected(sha256);
-      for (char& c : expected)
-        if (c >= 'A' && c <= 'F') c = static_cast<char>(c - 'A' + 'a');
       auto actual_sha256 = SHA256::hexdigest(tmp_path);
-      if (actual_sha256 != expected)
-        throw LinpipeError("File {} has SHA-256 {} instead of {}", file_url, actual_sha256, expected);
+      if (!str_ascii_icase_eq(actual_sha256, sha256))
+        throw LinpipeError("File {} has SHA-256 {} instead of {}", file_url, actual_sha256, sha256);
     }
 
     // Move the file from tmp to target path.
