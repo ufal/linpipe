@@ -7,6 +7,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-
+#define DOCTEST_CONFIG_IMPLEMENT
 #include <lib/doctest/doctest.h>
+
+#include "common.h"
+#include "utils/env_utf8.h"
+
+int main(int argc, char* argv[]) {
+  // Unless overridden, disable progress logging in tests.
+  if (!linpipe::getenv_utf8("LINPIPE_LOG_LEVEL"))
+    linpipe::logging_progress = false;
+
+  return doctest::Context(argc, argv).run();
+}
