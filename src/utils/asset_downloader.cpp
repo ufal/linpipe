@@ -178,8 +178,6 @@ void AssetDownloader::download_asset(std::string_view asset_name) {
   }
 }
 
-AssetDownloader::AssetDownloader(std::string assets_json_url, std::string family) : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
-
 const Json& AssetDownloader::assets_json() {
   std::call_once(assets_json_once_, [this] {
     auto path = cache_dir() / path_from_utf8(fmt::format("{}s.json", family_));

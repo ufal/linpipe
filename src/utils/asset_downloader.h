@@ -18,7 +18,8 @@ namespace linpipe {
 
 class AssetDownloader {
  public:
-  AssetDownloader(std::string assets_json_url, std::string family);
+  AssetDownloader(std::string assets_json_url, std::string family)
+      : assets_json_url_(std::move(assets_json_url)), family_(std::move(family)) {}
 
   // Lazy accessors
   const Json& assets_json();
