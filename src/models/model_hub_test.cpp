@@ -14,13 +14,6 @@
 
 namespace linpipe {
 
-namespace {
-
-constexpr const char* TEST_MODELS_JSON_URL = "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/models.json";
-constexpr const char* TEST_MODEL = "test_model-en-261005";
-
-} // namespace
-
 TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   TempDir dir("linpipe_model_hub_test");
   EnvGuard models_dir("LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str());
