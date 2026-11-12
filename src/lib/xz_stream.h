@@ -20,22 +20,24 @@ enum class XZMode {
 
 class XZCoder;
 
+// All failures are reported by throwing a LinpipeError with the given location.
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class XZOStreamBuf : public std::streambuf {
  public:
-  XZOStreamBuf(std::ostream& target, XZMode mode, uint32_t preset);
+  XZOStreamBuf(std::ostream& target, XZMode mode, std::source_location location);
   ~XZOStreamBuf() override;
 
-  bool finish();
+  void finish();
 
  protected:
   int_type overflow(int_type c) override;
   int sync() override;
 
  private:
-  bool run_coder(bool finish);
+  void run_coder(bool finish);
 
   std::ostream& target_;
+  std::source_location location_;
   std::unique_ptr<XZCoder> coder_;
   std::vector<char> input_, output_;
   bool finished_ = false;
@@ -44,7 +46,7 @@ class XZOStreamBuf : public std::streambuf {
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class XZIStreamBuf : public std::streambuf {
  public:
-  XZIStreamBuf(std::istream& source);
+  XZIStreamBuf(std::istream& source, std::source_location location);
   ~XZIStreamBuf() override;
 
  protected:
@@ -52,27 +54,10 @@ class XZIStreamBuf : public std::streambuf {
 
  private:
   std::istream& source_;
+  std::source_location location_;
   std::unique_ptr<XZCoder> coder_;
   std::vector<char> input_, output_;
   bool source_finished_ = false, finished_ = false;
-};
-
-class XZOStream : public std::ostream {
- public:
-  XZOStream(std::ostream& target, XZMode mode, uint32_t preset = 6);
-
-  void close();
-
- private:
-  XZOStreamBuf buf_;
-};
-
-class XZIStream : public std::istream {
- public:
-  XZIStream(std::istream& source);
-
- private:
-  XZIStreamBuf buf_;
 };
 
 } // namespace linpipe
