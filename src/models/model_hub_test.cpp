@@ -9,6 +9,7 @@
 
 #include "lib/doctest/doctest.h"
 #include "models/model_hub.h"
+#include "models/test_model.h"
 #include "utils/test_utils.h"
 
 namespace linpipe {
@@ -20,7 +21,7 @@ constexpr const char* TEST_MODEL = "test_model-en-261005";
 
 } // namespace
 
-TEST_CASE("ModelHub locates models" * doctest::may_fail(true)) {
+TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   TempDir dir("linpipe_model_hub_test");
   EnvGuard models_dir("LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str());
   EnvGuard offline("LINPIPE_OFFLINE", "");
@@ -39,6 +40,13 @@ TEST_CASE("ModelHub locates models" * doctest::may_fail(true)) {
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
   CHECK(hub.locate_model("test_model-en") == model_dir);
   CHECK(hub.locate_model("test_model") == model_dir);
+
+  // Loading the model reads its files.
+  auto model = hub.get_model("test_model");
+  auto* test_model = dynamic_cast<TestModel*>(model.get());
+  REQUIRE(test_model);
+  CHECK(test_model->dir() == model_dir);
+  CHECK(test_model->content() == "This is a test model for LinPipe.\n");
 }
 
 } // namespace linpipe
