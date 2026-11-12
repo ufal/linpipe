@@ -7,22 +7,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include <fstream>
+#include <iterator>
 
-#include "common.h"
+#include "models/test_model.h"
 
 namespace linpipe {
 
-class Model {
- public:
-  virtual ~Model() = default;
-  const std::string& name();
+TestModel::TestModel(const std::filesystem::path& dir, Json& /*config*/) : AssetModel(dir) {
+  auto path = this->dir() / "test_model.txt";
+  std::ifstream file(path, std::ios::binary);
+  if (!file)
+    throw LinpipeError("Cannot open file '{}'", path);
+  content_.assign(std::istreambuf_iterator<char>(file), {});
 
-  static std::unique_ptr<Model> create(std::string& name, std::istream& input);
-
- protected:
-  Model(std::string_view name) : name_(name) {}
-  std::string name_;
-};
+  LOG(INFO, "TestModel loaded from {}: {}", this->dir(), content_);
+}
 
 } // namespace linpipe
