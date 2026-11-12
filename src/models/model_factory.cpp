@@ -14,8 +14,7 @@
 #include "utils/json_utils.h"
 
 // Individual models includes
-// #include "models/udpipe.h"
-// ...
+#include "models/test_model.h"
 
 namespace linpipe {
 
@@ -30,7 +29,7 @@ std::unique_ptr<Model> make(const std::filesystem::path& dir, Json& config) {
 
 const std::unordered_map<std::string_view, Factory>& factories() {
   static const std::unordered_map<std::string_view, Factory> factories = {
-    // {"UDPipe", make<UDPipe>},
+    {"TestModel", make<TestModel>},
   };
   return factories;
 }
