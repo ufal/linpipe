@@ -18,12 +18,6 @@ namespace linpipe {
 
 namespace {
 
-constexpr const char* TEST_MODELS_JSON_URL = "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/models.json";
-constexpr const char* TEST_MODEL = "test_model-en-261005";
-
-constexpr const char* TEST_README_CONTENT = "# Linpipe Test Model\n\nThis is a test model for LinPipe.\n";
-constexpr const char* TEST_MODEL_TXT_CONTENT = "This is a test model for LinPipe.\n";
-
 std::string read_file(const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary);
   REQUIRE(file);
