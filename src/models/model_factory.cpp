@@ -13,7 +13,7 @@
 #include "models/model_factory.h"
 #include "utils/json_utils.h"
 
-// Individual models includes go here
+// Individual models includes
 // #include "models/udpipe.h"
 // ...
 

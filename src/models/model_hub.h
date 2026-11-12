@@ -23,7 +23,7 @@ class ModelHub {
  public:
   explicit ModelHub(std::string models_json_url = {});
 
-  // The name is either a verbatim model name, "family-language", or "family".
+  // verbatim model name, "family-language", or "family".
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
 
@@ -31,7 +31,7 @@ class ModelHub {
   // Lazily built from models.json: "family-language" and "family" -> newest model name.
   const std::unordered_map<std::string, std::string>& catalog();
 
-  // TODO: Not published yet.
+  // TODO: Replace with real model repo once created
   static constexpr std::string_view default_models_json_url_ = "https://huggingface.co/ufal/linpipe/resolve/main/models.json";
   static constexpr std::string_view family_ = "model";
 
