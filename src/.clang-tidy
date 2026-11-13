@@ -28,6 +28,7 @@ Checks:
   -  -readability-isolate-declaration
   -  -readability-magic-numbers
   -  -readability-math-missing-parentheses
+  -  -readability-redundant-parentheses
 
 CheckOptions:
   cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true
@@ -36,6 +37,18 @@ CheckOptions:
   readability-uppercase-literal-suffix.NewSuffixes: 'L;LL;Lu;LLu'
 
 HeaderFilterRegex: ".*"
-ExcludeHeaderFilterRegex: "./lib/.*/"
+ExtraArgs: [
+  "--system-header-prefix=lib/doctest/",
+  "--system-header-prefix=lib/fasttext/",
+  "--system-header-prefix=lib/fmt/",
+  "--system-header-prefix=lib/httplib/",
+  "--system-header-prefix=lib/json/",
+  "--system-header-prefix=lib/liblzma/",
+  "--system-header-prefix=lib/mbedtls/",
+  "--system-header-prefix=lib/oniguruma/",
+  "--system-header-prefix=lib/sentencepiece/",
+  "--system-header-prefix=lib/unilib/",
+  "--system-header-prefix=lib/unordered_dense/",
+]
 
 WarningsAsErrors: "*"

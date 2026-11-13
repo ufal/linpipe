@@ -27,12 +27,12 @@ namespace {
 
 bool logging_sources = false;
 bool logging_last_progress = false;
-std::ofstream logging_file;
+std::ofstream logging_file;  // NOLINT(bugprone-throwing-static-initialization)
 std::mutex logging_mutex;
 
 class LoggingInit {
  private:
-  LoggingInit() {
+  LoggingInit() noexcept {
     auto env_log_level = getenv_utf8("LINPIPE_LOG_LEVEL");
     if (env_log_level)
       logging_set_level(*env_log_level);

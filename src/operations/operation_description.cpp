@@ -67,8 +67,9 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
 
         description.kwargs.insert_or_assign(std::string{token.substr(2, eq - 2)}, std::string{token.substr(eq + 1)});
       }
-    } else
+    } else {
       description.args.emplace_back(token);
+    }
   }
 
   return descriptions;

@@ -33,7 +33,7 @@ class REInit {
   }
 
  private:
-  REInit() {
+  REInit() noexcept {
     initialize();
   }
   ~REInit() {
