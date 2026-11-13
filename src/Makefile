@@ -42,34 +42,30 @@ CHANGED_SOURCES = $(call our-sources-filter,$(filter %.cpp %.h,$(shell git diff 
 ALL_SOURCES = $(call our-sources-filter,$(wildcard *.cpp *.h */*.cpp */*.h */*/*.cpp */*/*.h))
 
 # Linting
-define lint_files
-  $(call echo,>.build/lint_$2.cpp,// NOLINTBEGIN(bugprone-suspicious-include))
-  $(foreach f,$1,$(call echo,>>.build/lint_$2.cpp,#include "$f"))
-  $(call echo,>>.build/lint_$2.cpp,// NOLINTEND(bugprone-suspicious-include))
-  $(info Linting $(LINT_ARGS:%=% )$1)
-  @clang-tidy $(LINT_ARGS) .build/lint_$2.cpp -- $(C_FLAGS)
-endef
-.PHONY: FORCE lint relint  # lint/all lint/path relint/all relint/path
-lint: .build
-	$(if $(CHANGED_SOURCES),$(call lint_files,$(CHANGED_SOURCES),current),@echo "No changed files to lint.")
-lint/%: .build FORCE
-	$(if $(filter all,$*),$(call lint_files,$(ALL_SOURCES),all),clang-tidy $(LINT_ARGS) $* -- $(if $(filter %.h,$*),-x c++-header )$(C_FLAGS))
-relint relint/%: LINT_ARGS := --fix
-relint: lint
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_ARGS = --quiet
+.PHONY: FORCE lint  # lint/all lint/path relint/path
+lint: $(addprefix lint/,$(CHANGED_SOURCES))
+	$(if $(CHANGED_SOURCES),,@echo "No changed files to lint.")
+lint/all: $(addprefix lint/,$(filter %.cpp,$(ALL_SOURCES))) ;
+lint/%: FORCE
+	$(CLANG_TIDY) $* $(CLANG_TIDY_ARGS) -- $(if $(filter %.h,$*),-x c++-header )$(C_FLAGS)
+relint/%: CLANG_TIDY_ARGS += --fix
 relint/%: lint/% ;
 
 # Style checking and formating (both show diff and perform in-place)
+CLANG_FORMAT ?= clang-format
 .PHONY: style reformat  # style/all style/path format/path reformat/all reformat/path
 style:
-	$(if $(CHANGED_SOURCES),clang-format --dry-run --Werror $(CHANGED_SOURCES),@echo "No changed files to stylecheck.")
+	$(if $(CHANGED_SOURCES),$(CLANG_FORMAT) --dry-run --Werror $(CHANGED_SOURCES),@echo "No changed files to stylecheck.")
 style/%: FORCE
-	clang-format --dry-run --Werror $(if $(filter all,$*),$(ALL_SOURCES),$*)
+	$(CLANG_FORMAT) --dry-run --Werror $(if $(filter all,$*),$(ALL_SOURCES),$*)
 format/%: FORCE
-	clang-format $* | git diff --no-index $* -
+	$(CLANG_FORMAT) $* | git diff --no-index $* -
 reformat:
-	$(if $(CHANGED_SOURCES),clang-format -i $(CHANGED_SOURCES),@echo "No changed files to format.")
+	$(if $(CHANGED_SOURCES),$(CLANG_FORMAT) -i $(CHANGED_SOURCES),@echo "No changed files to format.")
 reformat/%: FORCE
-	clang-format -i $(if $(filter all,$*),$(ALL_SOURCES),$*)
+	$(CLANG_FORMAT) -i $(if $(filter all,$*),$(ALL_SOURCES),$*)
 
 # Combined style checking and linting
 .PHONY: check  # check/all check/path

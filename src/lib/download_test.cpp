@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-#include "doctest/doctest.h"
+#include "lib/doctest/doctest.h"
 #include "lib/download.h"
 
 namespace linpipe {
