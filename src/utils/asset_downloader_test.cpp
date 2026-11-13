@@ -57,33 +57,40 @@ TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(t
   AssetDownloader downloader(TEST_MODELS_JSON_URL, "model");
   auto model_dir = dir.path() / TEST_MODEL;
 
-  // Nothing is downloaded yet.
+  // Download only the model index.
+  CHECK(downloader.assets_json()["entries"].contains(TEST_MODEL));
   CHECK(!downloader.get_downloaded_asset(TEST_MODEL));
 
-  // The single download: the model index and the model.
+  {
+    // An offline downloader sees the index, but cannot download the model.
+    EnvGuard offline("LINPIPE_OFFLINE", "1");
+    AssetDownloader offline_downloader(TEST_MODELS_JSON_URL, "model");
+    CHECK(offline_downloader.assets_json()["entries"].contains(TEST_MODEL));
+    CHECK_THROWS_WITH_AS(offline_downloader.get_asset(TEST_MODEL), doctest::Contains("offline"), LinpipeError);
+  }
+
+  // Download the model.
   REQUIRE(downloader.get_asset(TEST_MODEL) == model_dir);
-
-  // The model index.
-  CHECK(std::filesystem::is_regular_file(dir.path() / "models.json"));
-  CHECK(downloader.assets_json()["entries"].contains(TEST_MODEL));
-
-  // The model.
   CHECK(read_file(model_dir / "README.md") == TEST_README_CONTENT);
   CHECK(read_file(model_dir / "test_model.txt") == TEST_MODEL_TXT_CONTENT);
   CHECK(downloader.get_downloaded_asset(TEST_MODEL) == model_dir);
 
-  // Damage the downloaded model.
-  Json model_json = Json::parse(read_file(model_dir / "model.json"));
-  bool readme_found = false;
-  for (auto& file : model_json["files"])
-    if (file["name"] == "README.md") {
-      file["sha256"] = std::string(64, '0');
-      readme_found = true;
-    }
-  REQUIRE(readme_found);
-  std::ofstream(model_dir / "model.json") << model_json.dump(2);
-  std::filesystem::remove(model_dir / "README.md");
+  // An appended character is detected by the size check.
+  std::ofstream(model_dir / "README.md", std::ios::binary | std::ios::app) << '!';
+  CHECK(!downloader.get_downloaded_asset(TEST_MODEL));
+  {
+    EnvGuard offline("LINPIPE_OFFLINE", "1");
+    CHECK_THROWS_WITH_AS(AssetDownloader(TEST_MODELS_JSON_URL, "model").get_asset(TEST_MODEL), doctest::Contains("offline"), LinpipeError);
+  }
 
+  // With a wrong SHA-256 in model.json, the re-download of a missing README.md fails.
+  auto model_json = read_file(model_dir / "model.json");
+  Json damaged_json = Json::parse(model_json);
+  for (auto& file : damaged_json["files"])
+    if (file["name"] == "README.md")
+      file["sha256"] = std::string(64, '0');
+  std::ofstream(model_dir / "model.json", std::ios::binary) << damaged_json.dump();
+  std::filesystem::remove(model_dir / "README.md");
   CHECK_THROWS_WITH_AS(downloader.get_asset(TEST_MODEL), doctest::Contains("SHA-256"), LinpipeError);
   CHECK(!std::filesystem::exists(model_dir / "README.md"));
 }
