@@ -20,12 +20,13 @@ namespace linpipe {
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 LoggingLevel logging_level = LoggingLevel::LEVEL_INFO;
-bool logging_to_file = false;
+bool logging_progress = true;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 namespace {
 
 bool logging_sources = false;
+bool logging_to_file = false;
 bool logging_last_progress = false;
 std::ofstream logging_file;  // NOLINT(bugprone-throwing-static-initialization)
 std::mutex logging_mutex;
@@ -49,20 +50,35 @@ LoggingInit LoggingInit::singleton;
 
 void logging_set_level(std::string_view level) {
   logging_sources = false;
-  if (level.size() >= 2 && (level.ends_with("+s") || level.ends_with("+S"))) {
-    logging_sources = true;
-    level.remove_suffix(2);
-  } else if (level.size() >= 8 && (level.ends_with("+sources") || level.ends_with("+SOURCES"))) {
-    logging_sources = true;
-    level.remove_suffix(8);
+  std::optional<bool> progress;
+  while (true) {
+    if (level.size() > 2 && (level.ends_with("+s") || level.ends_with("+S"))) {
+      logging_sources = true;
+      level.remove_suffix(2);
+    } else if (level.size() > 8 && (level.ends_with("+sources") || level.ends_with("+SOURCES"))) {
+      logging_sources = true;
+      level.remove_suffix(8);
+    } else if (level.size() > 2 && (level.ends_with("+p") || level.ends_with("+P"))) {
+      progress = progress.value_or(true);
+      level.remove_suffix(2);
+    } else if (level.size() > 9 && (level.ends_with("+progress") || level.ends_with("+PROGRESS"))) {
+      progress = progress.value_or(true);
+      level.remove_suffix(9);
+    } else if (level.size() > 2 && (level.ends_with("-p") || level.ends_with("-P"))) {
+      progress = progress.value_or(false);
+      level.remove_suffix(2);
+    } else if (level.size() > 9 && (level.ends_with("-progress") || level.ends_with("-PROGRESS"))) {
+      progress = progress.value_or(false);
+      level.remove_suffix(9);
+    } else {
+      break;
+    }
   }
 
   if (level == "t" || level == "T" || level == "trace" || level == "TRACE")
     logging_level = LoggingLevel::LEVEL_TRACE;
   else if (level == "i" || level == "I" || level == "info" || level == "INFO")
     logging_level = LoggingLevel::LEVEL_INFO;
-  else if (level == "p" || level == "P" || level == "progress" || level == "PROGRESS")
-    logging_level = LoggingLevel::LEVEL_PROGRESS;
   else if (level == "w" || level == "W" || level == "warn" || level == "WARN")
     logging_level = LoggingLevel::LEVEL_WARN;
   else if (level == "e" || level == "E" || level == "error" || level == "ERROR")
@@ -71,14 +87,18 @@ void logging_set_level(std::string_view level) {
     logging_level = LoggingLevel::LEVEL_FATAL;
   else
     LOG(ERROR, "logging_set_level: Cannot parse logging level '{}'", level);
+
+  logging_progress = progress.value_or(logging_level <= LoggingLevel::LEVEL_INFO) && !logging_to_file;
 }
 
 void logging_set_file(const std::filesystem::path& path) {
   logging_file.open(path, std::ios::out | std::ios::app);
-  if (!logging_file.is_open())
+  if (!logging_file.is_open()) {
     LOG(ERROR, "logging_set_file: Cannot redirect logs to file '{}'", path);
-  else
+  } else {
     logging_to_file = true;
+    logging_progress = false;
+  }
 }
 
 void logging_write(LoggingLevel level, std::string_view message, std::source_location location /*= std::source_location::current()*/) {
@@ -109,7 +129,7 @@ void logging_write(LoggingLevel level, std::string_view message, std::source_loc
   }
 
   log.push_back(' ');
-  log.push_back("TIPWEF"[static_cast<int>(level)]);
+  log.push_back("TIWEFP"[static_cast<int>(level)]);
   log.push_back(' ');
   log.append(message);
   log.push_back(level == LoggingLevel::LEVEL_PROGRESS ? '\r' : '\n');

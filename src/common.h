@@ -97,21 +97,22 @@ class LinpipeError : public std::exception {
 enum class LoggingLevel : int {
   LEVEL_TRACE = 0,
   LEVEL_INFO = 1,
-  LEVEL_PROGRESS = 2,
-  LEVEL_WARN = 3,
-  LEVEL_ERROR = 4,
-  LEVEL_FATAL = 5,
+  LEVEL_WARN = 2,
+  LEVEL_ERROR = 3,
+  LEVEL_FATAL = 4,
+  LEVEL_PROGRESS = 5,  // not a level, controlled by logging_progress
 };
 extern LoggingLevel logging_level;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-extern bool logging_to_file;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+extern bool logging_progress;  // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 void logging_write(LoggingLevel level, std::string_view message, std::source_location location = std::source_location::current());
 
-#define LOG(level, ...)                                                                                               \
-  do {                                                                                                                \
-    if (linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_##level &&                                             \
-        (linpipe::LoggingLevel::LEVEL_##level != linpipe::LoggingLevel::LEVEL_PROGRESS || !linpipe::logging_to_file)) \
-      linpipe::logging_write(linpipe::LoggingLevel::LEVEL_##level, fmt::format(__VA_ARGS__));                         \
+#define LOG(level, ...)                                                                       \
+  do {                                                                                        \
+    if (linpipe::LoggingLevel::LEVEL_##level == linpipe::LoggingLevel::LEVEL_PROGRESS ?       \
+            linpipe::logging_progress :                                                       \
+            linpipe::logging_level <= linpipe::LoggingLevel::LEVEL_##level)                   \
+      linpipe::logging_write(linpipe::LoggingLevel::LEVEL_##level, fmt::format(__VA_ARGS__)); \
   } while (false)
 
 // Additional formatters for {fmt}
