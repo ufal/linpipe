@@ -8,16 +8,15 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <algorithm>
-#include <fstream>
 
 #include "lib/download.h"
 #include "lib/sha256.h"
-#include "lib/xz_stream.h"
 #include "utils/asset_downloader.h"
 #include "utils/env_utf8.h"
 #include "utils/file_lock.h"
 #include "utils/json_utils.h"
 #include "utils/path_utf8.h"
+#include "utils/streams.h"
 
 namespace linpipe {
 
@@ -91,12 +90,12 @@ bool is_downloaded_file(const std::filesystem::path& path, uint64_t size = {}) {
 }
 
 void download_to_file(std::string_view file_url, const std::filesystem::path& path, uint64_t size = {}, std::string_view sha256 = {}, std::string_view compression = {}, bool replace = false) {
-  if (!compression.empty() && compression != "xz")
-    throw LinpipeError("Unsupported compression {} of {}", compression, file_url);
-
   // First check, without the lock.
   if (!replace && is_downloaded_file(path, size))
     return;
+
+  // Disallow AUTO compression, throws on invalid compression name.
+  auto file_compression = compression_from_name(compression, false);
 
   std::error_code ec;
   std::filesystem::create_directories(path.parent_path(), ec);
@@ -122,23 +121,9 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
 
   try {
     {
-      std::ofstream file(tmp_path, std::ios::binary | std::ios::trunc);
-      if (!file)
-        throw LinpipeError("Cannot open file {}", tmp_path);
-
-      if (compression.empty()) {
-        download_url(file_url, file, true);
-      } else {
-        XZOStream decompressor(file, XZMode::DECOMPRESS);
-        download_url(file_url, decompressor, true);
-        decompressor.close();
-        if (!decompressor)
-          throw LinpipeError("Cannot decompress {}", file_url);
-      }
-
+      OutputStream file(tmp_path, std::ios::binary | std::ios::trunc, file_compression, CompressionMode::DECOMPRESS);
+      download_url(file_url, file, true);
       file.close();
-      if (!file)
-        throw LinpipeError("Cannot write file {}", tmp_path);
     }
 
     // Verify size and checksum, if given.
