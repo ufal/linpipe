@@ -222,4 +222,180 @@ void OutputStream::close(std::source_location location) {
   }
 }
 
+// MultiInputStream
+//
+// The StreamBuf has no buffer of its own and passes the characters one by one
+// from the current InputStream. The unit boundaries are detected by peeking
+// the next character.
+class MultiInputStream::StreamBuf : public std::streambuf {
+ public:
+  StreamBuf(std::istream& source, Compression compression, std::optional<StreamLimit> limit, std::source_location location)
+      : limit_(limit), location_(location), input_(std::make_unique<InputStream>(source, compression, location)), in_(input_->rdbuf()) {}
+
+  StreamBuf(std::vector<std::filesystem::path> paths, std::ios::openmode openmode, Compression compression,
+            std::optional<StreamLimit> limit, std::source_location location)
+      : paths_(std::move(paths)), openmode_(openmode), compression_(compression), limit_(limit), location_(location) {}
+
+  bool next_batch() {
+    if (!limit_)
+      return false;
+
+    batch_done_ = false;
+    batch_units_ = batch_bytes_ = 0;
+    underflow();
+    return input_ != nullptr;
+  }
+
+  std::optional<std::filesystem::path> path() {
+    underflow();
+    return input_ ? input_->path() : std::nullopt;
+  }
+
+  void close(std::source_location location) {
+    next_path_ = paths_.size();
+    if (input_) {
+      auto input = std::move(input_);
+      in_ = nullptr;
+      input->close(location);
+    }
+  }
+
+ protected:
+  int_type underflow() override {
+    // Advance to the next non-empty input, if the current one is exhausted.
+    while (!input_ || traits_type::eq_int_type(in_->sgetc(), traits_type::eof())) {
+      if (input_) end_unit();
+      if (!open_next())
+        return traits_type::eof();
+    }
+    if (batch_done_)
+      return traits_type::eof();
+
+    int_type c = in_->sgetc();
+    if (limit_ && limit_->unit != StreamLimit::Unit::FILE && line_start_ && unit_has_content_ && c != '\n' && c != '\r' &&
+        (limit_->unit == StreamLimit::Unit::LINE || seen_empty_)) {
+      end_unit();
+      if (batch_done_)
+        return traits_type::eof();
+    }
+    return c;
+  }
+
+  int_type uflow() override {
+    int_type c = underflow();
+    if (traits_type::eq_int_type(c, traits_type::eof()))
+      return c;
+    in_->sbumpc();
+    offset_++;
+    batch_bytes_++;
+
+    if (c == '\n' && prev_cr_) {
+      prev_cr_ = false;  // the second character of a "\r\n" line end
+    } else if (c == '\n' || c == '\r') {
+      if (line_start_) seen_empty_ = true;
+      line_start_ = true;
+      prev_cr_ = c == '\r';
+    } else {
+      if (line_start_) {
+        unit_has_content_ = true;
+        seen_empty_ = false;
+      }
+      line_start_ = prev_cr_ = false;
+    }
+    if (limit_ && limit_->unit == StreamLimit::Unit::FILE)
+      unit_has_content_ = true;
+    return c;
+  }
+
+  pos_type seekoff(off_type off, std::ios::seekdir dir, std::ios::openmode which) override {
+    if (off != 0 || dir != std::ios::cur || !(which & std::ios::in))
+      return {off_type{-1}};
+    underflow();
+    return {input_ ? static_cast<off_type>(offset_) : off_type{-1}};
+  }
+
+ private:
+  void end_unit() {
+    if (!unit_has_content_)
+      return;
+    unit_has_content_ = false;
+    if (!limit_)
+      return;
+    batch_units_++;
+    if ((limit_->kind == StreamLimit::Kind::UNITS ? batch_units_ : batch_bytes_) >= limit_->value)
+      batch_done_ = true;
+  }
+
+  // Close the current input and open the next one, returning false if there is none.
+  bool open_next() {
+    if (input_) {
+      auto input = std::move(input_);
+      in_ = nullptr;
+      input->close(location_);
+    }
+    if (next_path_ < paths_.size()) {
+      input_ = std::make_unique<InputStream>(paths_[next_path_++], openmode_, compression_, location_);
+      in_ = input_->rdbuf();
+      offset_ = 0;
+      line_start_ = true;
+      prev_cr_ = seen_empty_ = false;
+    }
+    return input_ != nullptr;
+  }
+
+  std::vector<std::filesystem::path> paths_;
+  size_t next_path_ = 0;
+  std::ios::openmode openmode_ = std::ios::binary;
+  Compression compression_ = Compression::NONE;
+  std::optional<StreamLimit> limit_;
+  std::source_location location_;
+
+  std::unique_ptr<InputStream> input_;
+  std::streambuf* in_ = nullptr;
+  uint64_t offset_ = 0;
+
+  bool line_start_ = true, prev_cr_ = false, seen_empty_ = false, unit_has_content_ = false;
+  size_t batch_units_ = 0, batch_bytes_ = 0;
+  bool batch_done_ = false;
+};
+
+MultiInputStream::MultiInputStream(std::istream& source, Compression compression, std::optional<StreamLimit> limit, std::source_location location)
+    : std::istream(nullptr), location_(location), buf_(std::make_unique<StreamBuf>(source, compression, limit, location)) {
+  rdbuf(buf_.get());
+  exceptions(std::ios::badbit);
+}
+
+MultiInputStream::MultiInputStream(std::vector<std::filesystem::path> paths, std::ios::openmode openmode, Compression compression,
+                                   std::optional<StreamLimit> limit, std::source_location location)
+    : std::istream(nullptr), location_(location), buf_(std::make_unique<StreamBuf>(std::move(paths), openmode, compression, limit, location)) {
+  rdbuf(buf_.get());
+  exceptions(std::ios::badbit);
+}
+
+MultiInputStream::~MultiInputStream() {
+  try {
+    close(location_);
+  } catch (...) {  // NOLINT(bugprone-empty-catch)
+  }
+}
+
+bool MultiInputStream::next_batch() {
+  clear();
+  return buf_->next_batch();
+}
+
+std::optional<std::filesystem::path> MultiInputStream::path() const {
+  return buf_->path();
+}
+
+void MultiInputStream::close(std::source_location location) {
+  if (closed_)
+    return;
+  closed_ = true;
+
+  buf_->close(location);
+  if (bad())
+    throw LinpipeError(location, "Cannot close the input stream, it is in a failed state");
+}
+
 } // namespace linpipe

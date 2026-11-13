@@ -35,6 +35,26 @@ std::string read_file(const std::filesystem::path& path) {
   return read_all(file);
 }
 
+void write_file(const std::filesystem::path& path, std::string_view data) {
+  std::ofstream file(path, std::ios::binary);
+  REQUIRE(file.write(data.data(), static_cast<std::streamsize>(data.size())));
+}
+
+using Batches = std::vector<std::string>;
+
+Batches read_batches(MultiInputStream& is) {
+  Batches batches;
+  do batches.push_back(read_all(is));
+  while (is.next_batch());
+  return batches;
+}
+
+Batches read_batches(std::string_view data, StreamLimit limit) {
+  std::istringstream source{std::string{data}};
+  MultiInputStream is(source, Compression::NONE, limit);
+  return read_batches(is);
+}
+
 } // namespace
 
 TEST_CASE("OutputStream without compression") {
@@ -144,6 +164,100 @@ TEST_CASE("Streams with files") {
 
     InputStream is(path, std::ios::binary, Compression::XZ);
     CHECK(read_all(is) == data);
+  }
+}
+
+TEST_CASE("MultiInputStream units") {
+  SUBCASE("no limit") {
+    std::istringstream source("a\n\nb\n");
+    MultiInputStream is(source);
+    CHECK(read_all(is) == "a\n\nb\n");
+    CHECK(!is.next_batch());
+  }
+  SUBCASE("empty input") {
+    CHECK(read_batches("", StreamLimit::units(StreamLimit::Unit::LINE, 1)) == Batches{""});
+  }
+  SUBCASE("lines") {
+    std::string_view data = "\n\na\nb\n\n\nc\r\n\r\nd\re";
+    CHECK(read_batches(data, StreamLimit::units(StreamLimit::Unit::LINE, 1)) == Batches{"\n\na\n", "b\n\n\n", "c\r\n\r\n", "d\r", "e"});
+    CHECK(read_batches(data, StreamLimit::units(StreamLimit::Unit::LINE, 2)) == Batches{"\n\na\nb\n\n\n", "c\r\n\r\nd\r", "e"});
+  }
+  SUBCASE("paragraphs") {
+    std::string_view data = "\na\nb\n\nc\r\nd\r\n\r\ne\r\rf\n";
+    CHECK(read_batches(data, StreamLimit::units(StreamLimit::Unit::PARA, 1)) == Batches{"\na\nb\n\n", "c\r\nd\r\n\r\n", "e\r\r", "f\n"});
+    CHECK(read_batches(data, StreamLimit::units(StreamLimit::Unit::PARA, 3)) == Batches{"\na\nb\n\nc\r\nd\r\n\r\ne\r\r", "f\n"});
+  }
+  SUBCASE("bytes") {
+    std::string_view data = "ab\ncd\nefgh\nij\n";
+    CHECK(read_batches(data, StreamLimit::bytes(StreamLimit::Unit::LINE, 4)) == Batches{"ab\ncd\n", "efgh\n", "ij\n"});
+    CHECK(read_batches(data, StreamLimit::bytes(StreamLimit::Unit::LINE, 6)) == Batches{"ab\ncd\n", "efgh\nij\n"});
+  }
+  SUBCASE("files") {
+    CHECK(read_batches("a\n\nb\n", StreamLimit::units(StreamLimit::Unit::FILE, 1)) == Batches{"a\n\nb\n"});
+  }
+}
+
+TEST_CASE("MultiInputStream with files") {
+  TempDir dir;
+  auto a = dir.path() / "a.txt", b = dir.path() / "b.txt.xz", c = dir.path() / "c.txt", empty = dir.path() / "empty.txt";
+  std::string b_compressed;
+  REQUIRE(xz_compress("c\n\nd", b_compressed));
+  write_file(a, "a\nbb\n");
+  write_file(b, b_compressed);
+  write_file(c, "e\r\n");
+  write_file(empty, "");
+
+  SUBCASE("no limit") {
+    MultiInputStream is({a, empty, b, c});
+    CHECK(read_all(is) == "a\nbb\nc\n\nde\r\n");
+    CHECK(!is.next_batch());
+  }
+  SUBCASE("path and tellg") {
+    MultiInputStream is({empty, a, empty, b, c, empty}, std::ios::binary, Compression::AUTO, StreamLimit::units(StreamLimit::Unit::PARA, 1));
+    std::vector<std::tuple<std::optional<std::filesystem::path>, std::streamoff, std::string>> lines;
+    do {
+      while (true) {
+        auto path = is.path();
+        auto offset = is.tellg();
+        std::string line;
+        if (!std::getline(is, line))
+          break;
+        lines.emplace_back(path, offset, line);
+      }
+    } while (is.next_batch());
+    CHECK(lines.size() == 6);
+    CHECK(lines[0] == std::tuple{a, 0, "a"});
+    CHECK(lines[1] == std::tuple{a, 2, "bb"});
+    CHECK(lines[2] == std::tuple{b, 0, "c"});
+    CHECK(lines[3] == std::tuple{b, 2, ""});
+    CHECK(lines[4] == std::tuple{b, 3, "d"});
+    CHECK(lines[5] == std::tuple{c, 0, "e\r"});
+  }
+  SUBCASE("units end at file ends") {
+    MultiInputStream is({a, empty, b, c}, std::ios::binary, Compression::AUTO, StreamLimit::units(StreamLimit::Unit::LINE, 1));
+    CHECK(read_batches(is) == Batches{"a\n", "bb\n", "c\n\n", "d", "e\r\n"});
+  }
+  SUBCASE("batches span files") {
+    MultiInputStream is({a, empty, b, c}, std::ios::binary, Compression::AUTO, StreamLimit::units(StreamLimit::Unit::LINE, 3));
+    CHECK(read_batches(is) == Batches{"a\nbb\nc\n\n", "de\r\n"});
+  }
+  SUBCASE("file units") {
+    MultiInputStream is({empty, a, empty, b, c, empty}, std::ios::binary, Compression::AUTO, StreamLimit::units(StreamLimit::Unit::FILE, 1));
+    CHECK(is.path() == a);
+    CHECK(is.tellg() == 0);
+    CHECK(read_all(is) == "a\nbb\n");
+    CHECK(is.next_batch());
+    CHECK(is.path() == b);
+    CHECK(is.tellg() == 0);
+    CHECK(read_all(is) == "c\n\nd");
+    CHECK(is.next_batch());
+    CHECK(is.path() == c);
+    CHECK(read_all(is) == "e\r\n");
+    CHECK(!is.next_batch());
+  }
+  SUBCASE("missing file") {
+    MultiInputStream is({a, dir.path() / "missing.txt"});
+    CHECK_THROWS_AS(read_all(is), LinpipeError);
   }
 }
 
