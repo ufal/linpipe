@@ -43,7 +43,7 @@ TEST_CASE("AssetDownloader cache_dir") {
   }
 
   SUBCASE("LINPIPE_CACHE_DIR") {
-    EnvGuard models_dir("LINPIPE_MODELS_DIR", "");
+    EnvGuard models_dir("LINPIPE_MODELS_DIR", nullptr);
     EnvGuard cache_dir("LINPIPE_CACHE_DIR", dir.path());
     CHECK(AssetDownloader(TEST_MODELS_JSON_URL, "model").cache_dir() == dir.path() / "models");
   }
@@ -51,8 +51,8 @@ TEST_CASE("AssetDownloader cache_dir") {
 
 TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(true)) {
   TempDir dir("linpipe_asset_downloader_test");
-  EnvGuard offline("LINPIPE_OFFLINE", "");
   EnvGuard models_dir("LINPIPE_MODELS_DIR", dir.path());
+  EnvGuard offline("LINPIPE_OFFLINE", nullptr);
 
   AssetDownloader downloader(TEST_MODELS_JSON_URL, "model");
   auto model_dir = dir.path() / TEST_MODEL;
