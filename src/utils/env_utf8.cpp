@@ -108,6 +108,10 @@ bool setenv_utf8(const char* name, const char* value) {
 #endif
 }
 
+bool setenv_utf8_path(const char* name, const std::filesystem::path& value) {
+  return setenv_utf8(name, path_to_utf8(value).c_str());
+}
+
 bool unsetenv_utf8(const char* name) {
   if (!name || !*name) return false;
 

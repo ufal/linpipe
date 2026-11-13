@@ -51,6 +51,9 @@ class EnvGuard {
   EnvGuard(const char* name, const char* value) : name_(name), old_value_(getenv_utf8(name)) {
     setenv_utf8(name, value);
   }
+  EnvGuard(const char* name, const std::filesystem::path& value) : name_(name), old_value_(getenv_utf8(name)) {
+    setenv_utf8_path(name, value);
+  }
   ~EnvGuard() {
     old_value_ ? setenv_utf8(name_.c_str(), old_value_->c_str()) : unsetenv_utf8(name_.c_str());
   }
