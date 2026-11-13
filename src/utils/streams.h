@@ -97,4 +97,63 @@ class OutputStream : public std::ostream {
   bool closed_ = false;
 };
 
+// Units and limits of batches in MultiInputStream. A line ends with "\n", "\r", or "\r\n".
+struct StreamLimit {
+  enum class Unit {
+    LINE,  // a non-empty line, followed by any number of empty lines
+    PARA,  // non-empty lines, followed by any number of empty lines
+    FILE,  // a non-empty file
+  };
+  enum class Kind {
+    UNITS,
+    BYTES,
+  };
+
+  Unit unit;
+  Kind kind;
+  size_t value;
+
+  static StreamLimit units(Unit unit, size_t units) { return {unit, Kind::UNITS, units}; }
+  static StreamLimit bytes(Unit unit, size_t bytes) { return {unit, Kind::BYTES, bytes}; }
+};
+
+// An input stream reading either a non-owned stream, or a sequence of files
+// opened when reached (empty files are skipped), with optional decompression.
+// A unit never spans multiple files. When a limit is given, the input is split
+// into batches of whole units; the stream reports eof at the end of a batch,
+// and next_batch() starts the following one.
+class MultiInputStream : public std::istream {
+ public:
+  explicit MultiInputStream(std::istream& source, Compression compression = Compression::NONE,
+                            std::optional<StreamLimit> limit = std::nullopt,
+                            std::source_location location = std::source_location::current());
+
+  explicit MultiInputStream(std::vector<std::filesystem::path> paths, std::ios::openmode openmode = std::ios::binary,
+                            Compression compression = Compression::AUTO,
+                            std::optional<StreamLimit> limit = std::nullopt,
+                            std::source_location location = std::source_location::current());
+
+  ~MultiInputStream() override;
+
+  MultiInputStream(const MultiInputStream&) = delete;
+  MultiInputStream& operator=(const MultiInputStream&) = delete;
+
+  // Clear the stream state and start the next batch, returning false if there
+  // are no more units. Without a limit, all input is a single batch.
+  bool next_batch();
+
+  // The path of the file the next character comes from. Note that `tellg` also works.
+  std::optional<std::filesystem::path> path() const;
+
+  // Close the current input and skip all remaining ones.
+  void close(std::source_location location = std::source_location::current());
+
+ private:
+  class StreamBuf;
+
+  std::source_location location_;
+  std::unique_ptr<StreamBuf> buf_;
+  bool closed_ = false;
+};
+
 } // namespace linpipe
