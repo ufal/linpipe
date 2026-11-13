@@ -17,8 +17,9 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
-      - run: sudo apt-get update && sudo apt-get install -y clang-format
-      - run: make -C src style/all
+      - run: sudo apt-get update && sudo apt-get install -y clang-format-22
+      - run: make CLANG_FORMAT=clang-format-22 style/all
+        working-directory: src
 
   linting:
     name: Linting
@@ -26,8 +27,9 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v6
-      - run: sudo apt-get update && sudo apt-get install -y clang-tidy
-      - run: make -C src lint/all
+      - run: sudo apt-get update && sudo apt-get install -y clang-tidy-22
+      - run: make CLANG_TIDY=clang-tidy-22 -kj4 lint/all
+        working-directory: src
 
   tests:
     name: Tests
