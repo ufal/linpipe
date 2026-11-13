@@ -36,7 +36,7 @@ $(call dynobj,%): $$(call builtem_demangle,$$*).c $$(COMPILE_DEPS) | .build
 	$(filter-out -std=% -stdlib=% /std:%,$(call compile_dyn,$@,$(if $(filter win-vs-%,$(PLATFORM)),,-x c )$<))
 endif
 
-# Sources for linging and style checks
+# Sources for linting and style checks
 our-sources-filter = $(sort $(foreach f,$1,$(if $(filter lib/%/,$(dir $f)),,$f)))
 CHANGED_SOURCES = $(call our-sources-filter,$(filter %.cpp %.h,$(shell git diff --name-only --relative --diff-filter=d HEAD)))
 ALL_SOURCES = $(call our-sources-filter,$(wildcard *.cpp *.h */*.cpp */*.h */*/*.cpp */*/*.h))
