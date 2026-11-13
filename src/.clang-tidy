@@ -28,6 +28,7 @@ Checks:
   -  -readability-isolate-declaration
   -  -readability-magic-numbers
   -  -readability-math-missing-parentheses
+  -  -readability-redundant-parentheses
 
 CheckOptions:
   cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage: true

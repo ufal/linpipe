@@ -16,7 +16,7 @@
 namespace linpipe {
 
 TEST_CASE_TEMPLATE("xz_compress roundtrip", Container, std::string, std::vector<std::byte>) {
-  using T = typename Container::value_type;
+  using T = Container::value_type;
   auto data = "Testing LZMA compression in LinPipe"sv | std::views::transform([](char c) { return T(c); });
   Container input(data.begin(), data.end());
 
