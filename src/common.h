@@ -30,8 +30,8 @@
 #include <utility>
 #include <vector>
 
-#include "lib/fmt/ranges.h"
-#include "lib/json/json_fwd.h"
+#include <lib/fmt/ranges.h>
+#include <lib/json/json_fwd.h>
 
 namespace linpipe {
 
