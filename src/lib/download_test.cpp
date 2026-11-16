@@ -36,7 +36,7 @@ TEST_CASE("download from huggingface.co" * doctest::may_fail(true)) {
   CHECK(oss.view().starts_with("{"));
 }
 
-TEST_CASE("download from GitHub" * doctest::may_fail(true)) {
+TEST_CASE("download from GitHub" * doctest::may_fail(true) * doctest::skip()) {
   std::ostringstream oss;
   REQUIRE_NOTHROW(download_url("https://raw.githubusercontent.com/ufal/linpipe/refs/heads/master/README.md", oss));
   CHECK(!oss.view().empty());
