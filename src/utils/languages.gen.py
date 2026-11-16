@@ -23,6 +23,13 @@ def escape_c_string(text: str | bytes) -> str:
 def maybe_empty(text: str) -> str:
     return f'"{text}"' if text else "nullptr"
 
+def unicode_fold(text: str) -> str:
+    result = []
+    for c in text:
+        assert len(c.upper()) == 1 and len(c.upper().lower()) == 1, f"Unsupported case mapping of {c!a} in {text!a}"
+        result.append(c.upper().lower())
+    return "".join(result)
+
 # Load the language codes.
 languages = []
 with open("iso-639-3.tab", "r", encoding="utf-8") as iso_file:
@@ -34,10 +41,18 @@ languages.sort(key=lambda x: x[0])  # Sort by ISO 639-3 code.
 code_to_language = {}
 for i, language in enumerate(languages):
     iso_3, iso_2b, iso_1, name = language
-    for iso in {iso_3, iso_2b, iso_1}:
-        if iso:
+    codes = [iso_1, iso_2b, iso_3]  # The order of the fields in the Language struct.
+    for field, iso in enumerate(codes):
+        if iso and iso not in codes[:field]:
+            assert iso == iso.lower(), f"ISO code is not lowercase: {iso}"
             assert iso not in code_to_language, f"Duplicate ISO code: {iso}"
-            code_to_language[iso] = i
+            code_to_language[iso] = 4 * i + field
+
+name_to_language = {}
+for i, language in enumerate(languages):
+    name = language[3]
+    assert unicode_fold(name) not in name_to_language, f"Duplicate name: {name}"
+    name_to_language[unicode_fold(name)] = i
 
 for language in languages:
     iso_3 = language[0]
@@ -68,6 +83,13 @@ with open("languages.cpp", "r", encoding="utf-8") as languages_file:
         if line.rstrip("\n") == "}};":
             break
 
+    assert languages_file.readline() == "\n"
+    assert "name_to_language" in languages_file.readline()
+
+    for line in languages_file:
+        if line.rstrip("\n") == "}};":
+            break
+
     for line in languages_file:
         lines_after.append(line.rstrip("\n"))
 
@@ -83,9 +105,14 @@ with open("languages.cpp", "w", encoding="utf-8") as languages_file:
 
     print(*lines_middle, file=languages_file, sep="\n")
 
-    print(f"const std::array<std::pair<const char*, uint16_t>, {len(code_to_language)}> code_to_language = {{{{", file=languages_file)
-    for code, index in sorted(code_to_language.items()):
-        print(f'  {{"{code}", {index}}},', file=languages_file)
+    print(f"const std::array<uint16_t, {len(code_to_language)}> code_to_language = {{{{", file=languages_file)
+    for _, index in sorted(code_to_language.items()):
+        print(f"  {index},", file=languages_file)
+    print("}};", file=languages_file)
+    print("", file=languages_file)
+    print(f"const std::array<uint16_t, {len(name_to_language)}> name_to_language = {{{{", file=languages_file)
+    for _, index in sorted(name_to_language.items()):
+        print(f"  {index},", file=languages_file)
     print("}};", file=languages_file)
 
     print(*lines_after, file=languages_file, sep="\n")
