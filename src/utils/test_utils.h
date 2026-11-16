@@ -66,4 +66,19 @@ class EnvGuard {
   std::optional<std::string> old_value_;
 };
 
+class LoggingLevelGuard {
+ public:
+  explicit LoggingLevelGuard(LoggingLevel level) : old_level_(logging_level) {
+    if (!getenv_utf8("LINPIPE_LOG_LEVEL"))
+      logging_level = level;
+  }
+  ~LoggingLevelGuard() { logging_level = old_level_; }
+
+  LoggingLevelGuard(const LoggingLevelGuard&) = delete;
+  LoggingLevelGuard& operator=(const LoggingLevelGuard&) = delete;
+
+ private:
+  LoggingLevel old_level_;
+};
+
 } // namespace linpipe

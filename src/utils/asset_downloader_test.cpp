@@ -50,6 +50,7 @@ TEST_CASE("AssetDownloader cache_dir") {
 }
 
 TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(true)) {
+  LoggingLevelGuard logging(LoggingLevel::LEVEL_FATAL);
   TempDir dir("linpipe_asset_downloader_test");
   EnvGuard models_dir("LINPIPE_MODELS_DIR", dir.path());
   EnvGuard offline("LINPIPE_OFFLINE", nullptr);
