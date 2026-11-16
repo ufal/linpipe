@@ -20,13 +20,19 @@ class Language {
   const char* iso639_2b;
   const char* iso639_3;
   const char* flag;
+
+  const char* canonical_iso() const { return iso639_1 ? iso639_1 : iso639_3; }
 };
 
 class Languages {
  public:
-  static const std::array<Language, 7936> languages;
+  static const std::array<Language, 7937> languages;
 
   static const Language* language_by_code(std::string_view code);
+  static const Language* language_by_name(std::string_view name);
+  static const Language* language_by_code_or_name(std::string_view code_or_name);
+
+  static std::string_view canonicalize_code_or_name(std::string_view code_or_name);
 };
 
 } // namespace linpipe
