@@ -250,8 +250,15 @@ void OutputStream::close(std::source_location location) {
   closed_ = true;
 
   // A bad stream has already thrown; do not finish a possibly incomplete output.
-  if (!bad())
-    codec_->finish();
+  if (!bad()) {
+    try {
+      codec_->finish();
+    } catch (...) {
+      if (file_)
+        file_->close();
+      throw;
+    }
+  }
 
   if (file_) {
     file_->close();
