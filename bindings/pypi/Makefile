@@ -30,11 +30,11 @@ sdist: prepare
 wheel: prepare
 	python3 -m build --wheel
 
-.PHONY: venv ebuild
+.PHONY: venv einstall
 venv:
 	[ -d venv/ ] || python3 -m venv venv
 	venv/bin/pip install scikit-build-core ninja build
-ebuild: prepare
+einstall: prepare
 	venv/bin/pip install --no-build-isolation -Ceditable.rebuild=true -ve .
 
 .PHONY: clean
