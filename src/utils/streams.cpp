@@ -12,6 +12,45 @@
 
 namespace linpipe {
 
+namespace {
+
+// A streambuf passing the data directly to a target streambuf; its purpose is to throw LinPipeError on failure.
+class CheckedOStreamBuf : public std::streambuf {
+ public:
+  CheckedOStreamBuf(std::streambuf* target, std::string description, std::source_location location)
+      : target_(target), description_(std::move(description)), location_(location) {
+    if (!target_)
+      throw LinPipeError(location_, "Cannot write to {}, it has no stream buffer", description_);
+  }
+
+ protected:
+  int_type overflow(int_type c) override {
+    if (!traits_type::eq_int_type(c, traits_type::eof()) &&
+        traits_type::eq_int_type(target_->sputc(traits_type::to_char_type(c)), traits_type::eof()))
+      throw LinPipeError(location_, "Cannot write to {}", description_);
+    return traits_type::not_eof(c);
+  }
+
+  std::streamsize xsputn(const char* data, std::streamsize size) override {
+    if (target_->sputn(data, size) != size)
+      throw LinPipeError(location_, "Cannot write to {}", description_);
+    return size;
+  }
+
+  int sync() override {
+    if (target_->pubsync() == -1)
+      throw LinPipeError(location_, "Cannot flush {}", description_);
+    return 0;
+  }
+
+ private:
+  std::streambuf* target_;
+  std::string description_;
+  std::source_location location_;
+};
+
+} // namespace
+
 // Compression
 Compression compression_from_name(std::string_view name, bool allow_auto, std::source_location location) {
   if (name == "auto" && allow_auto) return Compression::AUTO;
@@ -125,10 +164,23 @@ class OutputStream::Codec {
   virtual std::streambuf* streambuf() = 0;
   virtual void finish() = 0;
 
-  static std::unique_ptr<Codec> create(std::ostream& target, Compression compression, CompressionMode mode, std::source_location location);
+  static std::unique_ptr<Codec> create(std::ostream& target, Compression compression, CompressionMode mode, std::string description,
+                                       std::source_location location);
 
  private:
+  class None;
   class XZ;
+};
+
+class OutputStream::Codec::None : public OutputStream::Codec {
+ public:
+  None(std::ostream& target, std::string description, std::source_location location)
+      : buf_(target.rdbuf(), std::move(description), location) {}
+  std::streambuf* streambuf() override { return &buf_; }
+  void finish() override { buf_.pubsync(); }
+
+ private:
+  CheckedOStreamBuf buf_;
 };
 
 class OutputStream::Codec::XZ : public OutputStream::Codec {
@@ -142,8 +194,11 @@ class OutputStream::Codec::XZ : public OutputStream::Codec {
   XZOStreamBuf buf_;
 };
 
-std::unique_ptr<OutputStream::Codec> OutputStream::Codec::create(std::ostream& target, Compression compression, CompressionMode mode, std::source_location location) {
+std::unique_ptr<OutputStream::Codec> OutputStream::Codec::create(std::ostream& target, Compression compression, CompressionMode mode,
+                                                                 std::string description, std::source_location location) {
   switch (compression) {
+    case Compression::NONE:
+      return std::make_unique<None>(target, std::move(description), location);
     case Compression::XZ:
       return std::make_unique<XZ>(target, mode, location);
     default:
@@ -184,12 +239,8 @@ void OutputStream::init(std::ostream& target, Compression compression, Compressi
   if (compression == Compression::AUTO)
     compression = Compression::NONE;
 
-  if (compression == Compression::NONE) {
-    rdbuf(target.rdbuf());
-  } else {
-    codec_ = Codec::create(target, compression, mode, location_);
-    rdbuf(codec_->streambuf());
-  }
+  codec_ = Codec::create(target, compression, mode, file_ ? fmt::format("file {}", path_) : "the output stream", location_);
+  rdbuf(codec_->streambuf());
   exceptions(std::ios::badbit);
 }
 
@@ -199,12 +250,8 @@ void OutputStream::close(std::source_location location) {
   closed_ = true;
 
   // A bad stream has already thrown; do not finish a possibly incomplete output.
-  if (!bad()) {
-    if (codec_)
-      codec_->finish();
-    else
-      flush();
-  }
+  if (!bad())
+    codec_->finish();
 
   if (file_) {
     file_->close();
