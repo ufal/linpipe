@@ -12,14 +12,6 @@
 
 namespace linpipe {
 
-namespace {
-
-std::string describe_stream(const std::filesystem::path& path, std::string_view stream) {
-  return path.empty() ? std::string{stream} : fmt::format("file {}", path);
-}
-
-} // namespace
-
 // Compression
 Compression compression_from_name(std::string_view name, bool allow_auto, std::source_location location) {
   if (name == "auto" && allow_auto) return Compression::AUTO;
@@ -124,8 +116,6 @@ void InputStream::close(std::source_location location) {
     if (file_->fail())
       throw LinPipeError(location, "Cannot close file {}", path_);
   }
-  if (bad())
-    throw LinPipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the input stream"));
 }
 
 // OutputStream
@@ -208,12 +198,13 @@ void OutputStream::close(std::source_location location) {
     return;
   closed_ = true;
 
-  if (bad())
-    throw LinPipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the output stream"));
-  if (codec_)
-    codec_->finish();
-  else
-    flush();
+  // A bad stream has already thrown; do not finish a possibly incomplete output.
+  if (!bad()) {
+    if (codec_)
+      codec_->finish();
+    else
+      flush();
+  }
 
   if (file_) {
     file_->close();
@@ -394,8 +385,6 @@ void MultiInputStream::close(std::source_location location) {
   closed_ = true;
 
   buf_->close(location);
-  if (bad())
-    throw LinPipeError(location, "Cannot close the input stream, it is in a failed state");
 }
 
 } // namespace linpipe
