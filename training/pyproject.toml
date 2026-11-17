@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linpipe.training"
+version = "0.9.0-a0"
+authors = [
+  { name="Milan Straka", email="milan@strakovi.com" },
+  { name="Jana Straková", email="strakova@ufal.mff.cuni.cz"},
+]
+description = "Training framework for LinPipe models"
+readme = "README.md"
+license = "MPL-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering",
+]
+requires-python = ">= 3.11"
+dependencies = [
+  # Minnt framework for training
+  "minnt >= 1.1",
+]
+
+[project.urls]
+Homepage = "https://linpipe.org"
+Repository = "https://github.com/ufal/linpipe"
+
+[tool.setuptools]
+packages = ["linpipe.training"]
+package-dir = {"linpipe.training" = "src"}
