@@ -10,14 +10,18 @@
 #pragma once
 
 #include "common.h"
+#include "core/view.h"
 
 namespace linpipe {
 
-class View {
+class PlainTextView : public TypedView<PlainTextView> {
  public:
-  virtual ~View() = default;
+  static constexpr std::string_view TYPE = "plain_text";
 
- private:
+  virtual std::string_view text() const = 0;
+
+ protected:
+  explicit PlainTextView(const Layer& layer) : TypedView(layer) {}
 };
 
 } // namespace linpipe
