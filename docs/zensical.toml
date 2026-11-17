@@ -61,6 +61,7 @@ nav = [
   ] },
   { "API Reference" = [
     "api_reference.md",
+    "api/version.md",
   ] },
   { "Development" = [
     {"System Architecture" = [
@@ -131,5 +132,29 @@ pymdownx.snippets.check_paths = true
 pymdownx.superfences.custom_fences = [ { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" } ]
 pymdownx.tabbed.alternate_style = true
 pymdownx.tabbed.slugify.kwds.case = "lower"
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["build"]
+inventories = [
+  "https://docs.python.org/3/objects.inv",
+  "https://pytorch.org/docs/stable/objects.inv",
+  "https://numpy.org/doc/stable/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_section_style = "list"
+members_order = "source"
+group_by_category = false
+show_root_heading = true
+show_symbol_type_toc = true
+show_symbol_type_heading = true
+show_signature_annotations = true
+separate_signature = true
+signature_crossrefs = true
+line_length = 80
+show_source = false
 
 [project.plugins.markdown-exec]
