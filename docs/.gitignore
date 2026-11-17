@@ -1,4 +1,5 @@
-/site
+/build/
+/site/
 /src/assets/fonts/
 /src/assets/katex/
 /venv
