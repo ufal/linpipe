@@ -7,22 +7,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#pragma once
+#include "layers/plain_text_layer.h"
+#include "utils/json_utils.h"
 
-#include "common.h"
-#include "layers/layer.h"
+namespace linpipe {
 
-namespace linpipe::layers {
+void PlainTextLayer::from_json(Json& json) {
+  Layer::from_json(json);
+  text = json_extract<std::string>(json, "text");
+}
 
-class PlainText : public Layer {
- public:
-  PlainText(std::string_view name = {}) : Layer("plain_text", name.empty() ? "plain_text" : name) {}
+Json PlainTextLayer::to_json() const {
+  Json json = Layer::to_json();
+  json["text"] = text;
+  return json;
+}
 
-  void from_json(const Json& json) override;
-  Json to_json() override;
-  std::string to_html() override;
+std::string PlainTextLayer::to_html() const {
+  return {};
+}
 
-  std::string text;
-};
-
-} // namespace linpipe::layers
+} // namespace linpipe
