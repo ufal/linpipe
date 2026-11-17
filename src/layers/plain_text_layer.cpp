@@ -9,8 +9,23 @@
 
 #include "layers/plain_text_layer.h"
 #include "utils/json_utils.h"
+#include "views/plain_text_view.h"
 
 namespace linpipe {
+
+namespace {
+
+class PlainTextLayerView : public PlainTextView {
+ public:
+  explicit PlainTextLayerView(const PlainTextLayer& layer) : PlainTextView(layer), layer_(&layer) {}
+
+  std::string_view text() const override { return layer_->text; }
+
+ private:
+  const PlainTextLayer* layer_;
+};
+
+} // namespace
 
 void PlainTextLayer::from_json(Json& json) {
   Layer::from_json(json);
@@ -25,6 +40,16 @@ Json PlainTextLayer::to_json() const {
 
 std::string PlainTextLayer::to_html() const {
   return {};
+}
+
+std::span<const ViewProvider> PlainTextLayer::provided_views() {
+  static const std::vector<ViewProvider> providers{
+    {{{"type", std::string(PlainTextView::TYPE)}},
+     [](const Layer& layer) -> std::unique_ptr<View> {
+       return std::make_unique<PlainTextLayerView>(static_cast<const PlainTextLayer&>(layer));
+     }},
+  };
+  return providers;
 }
 
 } // namespace linpipe

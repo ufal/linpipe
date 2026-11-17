@@ -27,6 +27,9 @@ class PlainTextLayer : public TypedLayer<PlainTextLayer> {
 
  protected:
   void from_json(Json& json) override;
+
+  static std::span<const ViewProvider> provided_views();
+  friend TypedLayer;
 };
 
 } // namespace linpipe

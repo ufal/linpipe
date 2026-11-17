@@ -10,6 +10,7 @@
 #include "layers/plain_text_layer.h"
 #include "lib/doctest/doctest.h"
 #include "lib/json/json.h"
+#include "views/plain_text_view.h"
 
 namespace linpipe {
 
@@ -41,6 +42,31 @@ TEST_CASE("PlainTextLayer Layer::matches") {
   CHECK_FALSE(layer.matches(std::vector<Selector>{{"name", "other"}}));
   CHECK_FALSE(layer.matches(std::vector<Selector>{{"name", "text"}, {"model", "other"}}));
   CHECK_FALSE(layer.matches(std::vector<Selector>{{"unknown", "text"}}));
+}
+
+TEST_CASE("PlainTextLayer Layer::create_view") {
+  PlainTextLayer layer("text");
+  layer.text = "hello world";
+  layer.model = "udpipe";
+  layer.license = "CC BY-SA";
+  layer.timestamp = "2026-01-01T12:00:00Z";
+
+  REQUIRE(layer.views().size() == 1);
+  REQUIRE(layer.views()[0].selectors.size() == 1);
+  CHECK(layer.views()[0].selectors[0].key == "type");
+  CHECK(layer.views()[0].selectors[0].value == "plain_text");
+
+  for (auto selectors : {std::vector<Selector>{}, std::vector<Selector>{{"type", "plain_text"}}, std::vector<Selector>{{"", "plain_text"}}}) {
+    auto view = layer.create_view(selectors);
+    CHECK(view->type() == "plain_text");
+    CHECK(dynamic_cast<PlainTextView&>(*view).text() == "hello world");
+    CHECK(view->model() == "udpipe");
+    CHECK(view->license() == "CC BY-SA");
+    CHECK(view->timestamp() == "2026-01-01T12:00:00Z");
+  }
+
+  CHECK_THROWS_AS(layer.create_view(std::vector<Selector>{{"", "other"}}), LinPipeError);
+  CHECK_THROWS_AS(layer.create_view(std::vector<Selector>{{"type", "plain_text"}, {"name", "text"}}), LinPipeError);
 }
 
 TEST_CASE("PlainTextLayer Layer::create_from_json") {
