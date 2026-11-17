@@ -1,0 +1,38 @@
+name: Build PyPI Training
+
+on:
+  push:
+    branches:
+      - build-training
+    paths:
+      - training/pyproject.toml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx run build
+        working-directory: training
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: training/dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-training
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist
+
+      - run: ls -l dist
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
