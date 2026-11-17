@@ -38,7 +38,7 @@ endif
 
 # Sources for linting and style checks
 our-sources-filter = $(sort $(foreach f,$1,$(if $(filter lib/%/,$(dir $f)),,$f)))
-CHANGED_SOURCES = $(call our-sources-filter,$(filter %.cpp %.h,$(shell git diff --name-only --relative --diff-filter=d HEAD)))
+CHANGED_SOURCES = $(call our-sources-filter,$(filter %.cpp %.h,$(shell git diff --name-only --relative --diff-filter=d HEAD) $(shell git ls-files --others --exclude-standard)))
 ALL_SOURCES = $(call our-sources-filter,$(wildcard *.cpp *.h */*.cpp */*.h */*/*.cpp */*/*.h))
 
 # Linting
