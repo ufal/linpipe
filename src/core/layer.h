@@ -14,6 +14,14 @@
 
 namespace linpipe {
 
+class Layer;
+class View;
+
+struct ViewProvider {
+  std::vector<Selector> selectors;
+  std::unique_ptr<View> (*create)(const Layer& layer);
+};
+
 class Layer {
  public:
   static constexpr std::string_view TYPE = "layer";
@@ -22,6 +30,9 @@ class Layer {
 
   static std::unique_ptr<Layer> create(std::string_view type, std::string_view name = {});
   static std::unique_ptr<Layer> create_from_json(Json& json);
+
+  virtual std::span<const ViewProvider> views() const = 0;
+  std::unique_ptr<View> create_view(std::span<const Selector> selectors) const;
 
   virtual std::string_view type() const = 0;
 
@@ -40,6 +51,7 @@ class Layer {
 
   virtual void from_json(Json& json);
   virtual bool matches_selector(const Selector& selector) const;
+  static std::span<const ViewProvider> provided_views() { return {}; }
 };
 
 template<typename T, typename Base = Layer>
@@ -49,6 +61,8 @@ class TypedLayer : public Base {
     static_assert(T::TYPE != Base::TYPE, "Classes derived from TypedLayer must define their own TYPE");
     return T::TYPE;
   }
+
+  std::span<const ViewProvider> views() const override { return T::provided_views(); }
 
  private:
   template<typename... Args>

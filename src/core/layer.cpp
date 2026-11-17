@@ -11,6 +11,7 @@
 #include <functional>
 
 #include "core/layer.h"
+#include "core/view.h"
 #include "layers/plain_text_layer.h"
 #include "utils/json_utils.h"
 
@@ -53,6 +54,25 @@ bool Layer::matches_selector(const Selector& selector) const {
   if (selector.key == "name") return selector.matches(name);
   if (selector.key == "model") return selector.matches(model);
   return false;
+}
+
+std::unique_ptr<View> Layer::create_view(std::span<const Selector> selectors) const {
+  auto provides = [selectors](const ViewProvider& provider) {
+    return std::ranges::all_of(selectors, [&provider](const Selector& selector) {
+      return std::ranges::any_of(provider.selectors, [&selector](const Selector& offered) {
+        return (selector.key == offered.key || (selector.key.empty() && offered.key == "type")) && selector.matches(offered.value);
+      });
+    });
+  };
+
+  auto providers = views();
+  auto provider = std::ranges::find_if(providers, provides);
+  if (provider == providers.end())
+    throw LinPipeError("No view of layer '{}' of type '{}' matches the given selectors", name, type());
+  if (std::ranges::any_of(std::next(provider), providers.end(), provides))
+    throw LinPipeError("Multiple views of layer '{}' of type '{}' match the given selectors", name, type());
+
+  return provider->create(*this);
 }
 
 } // namespace linpipe
