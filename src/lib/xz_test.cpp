@@ -8,7 +8,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include <algorithm>
-#include <array>
 
 #include "lib/doctest/doctest.h"
 #include "lib/xz.h"
