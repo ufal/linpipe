@@ -24,14 +24,14 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   auto model_dir = dir.path() / TEST_MODEL;
 
   // An unknown name needs only the model index, and lists the known families.
-  CHECK_THROWS_WITH_AS(hub.locate_model("nonexistent"), doctest::Contains("test_model"), LinpipeError);
-  CHECK_THROWS_WITH_AS(hub.locate_model("test_model-de"), doctest::Contains("test_model"), LinpipeError);
+  CHECK_THROWS_WITH_AS(hub.locate_model("nonexistent"), doctest::Contains("test_model"), LinPipeError);
+  CHECK_THROWS_WITH_AS(hub.locate_model("test_model-de"), doctest::Contains("test_model"), LinPipeError);
   CHECK(!std::filesystem::exists(model_dir));
 
   {
     // An offline hub sees the index, but cannot download the model.
     EnvGuard offline("LINPIPE_OFFLINE", "1");
-    CHECK_THROWS_WITH_AS(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model"), doctest::Contains("offline"), LinpipeError);
+    CHECK_THROWS_WITH_AS(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model"), doctest::Contains("offline"), LinPipeError);
   }
 
   // The single download, by the verbatim model name.

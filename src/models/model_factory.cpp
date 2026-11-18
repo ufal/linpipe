@@ -40,11 +40,11 @@ std::unique_ptr<Model> create_model(std::string_view name, const std::filesystem
   auto family = json_extract<std::string>(config, "family");
   auto factory = factories().find(family);
   if (factory == factories().end())
-    throw LinpipeError{"Model {} has an unknown family {}", name, family};
+    throw LinPipeError{"Model {} has an unknown family {}", name, family};
 
   auto model = factory->second(dir, config);
   if (!model)
-    throw LinpipeError{"Cannot load model {} of family {}", name, family};
+    throw LinPipeError{"Cannot load model {} of family {}", name, family};
   return model;
 }
 

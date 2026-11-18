@@ -78,7 +78,7 @@ std::filesystem::path ModelHub::locate_model(std::string_view name) {
     if (key.find('-') == std::string::npos)
       families.push_back(key);
 
-  throw LinpipeError{"Unknown model {}, which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: {}", name, fmt::join(families, ", ")};
+  throw LinPipeError{"Unknown model {}, which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: {}", name, fmt::join(families, ", ")};
 }
 
 const ModelHub::Catalog& ModelHub::catalog() {
