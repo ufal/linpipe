@@ -7,45 +7,44 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include <array>
-#include <utility>
+#include <algorithm>
 
-#include "lib/json/json.h"
 #include "models/model_factory.h"
 #include "models/model_hub.h"
 #include "utils/json_utils.h"
-#include "utils/languages.h"
 #include "utils/path_utf8.h"
+#include "utils/str_icase.h"
 
 namespace linpipe {
 
 namespace {
 
-std::string family_language_key(std::string_view family, std::string_view language) {
-  return fmt::format("{}-{}", family, Languages::canonicalize_code_or_name(language));
+std::string_view model_name_prefix(std::string_view model_name) {
+  return model_name.substr(0, model_name.find('-'));
 }
 
-// The "family" and "family-language" catalog keys of a "family-language-version" model name.
-std::optional<std::array<std::string, 2>> model_catalog_keys(std::string_view name) {
-  auto family_end = name.find('-');
-  if (family_end == 0 || family_end == std::string_view::npos)
-    return std::nullopt;
-  auto language_end = name.find('-', family_end + 1);
-  if (language_end == family_end + 1 || language_end == std::string_view::npos)
-    return std::nullopt;
-
-  auto family = name.substr(0, family_end);
-  auto language = name.substr(family_end + 1, language_end - family_end - 1);
-  return std::array{std::string(family), family_language_key(family, language)};
+// Expands an unkeyed `prefix-language` into `prefix` and `language=language`;
+// the language is everything after the first dash, because language names may contain dashes.
+std::vector<Selector> parse_model_selectors(std::string_view input) {
+  std::vector<Selector> selectors;
+  for (auto& selector : parse_selectors(input)) {
+    auto dash = selector.value.find('-');
+    if (selector.key.empty() && dash != std::string::npos) {
+      selectors.push_back({"", selector.value.substr(0, dash)});
+      selectors.push_back({"language", selector.value.substr(dash + 1)});
+    } else {
+      selectors.push_back(std::move(selector));
+    }
+  }
+  return selectors;
 }
 
-// The catalog key of a requested "family" or "family-language"; the language
-// is everything after the first dash, because language names may contain dashes.
-std::string requested_catalog_key(std::string_view name) {
-  auto family_end = name.find('-');
-  if (family_end == std::string_view::npos)
-    return std::string(name);
-  return family_language_key(name.substr(0, family_end), name.substr(family_end + 1));
+bool any_element_matches(const Json& entry, std::string_view key, const Selector& selector) {
+  if (!entry.contains(key))
+    return false;
+  return std::ranges::any_of(json_get_array(entry, key), [&selector](const Json& element) {
+    return selector.matches(json_get<const std::string&>(element));
+  });
 }
 
 } // namespace
@@ -59,50 +58,58 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
+  const auto& entries = json_get_object(asset_downloader_.assets_json(), "entries");
+
   // A verbatim model name, either already downloaded, or present in models.json.
-  if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
-    return *model_dir;
-
-  if (json_get_object(asset_downloader_.assets_json(), "entries").contains(name))
-    return asset_downloader_.get_asset(name);
-
-  // A "family-language" or a "family".
-  if (auto it = catalog().find(requested_catalog_key(name)); it != catalog().end()) {
-    LOG(INFO, "Resolved model {} to {}", name, it->second);
-    return asset_downloader_.get_asset(it->second);
+  if (name.find_first_of(":=") == std::string_view::npos) {
+    if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
+      return *model_dir;
+    if (entries.contains(name))
+      return asset_downloader_.get_asset(name);
   }
 
-  // The catalog is ordered, so the families are listed sorted.
-  std::vector<std::string_view> families;
-  for (const auto& [key, model] : catalog())
-    if (key.find('-') == std::string::npos)
-      families.push_back(key);
+  // Otherwise the newest model matching all the selectors.
+  auto selectors = parse_model_selectors(name);
+  if (selectors.empty())
+    throw LinPipeError{"No model selectors were given"};
 
-  throw LinPipeError{"Unknown model {}, which is neither a model name, nor a 'family-language', nor a 'family'; the known families are: {}", name, fmt::join(families, ", ")};
+  const std::string* best_name = nullptr;
+  std::string best_timestamp;
+  for (const auto& entry : entries.items()) {
+    auto matches = std::ranges::all_of(selectors, [&entry](const Selector& selector) {
+      return matches_selector(entry.key(), entry.value(), selector);
+    });
+    if (!matches)
+      continue;
+
+    auto timestamp = json_get<std::string>(entry.value(), "timestamp");
+    if (!best_name || best_timestamp < timestamp) {
+      best_name = &entry.key();
+      best_timestamp = std::move(timestamp);
+    }
+  }
+
+  if (best_name) {
+    LOG(INFO, "Resolved model {} to {}", name, *best_name);
+    return asset_downloader_.get_asset(*best_name);
+  }
+
+  std::vector<std::string_view> prefixes;
+  for (const auto& entry : entries.items())
+    prefixes.push_back(model_name_prefix(entry.key()));
+  std::ranges::sort(prefixes, str_ascii_icase_lt);
+  prefixes.erase(std::ranges::unique(prefixes, str_ascii_icase_eq).begin(), prefixes.end());
+
+  throw LinPipeError{"No model matches {}; the known model names are: {}", name, fmt::join(prefixes, ", ")};
 }
 
-const ModelHub::Catalog& ModelHub::catalog() {
-  std::call_once(catalog_once_, [this] {
-    // "family" or "family-language" -> (timestamp, name) of the newest model so far.
-    std::map<std::string, std::pair<std::string, std::string>, CatalogKeyLess> newest;
-    for (const auto& entry : json_get_object(asset_downloader_.assets_json(), "entries").items()) {
-      auto keys = model_catalog_keys(entry.key());
-      if (!keys)
-        continue;
-
-      std::pair<std::string, std::string> candidate{json_get<std::string>(entry.value(), "timestamp"), entry.key()};
-      for (auto& key : *keys) {
-        auto [it, inserted] = newest.try_emplace(std::move(key), candidate);
-        if (!inserted && it->second < candidate)
-          it->second = candidate;
-      }
-    }
-
-    for (auto& [key, timestamp_name] : newest)
-      catalog_.emplace(key, std::move(timestamp_name.second));
-  });
-
-  return catalog_;
+bool ModelHub::matches_selector(std::string_view model_name, const Json& entry, const Selector& selector) {
+  if (selector.key.empty() || selector.key == "name")
+    return str_ascii_icase_eq(selector.value, model_name) || str_ascii_icase_eq(selector.value, model_name_prefix(model_name));
+  if (selector.key == "language") return any_element_matches(entry, "languages", selector);
+  if (selector.key == "operation") return any_element_matches(entry, "operations", selector);
+  if (selector.key == "family") return selector.matches(json_get<const std::string&>(entry, "family"));
+  throw LinPipeError{"Unknown model selector key '{}'; the supported ones are 'name', 'language', 'family', and 'operation'", selector.key};
 }
 
 } // namespace linpipe
