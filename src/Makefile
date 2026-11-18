@@ -45,7 +45,7 @@ ALL_SOURCES = $(call our-sources-filter,$(wildcard *.cpp *.h */*.cpp */*.h */*/*
 CLANG_TIDY ?= clang-tidy
 CLANG_TIDY_ARGS = --quiet
 .PHONY: FORCE lint  # lint/all lint/path relint/path
-lint: $(addprefix lint/,$(CHANGED_SOURCES))
+lint: $$(addprefix lint/,$$(CHANGED_SOURCES))
 	$(if $(CHANGED_SOURCES),,@echo "No changed files to lint.")
 lint/all: $(addprefix lint/,$(filter %.cpp,$(ALL_SOURCES))) ;
 lint/%: FORCE
