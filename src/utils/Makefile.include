@@ -23,4 +23,5 @@ LINPIPE_TESTS += utils/json_utils_test
 LINPIPE_TESTS += utils/languages_test
 LINPIPE_TESTS += utils/split_test
 LINPIPE_TESTS += utils/str_icase_test
+LINPIPE_TESTS += utils/string_pair_parser_test
 LINPIPE_TESTS += utils/streams_test
