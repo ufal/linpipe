@@ -41,6 +41,9 @@ Codestyle:
 - Private class members have underscore at the end.
 - All sources must be ASCII.
 - No excessive trivial comments; the code should document itself.
+- The `common.h` should be included directly or transitively from all headers
+  and sources. It includes several standard headers available in the whole project;
+  these "common" headers should not be included manually anywhere else.
 - There is a `src/.clang-format` and `src/.clang-tidy` with all the details.
 
 Vendored libraries:
