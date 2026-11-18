@@ -37,8 +37,8 @@ TEST_CASE("parse_string_pairs") {
   }
 
   SUBCASE("rejects invalid inputs") {
-    CHECK_THROWS_AS(parse("=value"), LinpipeError);
-    CHECK_THROWS_AS(parse("a:=value"), LinpipeError);
+    CHECK_THROWS_AS(parse("=value"), LinPipeError);
+    CHECK_THROWS_AS(parse("a:=value"), LinPipeError);
   }
 }
 

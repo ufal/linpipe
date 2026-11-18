@@ -32,7 +32,7 @@ std::vector<T> parse_string_pairs(std::string_view input, std::source_location l
       value.push_back(input[i++]);
     } else if (input[i] == '=' && !has_key) {
       if (value.empty())
-        throw LinpipeError(location, "Empty key before '=' in the key-value list '{}'", input);
+        throw LinPipeError(location, "Empty key before '=' in the key-value list '{}'", input);
       key = std::move(value);
       value.clear();
       has_key = true;

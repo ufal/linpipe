@@ -114,12 +114,12 @@ TEST_CASE("OperationDescription::parse_descriptions") {
   }
 
   SUBCASE("throws when the pipeline does not start with an operation") {
-    CHECK_THROWS_AS(parse({"test.in", "-load"}), LinpipeError);
-    CHECK_THROWS_AS(parse({"--load"}), LinpipeError);
-    CHECK_THROWS_AS(parse({"--format", "text", "-load"}), LinpipeError);
-    CHECK_THROWS_AS(parse({"-1", "-load"}), LinpipeError);
-    CHECK_THROWS_AS(parse({"-", "-load"}), LinpipeError);
-    CHECK_THROWS_AS(parse({"--", "-load"}), LinpipeError);
+    CHECK_THROWS_AS(parse({"test.in", "-load"}), LinPipeError);
+    CHECK_THROWS_AS(parse({"--load"}), LinPipeError);
+    CHECK_THROWS_AS(parse({"--format", "text", "-load"}), LinPipeError);
+    CHECK_THROWS_AS(parse({"-1", "-load"}), LinPipeError);
+    CHECK_THROWS_AS(parse({"-", "-load"}), LinPipeError);
+    CHECK_THROWS_AS(parse({"--", "-load"}), LinPipeError);
   }
 }
 

@@ -16,17 +16,17 @@ namespace linpipe {
 
 TEST_CASE("download rejects malformed URLs") {
   std::ostringstream oss;
-  CHECK_THROWS_WITH_AS(download_url("example.com/file", oss), doctest::Contains("Cannot parse"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download_url("://example.com", oss), doctest::Contains("Cannot parse"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download_url("http:///file", oss), doctest::Contains("Missing host"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("example.com/file", oss), doctest::Contains("Cannot parse"), LinPipeError);
+  CHECK_THROWS_WITH_AS(download_url("://example.com", oss), doctest::Contains("Cannot parse"), LinPipeError);
+  CHECK_THROWS_WITH_AS(download_url("http:///file", oss), doctest::Contains("Missing host"), LinPipeError);
   CHECK(oss.view().empty());
 }
 
 TEST_CASE("download rejects unsupported protocols") {
   std::ostringstream oss;
-  CHECK_THROWS_WITH_AS(download_url("ftp://example.com/file", oss), doctest::Contains("Unsupported network protocol 'ftp'"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download_url("file:///etc/passwd", oss), doctest::Contains("Unsupported network protocol"), LinpipeError);
-  CHECK_THROWS_WITH_AS(download_url("HTTP://example.com/", oss), doctest::Contains("Unsupported network protocol"), LinpipeError);
+  CHECK_THROWS_WITH_AS(download_url("ftp://example.com/file", oss), doctest::Contains("Unsupported network protocol 'ftp'"), LinPipeError);
+  CHECK_THROWS_WITH_AS(download_url("file:///etc/passwd", oss), doctest::Contains("Unsupported network protocol"), LinPipeError);
+  CHECK_THROWS_WITH_AS(download_url("HTTP://example.com/", oss), doctest::Contains("Unsupported network protocol"), LinPipeError);
   CHECK(oss.view().empty());
 }
 

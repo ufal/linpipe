@@ -29,5 +29,5 @@
 
 - All code must be in the `linpipe` namespace.
 
-- Right now we use a single exception type `LinpipeError` to throw LinPipe
+- Right now we use a single exception type `LinPipeError` to throw LinPipe
   errors (of course, library functions throw `std` exceptions).

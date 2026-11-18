@@ -63,12 +63,12 @@ std::filesystem::path determine_cache_dirname(std::string_view family) {
   if (auto base = system_cache_dir())
     return *base / path_from_utf8(family_dirname);
 
-  throw LinpipeError("Cannot determine the cache directory for '{}' assets, please set the {} or LINPIPE_CACHE_DIR environment variable", family_dirname, family_env);
+  throw LinPipeError("Cannot determine the cache directory for '{}' assets, please set the {} or LINPIPE_CACHE_DIR environment variable", family_dirname, family_env);
 }
 
 std::filesystem::path allow_only_simple_filename(const std::filesystem::path& path, std::source_location location = std::source_location::current()) {
   if (path.empty() || path != path.filename() || path == "." || path == "..")
-    throw LinpipeError(location, "Invalid asset file name '{}'", path);
+    throw LinPipeError(location, "Invalid asset file name '{}'", path);
   return path;
 }
 
@@ -93,7 +93,7 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
   std::error_code ec;
   std::filesystem::create_directories(path.parent_path(), ec);
   if (ec)
-    throw LinpipeError("Cannot create directory {}: {}", path.parent_path(), ec.message());
+    throw LinPipeError("Cannot create directory {}: {}", path.parent_path(), ec.message());
 
   // Lock path.lock.
   auto lock_path = path;
@@ -123,21 +123,21 @@ void download_to_file(std::string_view file_url, const std::filesystem::path& pa
     if (size) {
       auto actual_size = std::filesystem::file_size(tmp_path, ec);
       if (ec)
-        throw LinpipeError("Cannot get size of {}: {}", tmp_path, ec.message());
+        throw LinPipeError("Cannot get size of {}: {}", tmp_path, ec.message());
       if (actual_size != size)
-        throw LinpipeError("File {} has size {} instead of {}", file_url, actual_size, size);
+        throw LinPipeError("File {} has size {} instead of {}", file_url, actual_size, size);
     }
 
     if (!sha256.empty()) {
       auto actual_sha256 = SHA256::hexdigest(tmp_path);
       if (!str_ascii_icase_eq(actual_sha256, sha256))
-        throw LinpipeError("File {} has SHA-256 {} instead of {}", file_url, actual_sha256, sha256);
+        throw LinPipeError("File {} has SHA-256 {} instead of {}", file_url, actual_sha256, sha256);
     }
 
     // Move the file from tmp to target path.
     std::filesystem::rename(tmp_path, path, ec);
     if (ec)
-      throw LinpipeError("Cannot rename {} to {}: {}", tmp_path, path, ec.message());
+      throw LinPipeError("Cannot rename {} to {}: {}", tmp_path, path, ec.message());
   } catch (...) {
     // On failure, remove path.tmp before unlocking.
     std::error_code remove_ec;
@@ -159,7 +159,7 @@ void AssetDownloader::download_asset(std::string_view asset_name) {
     const auto& entries = json_get_object(assets_json(), "entries");
     auto entry = entries.find(asset_name);
     if (entry == entries.end())
-      throw LinpipeError("Unknown {} {}", family_, asset_name);
+      throw LinPipeError("Unknown {} {}", family_, asset_name);
 
     const auto& asset_json_url = json_get<const std::string&>(*entry, "url");
     download_to_file(asset_json_url, json_path);
@@ -286,14 +286,14 @@ std::filesystem::path AssetDownloader::get_single_asset(std::string_view asset_n
     return path.value();
 
   if (offline_mode())
-    throw LinpipeError("Cannot download missing asset in offline mode: {}", asset_name);
+    throw LinPipeError("Cannot download missing asset in offline mode: {}", asset_name);
 
   download_asset(asset_name);
 
   if (auto path = get_single_downloaded_asset(asset_name); path)
     return path.value();
 
-  throw LinpipeError("The downloaded {} {} in {} is not valid", family_, asset_name, cache_dir() / path_from_utf8(asset_name));
+  throw LinPipeError("The downloaded {} {} in {} is not valid", family_, asset_name, cache_dir() / path_from_utf8(asset_name));
 }
 
 } // namespace linpipe

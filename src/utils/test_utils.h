@@ -29,7 +29,7 @@ class TempDir {
       if (std::filesystem::create_directory(candidate, ec))
         path_ = std::move(candidate);
       else if (ec)
-        throw LinpipeError("Cannot create directory {}: {}", candidate, ec.message());
+        throw LinPipeError("Cannot create directory {}: {}", candidate, ec.message());
     }
   }
   ~TempDir() {

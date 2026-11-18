@@ -66,7 +66,7 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__, "Only little endian sys
 using Json = nlohmann::json;
 
 // Errors
-class LinpipeError : public std::exception {
+class LinPipeError : public std::exception {
  private:
   template<typename... Args>
   struct FormatWithLocation {
@@ -78,11 +78,11 @@ class LinpipeError : public std::exception {
 
  public:
   template<typename... Args>
-  explicit LinpipeError(FormatWithLocation<std::type_identity_t<Args>...> format, Args&&... args)
+  explicit LinPipeError(FormatWithLocation<std::type_identity_t<Args>...> format, Args&&... args)
       : text_(fmt::format(format.format, std::forward<Args>(args)...)), location_(format.location) {}
 
   template<typename... Args>
-  LinpipeError(std::source_location location, fmt::format_string<Args...> format, Args&&... args)
+  LinPipeError(std::source_location location, fmt::format_string<Args...> format, Args&&... args)
       : text_(fmt::format(format, std::forward<Args>(args)...)), location_(location) {}
 
   const char* what() const noexcept override { return text_.c_str(); }

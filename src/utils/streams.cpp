@@ -25,7 +25,7 @@ Compression compression_from_name(std::string_view name, bool allow_auto, std::s
   if (name == "auto" && allow_auto) return Compression::AUTO;
   if (name.empty() || name == "none") return Compression::NONE;
   if (name == "xz") return Compression::XZ;
-  throw LinpipeError(location, "Unsupported compression '{}'", name);
+  throw LinPipeError(location, "Unsupported compression '{}'", name);
 }
 
 std::string_view compression_name(Compression compression, std::source_location location) {
@@ -37,7 +37,7 @@ std::string_view compression_name(Compression compression, std::source_location 
     case Compression::XZ:
       return "xz";
   }
-  throw LinpipeError(location, "Unsupported compression value '{}'", static_cast<int>(compression));
+  throw LinPipeError(location, "Unsupported compression value '{}'", static_cast<int>(compression));
 }
 
 Compression compression_from_path(const std::filesystem::path& path) {
@@ -70,7 +70,7 @@ std::unique_ptr<InputStream::Codec> InputStream::Codec::create(std::istream& sou
     case Compression::XZ:
       return std::make_unique<XZ>(source, location);
     default:
-      throw LinpipeError(location, "Unsupported compression '{}' for input stream", compression_name(compression));
+      throw LinPipeError(location, "Unsupported compression '{}' for input stream", compression_name(compression));
   }
 }
 
@@ -88,7 +88,7 @@ InputStream::InputStream(const std::filesystem::path& path, std::ios::openmode o
 
   file_ = std::make_unique<std::ifstream>(path, openmode | std::ios::in);
   if (!file_->is_open())
-    throw LinpipeError(location_, "Cannot open file {} for reading", path);
+    throw LinPipeError(location_, "Cannot open file {} for reading", path);
 
   init(*file_, compression);
 }
@@ -122,10 +122,10 @@ void InputStream::close(std::source_location location) {
     file_->clear();  // the state can contain eofbit/failbit, e.g., after reading the whole file
     file_->close();
     if (file_->fail())
-      throw LinpipeError(location, "Cannot close file {}", path_);
+      throw LinPipeError(location, "Cannot close file {}", path_);
   }
   if (bad())
-    throw LinpipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the input stream"));
+    throw LinPipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the input stream"));
 }
 
 // OutputStream
@@ -157,7 +157,7 @@ std::unique_ptr<OutputStream::Codec> OutputStream::Codec::create(std::ostream& t
     case Compression::XZ:
       return std::make_unique<XZ>(target, mode, location);
     default:
-      throw LinpipeError(location, "Unsupported compression '{}' for output stream", compression_name(compression));
+      throw LinPipeError(location, "Unsupported compression '{}' for output stream", compression_name(compression));
   }
 }
 
@@ -170,7 +170,7 @@ OutputStream::OutputStream(const std::filesystem::path& path, std::ios::openmode
     : std::ostream(nullptr), location_(location), path_(path) {
   if (compression == Compression::AUTO) {
     if (mode == CompressionMode::DECOMPRESS)
-      throw LinpipeError(location_, "Cannot use automatic compression detection when decompressing to file {}", path);
+      throw LinPipeError(location_, "Cannot use automatic compression detection when decompressing to file {}", path);
     compression = compression_from_path(path);
   }
   if (compression != Compression::NONE)
@@ -178,7 +178,7 @@ OutputStream::OutputStream(const std::filesystem::path& path, std::ios::openmode
 
   file_ = std::make_unique<std::ofstream>(path, openmode | std::ios::out);
   if (!file_->is_open())
-    throw LinpipeError(location_, "Cannot open file {} for writing", path);
+    throw LinPipeError(location_, "Cannot open file {} for writing", path);
 
   init(*file_, compression, mode);
 }
@@ -209,7 +209,7 @@ void OutputStream::close(std::source_location location) {
   closed_ = true;
 
   if (bad())
-    throw LinpipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the output stream"));
+    throw LinPipeError(location, "Cannot close {}, it is in a failed state", describe_stream(path_, "the output stream"));
   if (codec_)
     codec_->finish();
   else
@@ -218,7 +218,7 @@ void OutputStream::close(std::source_location location) {
   if (file_) {
     file_->close();
     if (file_->fail())
-      throw LinpipeError(location, "Cannot close file {}", path_);
+      throw LinPipeError(location, "Cannot close file {}", path_);
   }
 }
 
@@ -395,7 +395,7 @@ void MultiInputStream::close(std::source_location location) {
 
   buf_->close(location);
   if (bad())
-    throw LinpipeError(location, "Cannot close the input stream, it is in a failed state");
+    throw LinPipeError(location, "Cannot close the input stream, it is in a failed state");
 }
 
 } // namespace linpipe
