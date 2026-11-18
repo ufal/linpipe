@@ -23,9 +23,11 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   ModelHub hub(TEST_MODELS_JSON_URL);
   auto model_dir = dir.path() / TEST_MODEL;
 
-  // An unknown name needs only the model index, and lists the known families.
+  // Unmatched selectors need only the model index, and list the known model names.
   CHECK_THROWS_WITH_AS(hub.locate_model("nonexistent"), doctest::Contains("test_model"), LinPipeError);
   CHECK_THROWS_WITH_AS(hub.locate_model("test_model-de"), doctest::Contains("test_model"), LinPipeError);
+  CHECK_THROWS_WITH_AS(hub.locate_model("test_model:operation=other"), doctest::Contains("test_model"), LinPipeError);
+  CHECK_THROWS_WITH_AS(hub.locate_model("test_model:unknown=key"), doctest::Contains("unknown"), LinPipeError);
   CHECK(!std::filesystem::exists(model_dir));
 
   {
@@ -37,13 +39,15 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   // The single download, by the verbatim model name.
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
 
-  // Already downloaded: the verbatim name, "family-language" and "family".
+  // Already downloaded: the verbatim name, the "name-language" shorthand, and selectors.
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
   CHECK(hub.locate_model("test_model-en") == model_dir);
   CHECK(hub.locate_model("test_model") == model_dir);
+  for (const auto* name : {"test_model:language=en", "name=test_model", "language=en:operation=test_operation", "family=TestModel"})
+    CHECK(hub.locate_model(name) == model_dir);
 
-  // The family is case-insensitive, the language is any code or name.
-  for (const auto* name : {"TEST_MODEL", "Test_Model-EN", "test_model-eng", "test_model-English", "test_model-ENGLISH"})
+  // The name is case-insensitive, the language is any code or name.
+  for (const auto* name : {"TEST_MODEL", "Test_Model-EN", "test_model-eng", "test_model-English", "test_model:language=ENGLISH"})
     CHECK(hub.locate_model(name) == model_dir);
 
   {
