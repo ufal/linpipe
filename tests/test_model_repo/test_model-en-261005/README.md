@@ -1,3 +1,3 @@
-# Linpipe Test Model
+# LinPipe Test Model
 
 This is a test model for LinPipe.
