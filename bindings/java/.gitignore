@@ -1,4 +1,7 @@
 /.build/
 /cz/
-linpipe.jar
-linpipe_java.cpp
+/examples/*.class
+/liblinpipe_java.*
+/linpipe_java.dll*
+/linpipe.jar
+/linpipe_java.cpp

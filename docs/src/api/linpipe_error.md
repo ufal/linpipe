@@ -1,0 +1,3 @@
+# LinPipeError
+
+::: linpipe.LinPipeError

@@ -61,7 +61,16 @@ nav = [
   ] },
   { "API Reference" = [
     "api_reference.md",
+    "api/linpipe_error.md",
     "api/version.md",
+    { "Layers" = [
+      "api/layers/layer.md",
+      "api/layers/plain_text_layer.md",
+    ] },
+    { "Views" = [
+      "api/views/view.md",
+      "api/views/plain_text_view.md",
+    ] },
   ] },
   { "Development" = [
     {"System Architecture" = [

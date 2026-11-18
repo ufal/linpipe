@@ -1,0 +1,3 @@
+# PlainTextView
+
+::: linpipe.PlainTextView
