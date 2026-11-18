@@ -10,26 +10,36 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 #include <mutex>
-#include <unordered_map>
 
 #include "common.h"
 #include "models/model.h"
 #include "utils/asset_downloader.h"
+#include "utils/str_icase.h"
 
 namespace linpipe {
 
 class ModelHub {
  public:
-  explicit ModelHub(std::string models_json_url = {});
+  explicit ModelHub(std::string models_json_url = {})
+      : asset_downloader_(models_json_url.empty() ? std::string(default_models_json_url_) : std::move(models_json_url), std::string(family_)) {}
 
-  // verbatim model name, "family-language", or "family".
+  // A verbatim model name, "family-language", or "family"; the family is
+  // case-insensitive and the language can be any ISO 639 code or English name.
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
 
  private:
-  // Lazily built from models.json: "family-language" and "family" -> newest model name.
-  const std::unordered_map<std::string, std::string>& catalog();
+  struct CatalogKeyLess {
+    using is_transparent = void;
+    bool operator()(std::string_view a, std::string_view b) const { return str_ascii_icase_lt(a, b); }
+  };
+  using Catalog = std::map<std::string, std::string, CatalogKeyLess>;
+
+  // Lazily built from models.json: "family-language" and "family" -> newest model name,
+  // with the language canonicalized and the keys compared case-insensitively.
+  const Catalog& catalog();
 
   // TODO: Replace with real model repo once created
   static constexpr std::string_view default_models_json_url_ = "https://huggingface.co/ufal/linpipe/resolve/main/models.json";
@@ -37,7 +47,7 @@ class ModelHub {
 
   AssetDownloader asset_downloader_;
 
-  std::unordered_map<std::string, std::string> catalog_;
+  Catalog catalog_;
   std::once_flag catalog_once_;
 };
 

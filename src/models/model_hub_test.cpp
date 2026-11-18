@@ -15,16 +15,24 @@
 namespace linpipe {
 
 TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
+  LoggingLevelGuard logging(LoggingLevel::LEVEL_FATAL);
   TempDir dir("linpipe_model_hub_test");
-  EnvGuard models_dir("LINPIPE_MODELS_DIR", path_to_utf8(dir.path()).c_str());
-  EnvGuard offline("LINPIPE_OFFLINE", "");
+  EnvGuard models_dir("LINPIPE_MODELS_DIR", dir.path());
+  EnvGuard offline("LINPIPE_OFFLINE", nullptr);
 
   ModelHub hub(TEST_MODELS_JSON_URL);
   auto model_dir = dir.path() / TEST_MODEL;
 
   // An unknown name needs only the model index, and lists the known families.
   CHECK_THROWS_WITH_AS(hub.locate_model("nonexistent"), doctest::Contains("test_model"), LinpipeError);
+  CHECK_THROWS_WITH_AS(hub.locate_model("test_model-de"), doctest::Contains("test_model"), LinpipeError);
   CHECK(!std::filesystem::exists(model_dir));
+
+  {
+    // An offline hub sees the index, but cannot download the model.
+    EnvGuard offline("LINPIPE_OFFLINE", "1");
+    CHECK_THROWS_WITH_AS(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model"), doctest::Contains("offline"), LinpipeError);
+  }
 
   // The single download, by the verbatim model name.
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
@@ -34,12 +42,22 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   CHECK(hub.locate_model("test_model-en") == model_dir);
   CHECK(hub.locate_model("test_model") == model_dir);
 
+  // The family is case-insensitive, the language is any code or name.
+  for (const auto* name : {"TEST_MODEL", "Test_Model-EN", "test_model-eng", "test_model-English", "test_model-ENGLISH"})
+    CHECK(hub.locate_model(name) == model_dir);
+
+  {
+    // An offline hub finds the downloaded model.
+    EnvGuard offline("LINPIPE_OFFLINE", "1");
+    CHECK(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model-en") == model_dir);
+  }
+
   // Loading the model reads its files.
   auto model = hub.get_model("test_model");
   auto* test_model = dynamic_cast<TestModel*>(model.get());
   REQUIRE(test_model);
   CHECK(test_model->dir() == model_dir);
-  CHECK(test_model->content() == "This is a test model for LinPipe.\n");
+  CHECK(test_model->content() == TEST_MODEL_TXT_CONTENT);
 }
 
 } // namespace linpipe
