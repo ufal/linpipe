@@ -10,7 +10,6 @@
 #include <atomic>
 #include <fstream>
 #include <thread>
-#include <vector>
 
 #include "lib/doctest/doctest.h"
 #include "utils/file_lock.h"

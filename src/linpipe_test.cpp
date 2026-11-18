@@ -10,7 +10,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include <lib/doctest/doctest.h>
 
-#include "common.h"
 #include "utils/env_utf8.h"
 
 int main(int argc, char* argv[]) {
