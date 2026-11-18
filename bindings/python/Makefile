@@ -31,6 +31,7 @@ linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i 
 	swig $(SWIG_FLAGS) -python -outdir linpipe -o linpipe_python.cpp -builtin -pyi -typehints -doxygen -features doxygen:notranslate $<
 	@$(call mv,linpipe/linpipe.py,linpipe/__init__.py)
 	@$(call mv,linpipe/linpipe.pyi,linpipe/__init__.pyi)
+	$(or $(PYTHON),python3) pyi_signatures.py linpipe/__init__.pyi
 
 .PHONY: clean
 clean:

@@ -1,7 +1,7 @@
-// This file is part of UDPipe <http://github.com/ufal/udpipe/>.
+// This file is part of LinPipe <http://github.com/ufal/linpipe/>.
 //
-// Copyright 2016 Institute of Formal and Applied Linguistics, Faculty of
-// Mathematics and Physics, Charles University in Prague, Czech Republic.
+// Copyright 2022-2026 Institute of Formal and Applied Linguistics, Faculty
+// of Mathematics and Physics, Charles University in Prague, Czech Republic.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
