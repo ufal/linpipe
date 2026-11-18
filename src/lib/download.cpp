@@ -20,17 +20,17 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
 
   RE::Match m;
   if (!re.match(url, &m))
-    throw LinpipeError("Cannot parse the given URL: {}", url);
+    throw LinPipeError("Cannot parse the given URL: {}", url);
 
   std::string_view protocol = m.groups[0], authority = m.groups[1], path = m.groups[2];
   if (protocol != "http" && protocol != "https")
-    throw LinpipeError("Unsupported network protocol '{}' in URL '{}'", protocol, url);
+    throw LinPipeError("Unsupported network protocol '{}' in URL '{}'", protocol, url);
   if (authority.empty())
-    throw LinpipeError("Missing host in URL: {}", url);
+    throw LinPipeError("Missing host in URL: {}", url);
 
   httplib::Client client(fmt::format("{}://{}", protocol, authority));
   if (!client.is_valid())
-    throw LinpipeError("Cannot download URL: {}", url);
+    throw LinPipeError("Cannot download URL: {}", url);
   client.set_follow_location(true);
 
   constexpr size_t chunk_size = 65536;
@@ -84,10 +84,10 @@ void download_url(std::string_view url, std::ostream& os, bool progress) {
     LOG(ERROR, "Downloading {} failed", url);
 
     if (bad_status)
-      throw LinpipeError("Cannot download URL {}: HTTP status {}", url, status);
+      throw LinPipeError("Cannot download URL {}: HTTP status {}", url, status);
     if (write_failed)  // also set by the final write_buffer() above
-      throw LinpipeError("Cannot write the downloaded data of URL: {}", url);
-    throw LinpipeError("Cannot download URL '{}': {}", url, httplib::to_string(result.error()));
+      throw LinPipeError("Cannot write the downloaded data of URL: {}", url);
+    throw LinPipeError("Cannot download URL '{}': {}", url, httplib::to_string(result.error()));
   }
 
   LOG(TRACE, "Downloaded {}", url);

@@ -36,27 +36,27 @@ TEST_CASE("json_utils key extraction") {
   }
 
   SUBCASE("parsing from a path") {
-    CHECK_THROWS_AS(json_parse_path("nonexistent.json"), LinpipeError);
+    CHECK_THROWS_AS(json_parse_path("nonexistent.json"), LinPipeError);
   }
 
   SUBCASE("json_assert_object") {
     CHECK_NOTHROW(json_assert_object(json_object));
-    CHECK_THROWS_AS(json_assert_object(json_object["list"]), LinpipeError);
+    CHECK_THROWS_AS(json_assert_object(json_object["list"]), LinPipeError);
   }
 
   SUBCASE("json_get_key") {
     CHECK(&json_get_key(json_object, "string") == &json_object["string"]);
-    CHECK_THROWS_AS(json_get_key(json_object, "nonexistent"), LinpipeError);
+    CHECK_THROWS_AS(json_get_key(json_object, "nonexistent"), LinPipeError);
   }
 
   SUBCASE("json_get_array") {
     CHECK(&json_get_array(json_object, "list") == &json_object["list"]);
-    CHECK_THROWS_AS(json_get_array(json_object, "string"), LinpipeError);
+    CHECK_THROWS_AS(json_get_array(json_object, "string"), LinPipeError);
   }
 
   SUBCASE("json_get_object") {
     CHECK(&json_get_object(json_object, "object") == &json_object["object"]);
-    CHECK_THROWS_AS(json_get_object(json_object, "list"), LinpipeError);
+    CHECK_THROWS_AS(json_get_object(json_object, "list"), LinPipeError);
   }
 }
 
@@ -84,7 +84,7 @@ TEST_CASE_TEMPLATE("json_utils extracting basic types", Op, JsonGet, JsonExtract
   CHECK(json_get_or_extract<Op, int>(json, "positive_integer") == 42);
   CHECK(json_get_or_extract<Op, int>(json, "negative_integer") == -42);
   CHECK(json_get_or_extract<Op, unsigned>(json, "positive_integer") == 42);
-  CHECK_THROWS_AS((json_get_or_extract<Op, unsigned>(json, "negative_integer")), LinpipeError);
+  CHECK_THROWS_AS((json_get_or_extract<Op, unsigned>(json, "negative_integer")), LinPipeError);
   CHECK(json_get_or_extract<Op, float>(json, "float") == doctest::Approx(3.14f));
   CHECK(json_get_or_extract<Op, double>(json, "float") == doctest::Approx(3.14));
   CHECK(json_get_or_extract<Op, const std::string&>(json, "string") == "abc");
@@ -102,36 +102,36 @@ TEST_CASE_TEMPLATE("json_utils extracting containers", Op, JsonGet, JsonExtract)
 
   SUBCASE("extracting vector") {
     CHECK(json_get_or_extract<Op, std::vector<int>>(json, "numbers") == std::vector<int>{1, 2, 3, 4});
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<int>>(json, "pair")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<int>>(json, "pair")), LinPipeError);
   }
 
   SUBCASE("extracting pair") {
     CHECK(json_get_or_extract<Op, std::pair<std::string, int>>(json, "pair") == std::pair<std::string, int>{"a", 1});
     CHECK(json["pair"][0] == (std::is_same_v<Op, JsonGet> ? "a" : ""));
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::pair<int, int>>(json, "pair")), LinpipeError);
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::pair<std::string, int>>(json, "numbers")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::pair<int, int>>(json, "pair")), LinPipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::pair<std::string, int>>(json, "numbers")), LinPipeError);
   }
 
   SUBCASE("extracting tuple") {
     CHECK(json_get_or_extract<Op, std::tuple<int, int, int, int>>(json, "numbers") == std::tuple<int, int, int, int>{1, 2, 3, 4});
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::tuple<int, int, int>>(json, "numbers")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::tuple<int, int, int>>(json, "numbers")), LinPipeError);
     CHECK(json_get_or_extract<Op, std::tuple<std::string, int>>(json, "pair") == std::tuple<std::string, int>{"a", 1});
     CHECK(json["pair"][0] == (std::is_same_v<Op, JsonGet> ? "a" : ""));
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::tuple<int, int>>(json, "pair")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::tuple<int, int>>(json, "pair")), LinPipeError);
   }
 
   SUBCASE("extracting vector of pairs") {
     CHECK(json_get_or_extract<Op, std::vector<std::pair<int, std::string>>>(json, "pairs") ==
           std::vector<std::pair<int, std::string>>{{1, "a"}, {2, "b"}, {3, "c"}});
     CHECK(json["pairs"][0][1] == (std::is_same_v<Op, JsonGet> ? "a" : ""));
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<std::pair<int, int>>>(json, "pairs")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<std::pair<int, int>>>(json, "pairs")), LinPipeError);
   }
 
   SUBCASE("extracting vector of tuples") {
     CHECK(json_get_or_extract<Op, std::vector<std::tuple<int, std::string>>>(json, "pairs") ==
           std::vector<std::tuple<int, std::string>>{{1, "a"}, {2, "b"}, {3, "c"}});
     CHECK(json["pairs"][0][1] == (std::is_same_v<Op, JsonGet> ? "a" : ""));
-    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<std::tuple<int, int, std::string>>>(json, "pairs")), LinpipeError);
+    CHECK_THROWS_AS((json_get_or_extract<Op, std::vector<std::tuple<int, int, std::string>>>(json, "pairs")), LinPipeError);
   }
 }
 

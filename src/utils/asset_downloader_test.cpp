@@ -67,7 +67,7 @@ TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(t
     EnvGuard offline("LINPIPE_OFFLINE", "1");
     AssetDownloader offline_downloader(TEST_MODELS_JSON_URL, "model");
     CHECK(offline_downloader.assets_json()["entries"].contains(TEST_MODEL));
-    CHECK_THROWS_WITH_AS(offline_downloader.get_asset(TEST_MODEL), doctest::Contains("offline"), LinpipeError);
+    CHECK_THROWS_WITH_AS(offline_downloader.get_asset(TEST_MODEL), doctest::Contains("offline"), LinPipeError);
   }
 
   // Download the model.
@@ -81,7 +81,7 @@ TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(t
   CHECK(!downloader.get_downloaded_asset(TEST_MODEL));
   {
     EnvGuard offline("LINPIPE_OFFLINE", "1");
-    CHECK_THROWS_WITH_AS(AssetDownloader(TEST_MODELS_JSON_URL, "model").get_asset(TEST_MODEL), doctest::Contains("offline"), LinpipeError);
+    CHECK_THROWS_WITH_AS(AssetDownloader(TEST_MODELS_JSON_URL, "model").get_asset(TEST_MODEL), doctest::Contains("offline"), LinPipeError);
   }
 
   // With a wrong SHA-256 in model.json, the re-download of a missing README.md fails.
@@ -92,7 +92,7 @@ TEST_CASE("AssetDownloader downloads and verifies a model" * doctest::may_fail(t
       file["sha256"] = std::string(64, '0');
   std::ofstream(model_dir / "model.json", std::ios::binary) << damaged_json.dump();
   std::filesystem::remove(model_dir / "README.md");
-  CHECK_THROWS_WITH_AS(downloader.get_asset(TEST_MODEL), doctest::Contains("SHA-256"), LinpipeError);
+  CHECK_THROWS_WITH_AS(downloader.get_asset(TEST_MODEL), doctest::Contains("SHA-256"), LinPipeError);
   CHECK(!std::filesystem::exists(model_dir / "README.md"));
 }
 

@@ -20,7 +20,7 @@ enum class XZMode {
 
 class XZCoder;
 
-// All failures are reported by throwing a LinpipeError with the given location.
+// All failures are reported by throwing a LinPipeError with the given location.
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class XZOStreamBuf : public std::streambuf {
  public:

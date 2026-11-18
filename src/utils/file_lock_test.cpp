@@ -83,7 +83,7 @@ TEST_CASE("FileLock excludes other threads") {
 TEST_CASE("FileLock throws when the directory does not exist") {
   TempDir dir("linpipe_file_lock_test");
   auto path = dir.path() / "missing_dir" / "x.lock";
-  CHECK_THROWS_WITH_AS(FileLock{path}, doctest::Contains("Cannot open lock file"), LinpipeError);
+  CHECK_THROWS_WITH_AS(FileLock{path}, doctest::Contains("Cannot open lock file"), LinPipeError);
 }
 
 } // namespace linpipe

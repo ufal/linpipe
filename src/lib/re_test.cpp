@@ -15,7 +15,7 @@ namespace linpipe {
 // clang-format off
 TEST_CASE("RE::RE") {
   CHECK_NOTHROW(RE("^$"));
-  CHECK_THROWS_AS(RE("("), LinpipeError);
+  CHECK_THROWS_AS(RE("("), LinPipeError);
 }
 
 TEST_CASE("RE::match") {
@@ -107,8 +107,8 @@ TEST_CASE("RE::options") {
 TEST_CASE("RE32::RE32") {
   CHECK_NOTHROW(RE32("^$"));
   CHECK_NOTHROW(RE32(U"^$"));
-  CHECK_THROWS_AS(RE32("("), LinpipeError);
-  CHECK_THROWS_AS(RE32(U"("), LinpipeError);
+  CHECK_THROWS_AS(RE32("("), LinPipeError);
+  CHECK_THROWS_AS(RE32(U"("), LinPipeError);
 }
 
 TEST_CASE("RE32::match") {

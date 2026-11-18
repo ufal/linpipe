@@ -37,14 +37,14 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
 
     if (is_operation(token)) {
       if (token.find('=') != std::string_view::npos)
-        throw LinpipeError("Operation name cannot contain '=' in '{}'; named arguments are written as '--name=value'", token);
+        throw LinPipeError("Operation name cannot contain '=' in '{}'; named arguments are written as '--name=value'", token);
 
       descriptions.emplace_back(std::string{token.substr(1)});
       continue;
     }
 
     if (descriptions.empty())
-      throw LinpipeError("The pipeline must start with an operation, but found '{}'", token);
+      throw LinPipeError("The pipeline must start with an operation, but found '{}'", token);
 
     OperationDescription& description = descriptions.back();
 
@@ -58,12 +58,12 @@ std::vector<OperationDescription> OperationDescription::parse_descriptions(std::
       size_t eq = token.find('=');
       if (eq == std::string_view::npos) {
         if (i + 1 >= tokens.size() || is_operation(tokens[i + 1]))
-          throw LinpipeError("Value expected for argument '{}' in operation '-{}'", token, description.operation);
+          throw LinPipeError("Value expected for argument '{}' in operation '-{}'", token, description.operation);
 
         description.kwargs.insert_or_assign(std::string{token.substr(2)}, std::string{tokens[++i]});
       } else {
         if (eq == 2)
-          throw LinpipeError("Argument name expected before '=' in '{}' in operation '-{}'", token, description.operation);
+          throw LinPipeError("Argument name expected before '=' in '{}' in operation '-{}'", token, description.operation);
 
         description.kwargs.insert_or_assign(std::string{token.substr(2, eq - 2)}, std::string{token.substr(eq + 1)});
       }
@@ -102,7 +102,7 @@ std::vector<std::string> OperationDescription::tokenize(std::string_view descrip
   }
 
   if (quote)
-    throw LinpipeError("Closing quote missing in description '{}'", description);
+    throw LinPipeError("Closing quote missing in description '{}'", description);
 
   if (in_token)
     tokens.push_back(std::move(token));

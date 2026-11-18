@@ -75,7 +75,7 @@ TEST_CASE("OutputStream compress") {
   CHECK(xz_decompress(compressed.str(), decompressed) == compressed.str().size());
   CHECK(decompressed == data);
 
-  CHECK_THROWS_AS(os << data << std::flush, LinpipeError);
+  CHECK_THROWS_AS(os << data << std::flush, LinPipeError);
 }
 
 TEST_CASE("OutputStream decompress") {
@@ -96,7 +96,7 @@ TEST_CASE("OutputStream decompress") {
   }
   SUBCASE("truncated stream") {
     os << compressed.substr(0, compressed.size() / 2);
-    CHECK_THROWS_AS(os.close(), LinpipeError);
+    CHECK_THROWS_AS(os.close(), LinPipeError);
   }
 }
 
@@ -128,7 +128,7 @@ TEST_CASE("InputStream decompress") {
   SUBCASE("truncated stream") {
     std::istringstream source(compressed.substr(0, compressed.size() / 2));
     InputStream is(source, Compression::XZ);
-    CHECK_THROWS_AS(read_all(is), LinpipeError);
+    CHECK_THROWS_AS(read_all(is), LinPipeError);
   }
 }
 
@@ -257,7 +257,7 @@ TEST_CASE("MultiInputStream with files") {
   }
   SUBCASE("missing file") {
     MultiInputStream is({a, dir.path() / "missing.txt"});
-    CHECK_THROWS_AS(read_all(is), LinpipeError);
+    CHECK_THROWS_AS(read_all(is), LinPipeError);
   }
 }
 
