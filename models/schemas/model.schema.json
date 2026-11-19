@@ -7,8 +7,8 @@
     { "$ref": "asset.schema.json" }
   ],
   "properties": {
-    "family": {
-      "description": "The model family this model belongs to.",
+    "class": {
+      "description": "Class to process the model.",
       "type": "string",
       "minLength": 1
     },
@@ -33,6 +33,6 @@
       "minItems": 1
     }
   },
-  "required": ["family"],
+  "required": ["class"],
   "unevaluatedProperties": false
 }
