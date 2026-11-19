@@ -108,8 +108,7 @@ bool ModelHub::matches_selector(std::string_view model_name, const Json& entry, 
     return str_ascii_icase_eq(selector.value, model_name) || str_ascii_icase_eq(selector.value, model_name_prefix(model_name));
   if (selector.key == "language") return any_element_matches(entry, "languages", selector);
   if (selector.key == "operation") return any_element_matches(entry, "operations", selector);
-  if (selector.key == "family") return selector.matches(json_get<const std::string&>(entry, "family"));
-  throw LinPipeError{"Unknown model selector key '{}'; the supported ones are 'name', 'language', 'family', and 'operation'", selector.key};
+  throw LinPipeError{"Unknown model selector key '{}'; the supported ones are 'name', 'language', and 'operation'", selector.key};
 }
 
 } // namespace linpipe

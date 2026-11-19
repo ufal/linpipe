@@ -26,9 +26,8 @@ class ModelHub {
   // - `name` or unkeyed: the model name, or its prefix before the first dash, compared case-insensitively;
   //   an unkeyed `prefix-language` is a shorthand for `prefix:language=language`;
   // - `language`: one of the model languages, given as any ISO 639 code or English name;
-  // - `family`: the model family, i.e., its implementation;
   // - `operation`: one of the model operations.
-  // For example, "test_model", "test_model-en", "test_model:language=English", or "family=TestModel".
+  // For example, "test_model", "test_model-en", or "test_model:language=English".
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
 
