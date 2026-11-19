@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-10-05T12:00:00Z",
   "name": "test_model-en-261005",
-  "family": "TestModel",
+  "class": "TestModel",
   "languages": ["en"],
   "operations": ["test_operation"],
   "requirements": [],

@@ -4,7 +4,7 @@
     "test_model-en-261005": {
       "url": "https://raw.githubusercontent.com/ufal/linpipe/master/tests/test_model_repo/test_model-en-261005/model.json",
       "timestamp": "2026-10-05T12:00:00Z",
-      "family": "TestModel",
+      "class": "TestModel",
       "languages": ["en"],
       "operations": ["test_operation"]
     }

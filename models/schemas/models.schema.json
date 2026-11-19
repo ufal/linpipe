@@ -11,8 +11,8 @@
       "additionalProperties": {
         "$ref": "assets.schema.json#entry",
         "properties": {
-          "family": {
-            "description": "Copy of the 'family' of the linked config: the model family this model belongs to.",
+          "class": {
+            "description": "Class to process the model.",
             "type": "string",
             "minLength": 1
           },
@@ -37,7 +37,7 @@
             "minItems": 1
           }
         },
-        "required": ["family"],
+        "required": ["class"],
         "unevaluatedProperties": false
       }
     }
