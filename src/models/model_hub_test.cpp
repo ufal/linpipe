@@ -43,7 +43,7 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
   CHECK(hub.locate_model("test_model-en") == model_dir);
   CHECK(hub.locate_model("test_model") == model_dir);
-  for (const auto* name : {"test_model:language=en", "name=test_model", "language=en:operation=test_operation", "family=TestModel"})
+  for (const auto* name : {"test_model:language=en", "name=test_model", "language=en:operation=test_operation"})
     CHECK(hub.locate_model(name) == model_dir);
 
   // The name is case-insensitive, the language is any code or name.

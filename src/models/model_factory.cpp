@@ -37,14 +37,14 @@ const std::unordered_map<std::string_view, Factory>& factories() {
 } // namespace
 
 std::unique_ptr<Model> create_model(std::string_view name, const std::filesystem::path& dir, Json& config) {
-  auto family = json_extract<std::string>(config, "family");
-  auto factory = factories().find(family);
+  auto model_class = json_extract<std::string>(config, "class");
+  auto factory = factories().find(model_class);
   if (factory == factories().end())
-    throw LinPipeError{"Model {} has an unknown family {}", name, family};
+    throw LinPipeError{"Model {} has an unknown class {}", name, model_class};
 
   auto model = factory->second(dir, config);
   if (!model)
-    throw LinPipeError{"Cannot load model {} of family {}", name, family};
+    throw LinPipeError{"Cannot load model {} of class {}", name, model_class};
   return model;
 }
 
