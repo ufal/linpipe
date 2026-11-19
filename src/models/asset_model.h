@@ -7,19 +7,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#pragma once
+
+#include <filesystem>
+
+#include "common.h"
 #include "models/model.h"
-#include "models/ner_toy.h"
 
 namespace linpipe {
 
-const std::string& Model::name() {
-  return name_;
-}
+class AssetModel : public Model {
+ public:
+  const std::filesystem::path& dir() const { return dir_; }
 
-std::unique_ptr<Model> Model::create(std::string& name, std::istream& input) {
-  if (name == "NERToy") return std::make_unique<models::NERToy>(name, input);
+ protected:
+  explicit AssetModel(std::filesystem::path dir) : dir_(std::move(dir)) {}
 
-  throw LinpipeError{"Model::create: Cannot load model of uknown name '", name, "'"};
-}
+ private:
+  std::filesystem::path dir_;
+};
 
 } // namespace linpipe
