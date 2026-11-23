@@ -22,12 +22,6 @@ class ModelHub {
   explicit ModelHub(std::string models_json_url = {})
       : asset_downloader_(models_json_url.empty() ? std::string(default_models_json_url_) : std::move(models_json_url), std::string(family_)) {}
 
-  // Either a verbatim model name, or colon-separated selectors, from which the newest matching model is chosen:
-  // - `name` or unkeyed: the model name, or its prefix before the first dash, compared case-insensitively;
-  //   an unkeyed `prefix-language` is a shorthand for `prefix:language=language`;
-  // - `language`: one of the model languages, given as any ISO 639 code or English name;
-  // - `operation`: one of the model operations.
-  // For example, "test_model", "test_model-en", or "test_model:language=English".
   std::unique_ptr<Model> get_model(std::string_view name);
   std::filesystem::path locate_model(std::string_view name);
 

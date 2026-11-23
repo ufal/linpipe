@@ -13,31 +13,10 @@
 #include "models/model_hub.h"
 #include "utils/json_utils.h"
 #include "utils/path_utf8.h"
-#include "utils/str_icase.h"
 
 namespace linpipe {
 
 namespace {
-
-std::string_view model_name_prefix(std::string_view model_name) {
-  return model_name.substr(0, model_name.find('-'));
-}
-
-// Expands an unkeyed `prefix-language` into `prefix` and `language=language`;
-// the language is everything after the first dash, because language names may contain dashes.
-std::vector<Selector> parse_model_selectors(std::string_view input) {
-  std::vector<Selector> selectors;
-  for (auto& selector : parse_selectors(input)) {
-    auto dash = selector.value.find('-');
-    if (selector.key.empty() && dash != std::string::npos) {
-      selectors.push_back({"", selector.value.substr(0, dash)});
-      selectors.push_back({"language", selector.value.substr(dash + 1)});
-    } else {
-      selectors.push_back(std::move(selector));
-    }
-  }
-  return selectors;
-}
 
 bool any_element_matches(const Json& entry, std::string_view key, const Selector& selector) {
   if (!entry.contains(key))
@@ -60,16 +39,16 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
   const auto& entries = json_get_object(asset_downloader_.assets_json(), "entries");
 
-  // A verbatim model name, either already downloaded, or present in models.json.
-  if (name.find_first_of(":=") == std::string_view::npos) {
-    if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
-      return *model_dir;
-    if (entries.contains(name))
-      return asset_downloader_.get_asset(name);
-  }
+  // Verbatim model name already downloaded
+  if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
+    return *model_dir;
 
-  // Otherwise the newest model matching all the selectors.
-  auto selectors = parse_model_selectors(name);
+  // Verbatim model name found in catalog
+  if (entries.contains(name))
+    return asset_downloader_.get_asset(name);
+
+  // Otherwise the newest model matching all the selectors
+  auto selectors = parse_selectors(name);
   if (selectors.empty())
     throw LinPipeError{"No model selectors were given"};
 
@@ -94,18 +73,12 @@ std::filesystem::path ModelHub::locate_model(std::string_view name) {
     return asset_downloader_.get_asset(*best_name);
   }
 
-  std::vector<std::string_view> prefixes;
-  for (const auto& entry : entries.items())
-    prefixes.push_back(model_name_prefix(entry.key()));
-  std::ranges::sort(prefixes, str_ascii_icase_lt);
-  prefixes.erase(std::ranges::unique(prefixes, str_ascii_icase_eq).begin(), prefixes.end());
-
-  throw LinPipeError{"No model matches {}; the known model names are: {}", name, fmt::join(prefixes, ", ")};
+  throw LinPipeError{"No model matches {}", name};
 }
 
 bool ModelHub::matches_selector(std::string_view model_name, const Json& entry, const Selector& selector) {
   if (selector.key.empty() || selector.key == "name")
-    return str_ascii_icase_eq(selector.value, model_name) || str_ascii_icase_eq(selector.value, model_name_prefix(model_name));
+    return selector.matches(model_name, /*prefix_match=*/true);
   if (selector.key == "language") return any_element_matches(entry, "languages", selector);
   if (selector.key == "operation") return any_element_matches(entry, "operations", selector);
   throw LinPipeError{"Unknown model selector key '{}'; the supported ones are 'name', 'language', and 'operation'", selector.key};

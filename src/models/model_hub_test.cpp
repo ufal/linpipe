@@ -23,10 +23,11 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   ModelHub hub(TEST_MODELS_JSON_URL);
   auto model_dir = dir.path() / TEST_MODEL;
 
-  // Unmatched selectors need only the model index, and list the known model names.
-  CHECK_THROWS_WITH_AS(hub.locate_model("nonexistent"), doctest::Contains("test_model"), LinPipeError);
-  CHECK_THROWS_WITH_AS(hub.locate_model("test_model-de"), doctest::Contains("test_model"), LinPipeError);
-  CHECK_THROWS_WITH_AS(hub.locate_model("test_model:operation=other"), doctest::Contains("test_model"), LinPipeError);
+  // Unmatched selectors need only the model index. Every selector must match: the name
+  // as a case-sensitive prefix, languages and operations as any element of their lists.
+  for (const auto* name : {"nonexistent", "model", "TEST_MODEL", "name=test_model_x", "test_model:language=de",
+                           "language=en:operation=other", "test_model:language=en:language=de"})
+    CHECK_THROWS_WITH_AS(hub.locate_model(name), doctest::Contains("No model matches"), LinPipeError);
   CHECK_THROWS_WITH_AS(hub.locate_model("test_model:unknown=key"), doctest::Contains("unknown"), LinPipeError);
   CHECK(!std::filesystem::exists(model_dir));
 
@@ -39,21 +40,21 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   // The single download, by the verbatim model name.
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
 
-  // Already downloaded: the verbatim name, the "name-language" shorthand, and selectors.
+  // Already downloaded: the verbatim name, and selectors with a name prefix, languages, and operations.
   CHECK(hub.locate_model(TEST_MODEL) == model_dir);
-  CHECK(hub.locate_model("test_model-en") == model_dir);
-  CHECK(hub.locate_model("test_model") == model_dir);
-  for (const auto* name : {"test_model:language=en", "name=test_model", "language=en:operation=test_operation"})
+  for (const auto* name : {"test", "test_model", "name=test_model", "language=en", "operation=test_operation",
+                           "test_model:language=en", "language=en:operation=test_operation",
+                           "name=test:language=en:operation=test_operation"})
     CHECK(hub.locate_model(name) == model_dir);
 
-  // The name is case-insensitive, the language is any code or name.
-  for (const auto* name : {"TEST_MODEL", "Test_Model-EN", "test_model-eng", "test_model-English", "test_model:language=ENGLISH"})
+  // The language is any code or name.
+  for (const auto* name : {"language=eng", "language=English", "test_model:language=ENGLISH"})
     CHECK(hub.locate_model(name) == model_dir);
 
   {
-    // An offline hub finds the downloaded model.
+    // An offline hub finds the downloaded model through selectors too.
     EnvGuard offline("LINPIPE_OFFLINE", "1");
-    CHECK(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model-en") == model_dir);
+    CHECK(ModelHub(TEST_MODELS_JSON_URL).locate_model("test_model:language=en") == model_dir);
   }
 
   // Loading the model reads its files.
