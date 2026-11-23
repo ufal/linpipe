@@ -15,14 +15,10 @@
 namespace linpipe {
 
 bool Selector::matches(std::string_view candidate, bool prefix_match) const {
-  std::string_view expected = value;
-  std::string canonical_language;
-  if (str_ascii_icase_eq(key, "language")) {
-    canonical_language = Languages::canonicalize_code_or_name(value);
-    expected = canonical_language;
-  }
+  if (key == "language")
+    return candidate == Languages::canonicalize_code_or_name(value);
 
-  return prefix_match ? str_unicode_icase_starts_with(candidate, expected) : str_unicode_icase_eq(candidate, expected);
+  return str_ascii_icase_eq(value, prefix_match ? candidate.substr(0, value.size()) : candidate);
 }
 
 std::vector<Selector> parse_selectors(std::string_view input, std::source_location location) {
