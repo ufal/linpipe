@@ -35,5 +35,6 @@ inline bool str_unicode_icase_lt(std::string_view a, std::string_view b) { retur
 inline bool str_unicode_icase_le(std::string_view a, std::string_view b) { return str_unicode_icase_cmp(a, b) <= 0; }
 inline bool str_unicode_icase_gt(std::string_view a, std::string_view b) { return str_unicode_icase_cmp(a, b) > 0; }
 inline bool str_unicode_icase_ge(std::string_view a, std::string_view b) { return str_unicode_icase_cmp(a, b) >= 0; }
+bool str_unicode_icase_starts_with(std::string_view str, std::string_view prefix);
 
 } // namespace linpipe

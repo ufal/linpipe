@@ -9,6 +9,7 @@
 
 #include "core/selector.h"
 #include "utils/languages.h"
+#include "utils/str_icase.h"
 #include "utils/string_pair_parser.h"
 
 namespace linpipe {
@@ -16,12 +17,12 @@ namespace linpipe {
 bool Selector::matches(std::string_view candidate, bool prefix_match) const {
   std::string_view expected = value;
   std::string canonical_language;
-  if (key == "language") {
+  if (str_ascii_icase_eq(key, "language")) {
     canonical_language = Languages::canonicalize_code_or_name(value);
     expected = canonical_language;
   }
 
-  return prefix_match ? candidate.starts_with(expected) : candidate == expected;
+  return prefix_match ? str_unicode_icase_starts_with(candidate, expected) : str_unicode_icase_eq(candidate, expected);
 }
 
 std::vector<Selector> parse_selectors(std::string_view input, std::source_location location) {

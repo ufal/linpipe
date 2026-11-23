@@ -33,6 +33,24 @@ TEST_CASE("Selector::matches") {
   CHECK(Selector{"language", "French"}.matches("fr_extra", true));
   CHECK_FALSE(Selector{"language", "French"}.matches("fr_extra"));
   CHECK_FALSE(Selector{"language", "French"}.matches("de_extra", true));
+
+  CHECK(Selector{"name", "udpipe"}.matches("UDPipe"));
+  CHECK(Selector{"name", "UDPipe"}.matches("udpipe"));
+  CHECK(Selector{"name", "udpipe"}.matches("UDPipe_2", true));
+  CHECK_FALSE(Selector{"name", "udpipe"}.matches("UDPipe_2"));
+  CHECK_FALSE(Selector{"name", "udpipe"}.matches("UDPip", true));
+
+  CHECK(Selector{"language", "french"}.matches("fr"));
+  CHECK(Selector{"language", "fra"}.matches("fr"));
+  CHECK(Selector{"language", "French"}.matches("FR"));
+  CHECK(Selector{"Language", "French"}.matches("fr"));
+  CHECK(Selector{"LANGUAGE", "french"}.matches("FR_extra", true));
+
+  CHECK(Selector{"name", "Čeština"}.matches("čEŠTINA"));
+  CHECK(Selector{"name", "čeŠ"}.matches("Čeština", true));
+  CHECK_FALSE(Selector{"name", "Čeština"}.matches("Cestina"));
+  CHECK(Selector{"name", "k"}.matches("K_extra", true));  // Kelvin sign is 3 bytes in UTF-8
+  CHECK(Selector{"name", "K"}.matches("k_extra", true));
 }
 
 TEST_CASE("parse_selectors") {

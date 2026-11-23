@@ -45,4 +45,11 @@ std::weak_ordering str_unicode_icase_cmp(std::string_view a, std::string_view b)
   return a.size() <=> b.size();  // at least one of them is empty
 }
 
+bool str_unicode_icase_starts_with(std::string_view str, std::string_view prefix) {
+  while (!prefix.empty())
+    if (str.empty() || unicode_fold(unilib::utf::decode(str)) != unicode_fold(unilib::utf::decode(prefix)))
+      return false;
+  return true;
+}
+
 } // namespace linpipe
