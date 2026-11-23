@@ -17,7 +17,7 @@ struct Selector {
   std::string key;
   std::string value;
 
-  bool matches(std::string_view candidate) const;
+  bool matches(std::string_view candidate, bool prefix_match = false) const;
 };
 
 std::vector<Selector> parse_selectors(std::string_view input, std::source_location location = std::source_location::current());

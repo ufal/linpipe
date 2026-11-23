@@ -21,6 +21,18 @@ TEST_CASE("Selector::matches") {
   CHECK(Selector{"language", "FRA"}.matches("fr"));
   CHECK(Selector{"language", "French"}.matches("fr"));
   CHECK_FALSE(Selector{"language", "French"}.matches("de"));
+
+  CHECK_FALSE(Selector{"name", "text"}.matches("text_extra"));
+  CHECK(Selector{"name", "text"}.matches("text_extra", true));
+  CHECK(Selector{"name", "text"}.matches("text", true));
+  CHECK_FALSE(Selector{"name", "text"}.matches("tex", true));
+  CHECK_FALSE(Selector{"name", "text"}.matches("other_text", true));
+  CHECK(Selector{"name", ""}.matches("anything", true));
+
+  CHECK(Selector{"language", "fr"}.matches("fr_extra", true));
+  CHECK(Selector{"language", "French"}.matches("fr_extra", true));
+  CHECK_FALSE(Selector{"language", "French"}.matches("fr_extra"));
+  CHECK_FALSE(Selector{"language", "French"}.matches("de_extra", true));
 }
 
 TEST_CASE("parse_selectors") {
