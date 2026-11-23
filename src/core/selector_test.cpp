@@ -29,10 +29,14 @@ TEST_CASE("Selector::matches") {
   CHECK_FALSE(Selector{"name", "text"}.matches("other_text", true));
   CHECK(Selector{"name", ""}.matches("anything", true));
 
-  CHECK(Selector{"language", "fr"}.matches("fr_extra", true));
-  CHECK(Selector{"language", "French"}.matches("fr_extra", true));
-  CHECK_FALSE(Selector{"language", "French"}.matches("fr_extra"));
-  CHECK_FALSE(Selector{"language", "French"}.matches("de_extra", true));
+  CHECK(Selector{"name", "udpipe"}.matches("UDPipe"));
+  CHECK(Selector{"name", "UDPipe"}.matches("udpipe"));
+  CHECK(Selector{"name", "udpipe"}.matches("UDPipe_2", true));
+  CHECK_FALSE(Selector{"name", "udpipe"}.matches("UDPipe_2"));
+  CHECK_FALSE(Selector{"name", "udpipe"}.matches("UDPip", true));
+
+  CHECK(Selector{"language", "french"}.matches("fr"));
+  CHECK(Selector{"language", "fra"}.matches("fr"));
 }
 
 TEST_CASE("parse_selectors") {
