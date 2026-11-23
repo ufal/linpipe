@@ -13,9 +13,15 @@
 
 namespace linpipe {
 
-bool Selector::matches(std::string_view candidate) const {
-  if (key == "language") return candidate == Languages::canonicalize_code_or_name(value);
-  return candidate == value;
+bool Selector::matches(std::string_view candidate, bool prefix_match) const {
+  std::string_view expected = value;
+  std::string canonical_language;
+  if (key == "language") {
+    canonical_language = Languages::canonicalize_code_or_name(value);
+    expected = canonical_language;
+  }
+
+  return prefix_match ? candidate.starts_with(expected) : candidate == expected;
 }
 
 std::vector<Selector> parse_selectors(std::string_view input, std::source_location location) {
