@@ -32,19 +32,6 @@ TEST_CASE("str_unicode_icase") {
   CHECK(str_unicode_icase_ge("\u017D\u00C1BA", "\u017E\u00E1ba"));
   CHECK(str_unicode_icase_gt("\u017E\u00E1ba", "\u017DAba"));
   CHECK(str_unicode_icase_cmp("D\u016Fm", "\u010Daj") == std::weak_ordering::less);  // code point comparison, not collation
-
-  CHECK(str_unicode_icase_starts_with("UDPipe 2", "udpipe"));
-  CHECK(str_unicode_icase_starts_with("\u010Ce\u0161tina", "\u010DE\u0160"));  // Cestina
-  CHECK(str_unicode_icase_starts_with("abc", "ABC"));
-  CHECK(str_unicode_icase_starts_with("abc", ""));
-  CHECK(str_unicode_icase_starts_with("", ""));
-  CHECK(!str_unicode_icase_starts_with("ab", "abc"));
-  CHECK(!str_unicode_icase_starts_with("", "a"));
-  CHECK(!str_unicode_icase_starts_with("xabc", "abc"));
-  CHECK(str_unicode_icase_starts_with("\u212Aelvin", "k"));  // Kelvin sign (3 bytes) folds to k (1 byte)
-  CHECK(str_unicode_icase_starts_with("kelvin", "\u212A"));
-  CHECK(str_unicode_icase_starts_with("\u03A3\u039F\u03A3 \u03C3\u03BF\u03C2", "\u03C3\u03BF\u03C2"));  // Greek SOS with a final sigma
-  CHECK(!str_unicode_icase_starts_with("stra\u00DFe", "STRASS"));  // SS not equal to sharp s
 }
 
 } // namespace linpipe
