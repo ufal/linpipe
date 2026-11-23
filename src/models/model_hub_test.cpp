@@ -24,8 +24,8 @@ TEST_CASE("ModelHub locates and loads models" * doctest::may_fail(true)) {
   auto model_dir = dir.path() / TEST_MODEL;
 
   // Unmatched selectors need only the model index. Every selector must match: the name
-  // as a case-sensitive prefix, languages and operations as any element of their lists.
-  for (const auto* name : {"nonexistent", "model", "TEST_MODEL", "name=test_model_x", "test_model:language=de",
+  // as a case-insensitive prefix, languages and operations as any element of their lists.
+  for (const auto* name : {"nonexistent", "model", "name=test_model_x", "test_model:language=de",
                            "language=en:operation=other", "test_model:language=en:language=de"})
     CHECK_THROWS_WITH_AS(hub.locate_model(name), doctest::Contains("No model matches"), LinPipeError);
   CHECK_THROWS_WITH_AS(hub.locate_model("test_model:unknown=key"), doctest::Contains("unknown"), LinPipeError);
