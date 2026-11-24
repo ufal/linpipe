@@ -13,11 +13,11 @@
 
 #include "common.h"
 #include "lib/json/json.h"
-#include "models/asset_model.h"
+#include "models/model.h"
 
 namespace linpipe {
 
-class TestModel : public AssetModel {
+class TestModel : public Model {
  public:
   TestModel(const std::filesystem::path& dir, Json& config);
 

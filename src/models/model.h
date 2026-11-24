@@ -15,7 +15,14 @@ namespace linpipe {
 
 class Model {
  public:
+  const std::filesystem::path& dir() const { return dir_; }
   virtual ~Model() = 0;
+
+ protected:
+  explicit Model(std::filesystem::path dir = {}) : dir_(std::move(dir)) {}
+
+ private:
+  std::filesystem::path dir_;
 };
 
 inline Model::~Model() = default;
