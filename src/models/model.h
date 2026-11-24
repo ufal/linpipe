@@ -10,19 +10,23 @@
 #pragma once
 
 #include "common.h"
+#include "lib/json/json.h"
 
 namespace linpipe {
 
 class Model {
  public:
   const std::filesystem::path& dir() const { return dir_; }
+  const Json& config() const { return config_; }
   virtual ~Model() = 0;
 
  protected:
-  explicit Model(std::filesystem::path dir = {}) : dir_(std::move(dir)) {}
+  explicit Model(std::filesystem::path dir = {}, Json config = {})
+      : dir_(std::move(dir)), config_(std::move(config)) {}
 
  private:
   std::filesystem::path dir_;
+  Json config_;
 };
 
 inline Model::~Model() = default;

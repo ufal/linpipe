@@ -34,7 +34,7 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 
   Json config = json_parse_path(model_dir / "model.json");
   auto model_class = json_extract<std::string>(config, "class");
-  return create_model(model_class, model_dir, config, model_name);
+  return create_model(model_class, model_dir, std::move(config), model_name);
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
