@@ -10,5 +10,7 @@
 LINPIPE_OBJECTS += models/model_hub
 LINPIPE_OBJECTS += models/model_factory
 LINPIPE_OBJECTS += models/test_model
+LINPIPE_OBJECTS += models/test_model_wo_assets
 
 LINPIPE_TESTS += models/model_hub_test
+LINPIPE_TESTS += models/model_factory_test

@@ -14,21 +14,23 @@
 
 // Individual models includes
 #include "models/test_model.h"
+#include "models/test_model_wo_assets.h"
 
 namespace linpipe {
 
 namespace {
 
-using Factory = std::function<std::unique_ptr<Model>(const std::filesystem::path& dir, Json config)>;
+using Factory = std::function<std::unique_ptr<Model>(const std::filesystem::path& dir, Json&& config)>;
 
 template<typename M>
-std::unique_ptr<Model> make(const std::filesystem::path& dir, Json config) {
+std::unique_ptr<Model> make(const std::filesystem::path& dir, Json&& config) {
   return std::make_unique<M>(dir, std::move(config));
 }
 
 const std::unordered_map<std::string_view, Factory>& factories() {
   static const std::unordered_map<std::string_view, Factory> factories = {
     {"TestModel", make<TestModel>},
+    {"TestModelWOAssets", make<TestModelWOAssets>},
   };
   return factories;
 }
