@@ -11,7 +11,6 @@
 #include <unordered_map>
 
 #include "models/model_factory.h"
-#include "utils/json_utils.h"
 
 // Individual models includes
 #include "models/test_model.h"
@@ -36,15 +35,17 @@ const std::unordered_map<std::string_view, Factory>& factories() {
 
 } // namespace
 
-std::unique_ptr<Model> create_model(std::string_view name, const std::filesystem::path& dir, Json& config) {
-  auto model_class = json_extract<std::string>(config, "class");
+std::unique_ptr<Model> create_model(std::string_view model_class, const std::filesystem::path& dir, Json& config,
+                                    std::string_view name) {
+  auto description = name.empty() ? fmt::format("Model of class {}", model_class) : fmt::format("Model {} of class {}", name, model_class);
+
   auto factory = factories().find(model_class);
   if (factory == factories().end())
-    throw LinPipeError{"Model {} has an unknown class {}", name, model_class};
+    throw LinPipeError{"{} cannot be created, the class is unknown", description};
 
   auto model = factory->second(dir, config);
   if (!model)
-    throw LinPipeError{"Cannot load model {} of class {}", name, model_class};
+    throw LinPipeError{"{} cannot be created", description};
   return model;
 }
 
