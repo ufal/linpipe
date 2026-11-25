@@ -34,7 +34,13 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 
   Json config = json_parse_path(model_dir / "model.json");
   auto model_class = json_extract<std::string>(config, "class");
-  return create_model(model_class, model_dir, std::move(config), model_name);
+
+  ModelRequirements requirements;
+  if (config.contains("requirements"))
+    for (const auto& requirement : json_get<std::vector<std::string>>(config, "requirements"))
+      requirements.emplace(requirement, asset_downloader_.get_asset(requirement));
+
+  return create_model(model_class, model_dir, std::move(config), std::move(requirements), model_name);
 }
 
 std::filesystem::path ModelHub::locate_model(std::string_view name) {

@@ -19,7 +19,7 @@ namespace linpipe {
 
 class TestModel : public Model {
  public:
-  TestModel(const std::filesystem::path& dir, Json config);
+  TestModel(const std::filesystem::path& dir, Json config, ModelRequirements requirements = {});
 
   const std::string& content() const { return content_; }
 

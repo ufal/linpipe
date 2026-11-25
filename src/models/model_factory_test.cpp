@@ -29,12 +29,29 @@ TEST_CASE("create_model creates a model with assets from its dir and config") {
   }
 
   Json config = {{"key", "value"}};
-  auto model = create_model("TestModel", model_dir, std::move(config), TEST_MODEL);
+  auto model = create_model("TestModel", model_dir, std::move(config), {}, TEST_MODEL);
   auto* test_model = dynamic_cast<TestModel*>(model.get());
   REQUIRE(test_model);
   CHECK(test_model->dir() == model_dir);
   CHECK(json_get<const std::string&>(test_model->config(), "key") == "value");
   CHECK(test_model->content() == TEST_MODEL_TXT_CONTENT);
+  CHECK(test_model->requirements().empty());
+}
+
+TEST_CASE("create_model passes the requirement directories to the model") {
+  LoggingLevelGuard logging(LoggingLevel::LEVEL_FATAL);
+  TempDir dir("linpipe_model_factory_test");
+  auto model_dir = dir.path() / TEST_MODEL;
+  std::filesystem::create_directory(model_dir);
+  {
+    std::ofstream file(model_dir / "test_model.txt", std::ios::binary);
+    file << TEST_MODEL_TXT_CONTENT;
+  }
+
+  auto model = create_model("TestModel", model_dir, {}, {{"some_lib", dir.path() / "some_lib"}});
+  REQUIRE(model->requirements().size() == 1);
+  CHECK(model->requirement("some_lib") == dir.path() / "some_lib");
+  CHECK_THROWS_WITH_AS(model->requirement("other_lib"), doctest::Contains("other_lib is not available"), LinPipeError);
 }
 
 TEST_CASE("create_model creates a model without assets by class name alone") {
@@ -50,7 +67,7 @@ TEST_CASE("create_model creates a model without assets by class name alone") {
 
 TEST_CASE("create_model rejects an unknown class") {
   CHECK_THROWS_WITH_AS(create_model("NonexistentModel"), doctest::Contains("the class is unknown"), LinPipeError);
-  CHECK_THROWS_WITH_AS(create_model("NonexistentModel", {}, {}, "my_model"),
+  CHECK_THROWS_WITH_AS(create_model("NonexistentModel", {}, {}, {}, "my_model"),
                        doctest::Contains("Model my_model of class NonexistentModel"), LinPipeError);
 }
 

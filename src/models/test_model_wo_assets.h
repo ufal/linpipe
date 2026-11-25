@@ -21,7 +21,7 @@ class TestModelWOAssets : public Model {
  public:
   static constexpr std::string_view CONTENT = "TestModelWOAssets content";
 
-  TestModelWOAssets(const std::filesystem::path& dir, const Json& config);
+  TestModelWOAssets(const std::filesystem::path& dir, const Json& config, const ModelRequirements& requirements);
 
   const std::string& content() const { return content_; }
 

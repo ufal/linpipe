@@ -11,7 +11,9 @@
 
 namespace linpipe {
 
-TestModelWOAssets::TestModelWOAssets(const std::filesystem::path& /*dir*/, const Json& /*config*/) : content_(CONTENT) {
+TestModelWOAssets::TestModelWOAssets(const std::filesystem::path& /*dir*/, const Json& /*config*/,
+                                     const ModelRequirements& /*requirements*/)
+    : content_(CONTENT) {
   LOG(INFO, "TestModelWOAssets loaded: {}", content_);
 }
 

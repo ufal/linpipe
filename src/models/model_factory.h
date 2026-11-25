@@ -18,6 +18,6 @@
 namespace linpipe {
 
 std::unique_ptr<Model> create_model(std::string_view model_class, const std::filesystem::path& dir = {},
-                                    Json config = {}, std::string_view name = {});
+                                    Json config = {}, ModelRequirements requirements = {}, std::string_view name = {});
 
 } // namespace linpipe

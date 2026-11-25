@@ -20,11 +20,12 @@ namespace linpipe {
 
 namespace {
 
-using Factory = std::function<std::unique_ptr<Model>(const std::filesystem::path& dir, Json&& config)>;
+using Factory = std::function<std::unique_ptr<Model>(const std::filesystem::path& dir, Json&& config,
+                                                     ModelRequirements&& requirements)>;
 
 template<typename M>
-std::unique_ptr<Model> make(const std::filesystem::path& dir, Json&& config) {
-  return std::make_unique<M>(dir, std::move(config));
+std::unique_ptr<Model> make(const std::filesystem::path& dir, Json&& config, ModelRequirements&& requirements) {
+  return std::make_unique<M>(dir, std::move(config), std::move(requirements));
 }
 
 const std::unordered_map<std::string_view, Factory>& factories() {
@@ -38,14 +39,14 @@ const std::unordered_map<std::string_view, Factory>& factories() {
 } // namespace
 
 std::unique_ptr<Model> create_model(std::string_view model_class, const std::filesystem::path& dir, Json config,
-                                    std::string_view name) {
+                                    ModelRequirements requirements, std::string_view name) {
   auto description = name.empty() ? fmt::format("Model of class {}", model_class) : fmt::format("Model {} of class {}", name, model_class);
 
   auto factory = factories().find(model_class);
   if (factory == factories().end())
     throw LinPipeError{"{} cannot be created, the class is unknown", description};
 
-  auto model = factory->second(dir, std::move(config));
+  auto model = factory->second(dir, std::move(config), std::move(requirements));
   if (!model)
     throw LinPipeError{"{} cannot be created", description};
   return model;

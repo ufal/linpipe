@@ -14,7 +14,8 @@
 
 namespace linpipe {
 
-TestModel::TestModel(const std::filesystem::path& dir, Json config) : Model(dir, std::move(config)) {
+TestModel::TestModel(const std::filesystem::path& dir, Json config, ModelRequirements requirements)
+    : Model(dir, std::move(config), std::move(requirements)) {
   auto path = this->dir() / "test_model.txt";
   InputStream file(path);
   content_.assign(std::istreambuf_iterator<char>(file), {});
