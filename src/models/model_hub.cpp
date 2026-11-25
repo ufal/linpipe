@@ -40,15 +40,6 @@ std::unique_ptr<Model> ModelHub::get_model(std::string_view name) {
 std::filesystem::path ModelHub::locate_model(std::string_view name) {
   const auto& entries = json_get_object(asset_downloader_.assets_json(), "entries");
 
-  // Verbatim model name already downloaded
-  if (auto model_dir = asset_downloader_.get_downloaded_asset(name))
-    return *model_dir;
-
-  // Verbatim model name found in catalog
-  if (entries.contains(name))
-    return asset_downloader_.get_asset(name);
-
-  // Otherwise the newest model matching all the selectors
   auto selectors = parse_selectors(name);
   if (selectors.empty())
     throw LinPipeError{"No model selectors were given"};
@@ -56,9 +47,13 @@ std::filesystem::path ModelHub::locate_model(std::string_view name) {
   const std::string* best_name = nullptr;
   std::string best_timestamp;
   for (const auto& entry : entries.items()) {
+    if (!entry.value().contains("class"))
+      continue;
+
     auto matches = std::ranges::all_of(selectors, [&entry](const Selector& selector) {
       return matches_selector(entry.key(), entry.value(), selector);
     });
+
     if (!matches)
       continue;
 
@@ -69,12 +64,16 @@ std::filesystem::path ModelHub::locate_model(std::string_view name) {
     }
   }
 
-  if (best_name) {
-    LOG(INFO, "Resolved model {} to {}", name, *best_name);
-    return asset_downloader_.get_asset(*best_name);
-  }
+  if (!best_name)
+    throw LinPipeError{"No model matches {}", name};
 
-  throw LinPipeError{"No model matches {}", name};
+  if (*best_name != name)
+    LOG(INFO, "Resolved model {} to {}", name, *best_name);
+
+  if (auto model_dir = asset_downloader_.get_downloaded_asset(*best_name))
+    return *model_dir;
+
+  return asset_downloader_.get_asset(*best_name);
 }
 
 bool ModelHub::matches_selector(std::string_view model_name, const Json& entry, const Selector& selector) {
