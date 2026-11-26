@@ -24,7 +24,3 @@ venv:
 .PHONY: clean
 clean:
 	rm -rf site/ build/
-
-.PHONY: clean_assets
-clean_assets:
-	rm -rf $(ASSETS)
