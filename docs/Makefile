@@ -3,7 +3,7 @@ all: site
 
 .PHONY: api
 API_STUB := pyi_api/linpipe/__init__.pyi
-$(API_STUB): $(wildcard ../bindings/linpipe/*.i ../bindings/python/*.i)
+$(API_STUB): $(wildcard ../bindings/linpipe/*.i ../bindings/python/*.i) ../bindings/python/pyi_signatures.py
 	$(MAKE) -C ../bindings/python swig
 	mkdir -p $(dir $@)
 	cp ../bindings/python/linpipe/__init__.pyi $@
