@@ -149,7 +149,7 @@ pymdownx.tabbed.slugify.kwds.case = "lower"
 default_handler = "python"
 
 [project.plugins.mkdocstrings.handlers.python]
-paths = ["build"]
+paths = ["pyi_api"]
 inventories = [
   "https://docs.python.org/3/objects.inv",
   "https://pytorch.org/docs/stable/objects.inv",

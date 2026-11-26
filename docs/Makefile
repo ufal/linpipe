@@ -2,7 +2,7 @@
 all: site
 
 .PHONY: api
-API_STUB := build/linpipe/__init__.pyi
+API_STUB := pyi_api/linpipe/__init__.pyi
 $(API_STUB): $(wildcard ../bindings/linpipe/*.i ../bindings/python/*.i)
 	$(MAKE) -C ../bindings/python swig
 	mkdir -p $(dir $@)
@@ -23,4 +23,4 @@ venv:
 
 .PHONY: clean
 clean:
-	rm -rf site/ build/
+	rm -rf site/ pyi_api/
