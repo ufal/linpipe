@@ -33,6 +33,8 @@ class Layer {
 
   virtual std::span<const ViewProvider> views() const = 0;
   std::unique_ptr<View> create_view(std::span<const Selector> selectors) const;
+  template<std::derived_from<View> T>
+  std::unique_ptr<T> create_view(std::span<const Selector> selectors) const;
 
   virtual std::string_view type() const = 0;
 
@@ -53,6 +55,14 @@ class Layer {
   virtual bool matches_selector(const Selector& selector) const;
   static std::span<const ViewProvider> provided_views() { return {}; }
 };
+
+template<std::derived_from<View> T>
+std::unique_ptr<T> Layer::create_view(std::span<const Selector> selectors) const {
+  auto view = create_view(selectors);
+  if (!dynamic_cast<T*>(view.get()))
+    throw LinPipeError("The view of layer '{}' of type '{}' matching the given selectors is not a '{}' view", name, type(), T::TYPE);
+  return std::unique_ptr<T>(static_cast<T*>(view.release()));
+}
 
 template<typename T, typename Base = Layer>
 class TypedLayer : public Base {

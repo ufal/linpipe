@@ -44,6 +44,11 @@ TEST_CASE("PlainTextLayer Layer::matches") {
   CHECK_FALSE(layer.matches(std::vector<Selector>{{"unknown", "text"}}));
 }
 
+class OtherView : public TypedView<OtherView> {
+ public:
+  static constexpr std::string_view TYPE = "other";
+};
+
 TEST_CASE("PlainTextLayer Layer::create_view") {
   PlainTextLayer layer("text");
   layer.text = "hello world";
@@ -67,6 +72,11 @@ TEST_CASE("PlainTextLayer Layer::create_view") {
 
   CHECK_THROWS_AS(layer.create_view(std::vector<Selector>{{"", "other"}}), LinPipeError);
   CHECK_THROWS_AS(layer.create_view(std::vector<Selector>{{"type", "plain_text"}, {"name", "text"}}), LinPipeError);
+
+  std::unique_ptr<PlainTextView> view = layer.create_view<PlainTextView>({});
+  CHECK(view->text() == "hello world");
+  CHECK(layer.create_view<View>({})->type() == "plain_text");
+  CHECK_THROWS_AS(layer.create_view<OtherView>({}), LinPipeError);
 }
 
 TEST_CASE("PlainTextLayer Layer::create_from_json") {
