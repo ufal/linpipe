@@ -6,3 +6,15 @@
 .md-grid {
   max-width: initial;
 }
+
+.md-copyright {
+  width: 100%;
+  padding: 0;
+}
+
+.grant-logo {
+  display: block;
+  width: 19.2rem;
+  max-width: 100%;
+  margin: 0 auto;
+}
