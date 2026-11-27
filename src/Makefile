@@ -55,10 +55,13 @@ relint/%: lint/% ;
 
 # Style checking and formating (both show diff and perform in-place)
 CLANG_FORMAT ?= clang-format
+ASCII_CHECK = $(call exe,tools/ascii_check)
 .PHONY: style reformat  # style/all style/path format/path reformat/all reformat/path
-style:
+style: $(ASCII_CHECK)
+	@$(if $(CHANGED_SOURCES),$(call platform_name,$(ASCII_CHECK)) $(CHANGED_SOURCES))
 	$(if $(CHANGED_SOURCES),$(CLANG_FORMAT) --dry-run --Werror $(CHANGED_SOURCES),@echo "No changed files to stylecheck.")
-style/%: FORCE
+style/%: $(ASCII_CHECK) FORCE
+	@$(call platform_name,$(ASCII_CHECK)) $(if $(filter all,$*),$(ALL_SOURCES),$*)
 	$(CLANG_FORMAT) --dry-run --Werror $(if $(filter all,$*),$(ALL_SOURCES),$*)
 format/%: FORCE
 	$(CLANG_FORMAT) $* | git diff --no-index $* -
@@ -66,6 +69,8 @@ reformat:
 	$(if $(CHANGED_SOURCES),$(CLANG_FORMAT) -i $(CHANGED_SOURCES),@echo "No changed files to format.")
 reformat/%: FORCE
 	$(CLANG_FORMAT) -i $(if $(filter all,$*),$(ALL_SOURCES),$*)
+$(ASCII_CHECK): $(call obj,tools/ascii_check)
+	$(call link_exe,$@,$^,$(call win_subsystem,console))
 
 # Combined style checking and linting
 .PHONY: check  # check/all check/path
@@ -81,4 +86,4 @@ sources:
 # Cleaning
 .PHONY: clean
 clean:
-	@$(call rm,.build $(call all_exe,linpipe linpipe_test) $(call all_lib,liblinpipe))
+	@$(call rm,.build $(call all_exe,linpipe linpipe_test tools/ascii_check) $(call all_lib,liblinpipe))
