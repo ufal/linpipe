@@ -2,8 +2,8 @@
 all: site
 
 .PHONY: api
-API_STUB := build/linpipe/__init__.pyi
-$(API_STUB): $(wildcard ../bindings/linpipe/*.i ../bindings/python/*.i)
+API_STUB := pyi_api/linpipe/__init__.pyi
+$(API_STUB): $(wildcard ../bindings/linpipe/*.i ../bindings/python/*.i) ../bindings/python/pyi_signatures.py
 	$(MAKE) -C ../bindings/python swig
 	mkdir -p $(dir $@)
 	cp ../bindings/python/linpipe/__init__.pyi $@
@@ -23,8 +23,4 @@ venv:
 
 .PHONY: clean
 clean:
-	rm -rf site/ build/
-
-.PHONY: clean_assets
-clean_assets:
-	rm -rf $(ASSETS)
+	rm -rf site/ pyi_api/

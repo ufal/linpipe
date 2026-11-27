@@ -17,68 +17,71 @@ nav = [
     "get_started/installation.md",
     {"Pipeline Description" = "get_started/pipeline_description.md"},
     { "Tutorials" = [
-      { "Tutorial1" = "..." }, { "Tutorial2" = "..." }, { "Tutorial3" = "..." },
+      { "Tutorial1" = "..." }, { "Tutorial2" = "..." },
     ] },
   ] },
   { "Models" = [
     "models/index.md",
     { "Tokenization" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Morphosyntactic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Named Entity Recognition" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Privacy Filtering" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Coreference Resolution" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Semantic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
   ] },
   { "Training" = [
     "training/index.md",
     { "Tokenization" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Morphosyntactic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Named Entity Recognition" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Privacy Filtering" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Coreference Resolution" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Semantic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
   ] },
   { "API Reference" = [
-    "api_reference.md",
-    "api/linpipe_error.md",
-    "api/version.md",
-    { "Layers" = [
-      "api/layers/layer.md",
-      "api/layers/plain_text_layer.md",
+    "api/index.md",
+    { "Core Classes" = [
+      { "Layers" = [
+        "api/layers/layer.md",
+        "api/layers/plain_text_layer.md",
+      ] },
+      { "Views" = [
+        "api/views/view.md",
+        "api/views/plain_text_view.md",
+      ] },
     ] },
-    { "Views" = [
-      "api/views/view.md",
-      "api/views/plain_text_view.md",
+    { "Utilities" = [
+      "api/linpipe_error.md",
+      "api/version.md",
     ] },
   ] },
   { "Development" = [
-    {"System Architecture" = [
-      { "Overview" = "dev/architecture.md" }, {"Segmentation and Tokenization" = "dev/segmentation_tokenization.md" }
-    ] },
+    { "System Architecture" = "dev/architecture.md" },
+    { "Segmentation and Tokenization Design" = "dev/segmentation_tokenization.md" },
     "dev/codestyle.md",
     "dev/notes.md",
   ] },
@@ -100,6 +103,7 @@ font.text = "Inter"
 font.code = "JetBrains Mono"
 features = [
   "content.code.copy",
+  "navigation.sections",
   "navigation.tabs",
   "navigation.tabs.sticky",
   "navigation.top",
@@ -149,7 +153,7 @@ pymdownx.tabbed.slugify.kwds.case = "lower"
 default_handler = "python"
 
 [project.plugins.mkdocstrings.handlers.python]
-paths = ["build"]
+paths = ["pyi_api"]
 inventories = [
   "https://docs.python.org/3/objects.inv",
   "https://pytorch.org/docs/stable/objects.inv",
@@ -157,8 +161,10 @@ inventories = [
 ]
 
 [project.plugins.mkdocstrings.handlers.python.options]
+docstring_options = { ignore_init_summary = true }
 docstring_section_style = "list"
 members_order = "source"
+merge_init_into_class = true
 group_by_category = false
 show_root_heading = true
 show_symbol_type_toc = true
