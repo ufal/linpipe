@@ -68,9 +68,9 @@ std::unique_ptr<View> Layer::create_view(std::span<const Selector> selectors) co
   auto providers = views();
   auto provider = std::ranges::find_if(providers, provides);
   if (provider == providers.end())
-    throw LinPipeError("No view of layer '{}' of type '{}' matches the given selectors", name, type());
+    throw LinPipeError("No view of layer '{}:type={}' matches the selectors '{}'", name, type(), selectors);
   if (std::ranges::any_of(std::next(provider), providers.end(), provides))
-    throw LinPipeError("Multiple views of layer '{}' of type '{}' match the given selectors", name, type());
+    throw LinPipeError("Multiple views of layer '{}:type={}' match the selectors '{}'", name, type(), selectors);
 
   return provider->create(*this);
 }

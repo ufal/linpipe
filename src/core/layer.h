@@ -60,7 +60,7 @@ template<std::derived_from<View> T>
 std::unique_ptr<T> Layer::create_view(std::span<const Selector> selectors) const {
   auto view = create_view(selectors);
   if (!dynamic_cast<T*>(view.get()))
-    throw LinPipeError("The view of layer '{}' of type '{}' matching the given selectors is not a '{}' view", name, type(), T::TYPE);
+    throw LinPipeError("The view of layer '{}:name={}' matching the selectors '{}' is not a '{}' view", type(), name, selectors, T::TYPE);
   return std::unique_ptr<T>(static_cast<T*>(view.release()));
 }
 
