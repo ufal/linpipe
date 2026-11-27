@@ -8,6 +8,7 @@ on:
       - 'wip**'
     paths:
       - 'src/**'
+      - 'bindings/**'
       - '.github/workflows/tests.yml'
 
 jobs:
@@ -116,3 +117,52 @@ jobs:
       - name: Run tests
         run: make PLATFORM=${{ matrix.platform }} ${{ matrix.make_args }} test
         working-directory: src
+
+  bindings:
+    name: Bindings
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-26.04
+            platform: linux-gcc
+          - os: ubuntu-26.04-arm
+            platform: linux-gcc
+          - os: windows-2025
+            platform: win-vs-64
+          - os: macos-26
+            platform: macos-clang-arm64
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - if: startsWith(matrix.os, 'windows')
+        name: Windows - Set up MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: ${{ endswith(matrix.platform, '-64') && 'x64' || endswith(matrix.platform, '-arm64') && 'arm64' || 'x86' }}
+
+      - if: startsWith(matrix.os, 'windows')
+        name: Windows - Install make
+        run: choco install --no-progress -y make
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install SWIG
+        run: pipx install swig==4.5.1
+
+      - name: Python bindings
+        run: make PLATFORM=${{ matrix.platform }} -j4 all test
+        working-directory: bindings/python
+
+      - name: Java bindings
+        run: make PLATFORM=${{ matrix.platform }} -j4 all test
+        working-directory: bindings/java
