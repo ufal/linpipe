@@ -31,6 +31,10 @@ class Layer {
   static std::unique_ptr<Layer> create(std::string_view type, std::string_view name = {});
   static std::unique_ptr<Layer> create_from_json(Json& json);
 
+  // Move this layer to a newly allocated layer of the same type, resetting
+  // this layer to the state of a newly constructed layer of its type.
+  virtual std::unique_ptr<Layer> move_to_unique() = 0;
+
   virtual std::span<const ViewProvider> views() const = 0;
   std::unique_ptr<View> create_view(std::span<const Selector> selectors, bool throw_on_error = true) const;
   template<std::derived_from<View> T>
@@ -50,6 +54,8 @@ class Layer {
 
  protected:
   explicit Layer(std::string_view name) : name(name) {}
+  Layer(Layer&&) = default;
+  Layer& operator=(Layer&&) = default;
 
   virtual void from_json(Json& json);
   virtual bool matches_selector(const Selector& selector) const;
@@ -76,6 +82,13 @@ class TypedLayer : public Base {
   }
 
   std::span<const ViewProvider> views() const override { return T::provided_views(); }
+
+  std::unique_ptr<Layer> move_to_unique() override {
+    T& self = static_cast<T&>(*this);
+    auto moved = std::make_unique<T>(std::move(self));
+    self = T();
+    return moved;
+  }
 
  private:
   template<typename... Args>

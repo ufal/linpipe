@@ -30,6 +30,23 @@ TEST_CASE("PlainTextLayer Layer::create") {
   CHECK_THROWS_AS(Layer::create("unknown"), LinPipeError);
 }
 
+TEST_CASE("PlainTextLayer Layer::move_to_unique") {
+  PlainTextLayer plain_text("text");
+  plain_text.text = "hello world";
+  plain_text.model = "udpipe";
+
+  Layer& layer = plain_text;
+  auto moved = layer.move_to_unique();
+  CHECK(moved->type() == "plain_text");
+  CHECK(moved->name == "text");
+  CHECK(moved->model == "udpipe");
+  CHECK(dynamic_cast<PlainTextLayer&>(*moved).text == "hello world");
+
+  CHECK(plain_text.name == "plain_text");
+  CHECK(plain_text.model.empty());
+  CHECK(plain_text.text.empty());
+}
+
 TEST_CASE("PlainTextLayer Layer::matches") {
   PlainTextLayer layer("text");
   layer.model = "udpipe";

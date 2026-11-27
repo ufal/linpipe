@@ -12,19 +12,20 @@
 %}
 
 %include "std_string.i"
-%include "std_string_view.i"
-%include "std_vector.i"
 %include <typemaps/swigmacros.swg>
-%typemap(pytyping) std::string_view "str";
+
+// String parameters and return values corresponding to std::string_view in
+// C++; a language can define it as std::string_view to avoid copies, while the
+// default std::string works in all languages.
+#ifndef LINPIPE_STRING_VIEW
+#define LINPIPE_STRING_VIEW std::string
+#endif
+
+// Allow keyword arguments.
+%feature("kwargs");
 
 %{
-#include "core/layer.h"
-#include "core/selector.h"
-#include "core/view.h"
-#include "layers/plain_text_layer.h"
-#include "lib/json/json.h"
-#include "version/version.h"
-#include "views/plain_text_view.h"
+#include "common.h"
 using namespace linpipe;
 %}
 
@@ -59,7 +60,7 @@ static std::string linpipe_error_message() {
   }
 }
 
-// LINPIPE_FACTORY(Base, Types...) makes every function returning Base* return
+// LINPIPE_FACTORY(Base, Types...) makes every function returning Base* or Base& return
 // the listed class whose TYPE equals the object's type(), or Base otherwise.
 // A language-specific interface file may define its own LINPIPE_FACTORY
 // before including this file; otherwise the generic version below is used,
@@ -69,7 +70,7 @@ static std::string linpipe_error_message() {
     if ($1->type() == Type::TYPE) descriptor = $descriptor(Type*);
 %enddef
 %define LINPIPE_FACTORY(Base, Types...)
-%typemap(out) Base* {
+%typemap(out) Base*, Base& {
   swig_type_info* descriptor = $descriptor(Base*);
   if ($1) {
     %formacro(%_linpipe_factory_descriptor, Types)
@@ -106,205 +107,11 @@ static std::string linpipe_error_message() {
 #define LINPIPE_PYI_SIGNATURE(Signature)
 #endif
 
-LINPIPE_FACTORY(View, PlainTextView);
-%typemap(pytyping) View* "View";
-/**
- A base class of all LinPipe views.
+%include "linpipe_vector.i"
 
- A view provides access to the data of a layer; it refers to the layer,
- so the layer must outlive it.*/
-class View {
- public:
-  /**
-   Return the type of the view.
+LINPIPE_VECTOR(Strings, std::string, str, "A vector of strings.");
 
-   Returns:
-     the view type, e.g., `plain_text`.*/
-  virtual std::string_view type() const = 0;
-
-  /**
-   Return the model which created the underlying layer.
-
-   Returns:
-     the model of the layer, or an empty string.*/
-  std::string_view model() const;
-
-  /**
-   Return the license of the underlying layer data.
-
-   Returns:
-     the license of the layer, or an empty string.*/
-  std::string_view license() const;
-
-  /**
-   Return the creation time of the underlying layer.
-
-   Returns:
-     the timestamp of the layer as an ISO 8601 date-time in UTC, or an empty string.*/
-  std::string_view timestamp() const;
-};
-
-/**
- A view providing a plain text.*/
-class PlainTextView : public View {
- public:
-  /**
-   Return the plain text.
-
-   Returns:
-     the text of the underlying layer.*/
-  virtual std::string_view text() const = 0;
-};
-
-LINPIPE_FACTORY(Layer, PlainTextLayer);
-%typemap(pytyping) Layer* "Layer";
-/**
- A base class of all LinPipe layers.
-
- A layer holds one kind of annotation of a document, for example its plain text.
- Its data can be accessed through views, created by Layer.create_view.*/
-class Layer {
- public:
-  LINPIPE_PYI_SIGNATURE(Layer.create(type: "str", name: "str"=""))
-  %newobject create;
-  %extend {
-    /**
-     Create a new layer of the given type.
-
-     Args:
-       type: the type of the layer to create, e.g., `plain_text`.
-       name: the name of the layer; the layer type is used when empty.
-
-     Returns:
-       a new layer of the given type.*/
-    static Layer* create(std::string_view type, std::string_view name = "") { return Layer::create(type, name).release(); }
-  }
-
-  %newobject create_from_json;
-  %extend {
-    /**
-     Create a new layer from its JSON representation.
-
-     Args:
-       json: the JSON representation of the layer, as produced by Layer.to_json.
-
-     Returns:
-       a new layer described by the given JSON.*/
-    static Layer* create_from_json(std::string_view json) {
-      Json parsed = Json::parse(json);
-      return Layer::create_from_json(parsed).release();
-    }
-  }
-
-  %newobject create_view;
-  %extend {
-    /**
-     Create a view of the layer matching the given selectors.
-
-     The view refers to the layer, so the layer must outlive it.
-
-     Args:
-       selectors: colon-separated `key=value` or `value` selectors, where a missing key means `type`;
-         a literal colon is written as `::`.
-
-     Returns:
-       the unique view of the layer matching all the selectors.*/
-    View* create_view(std::string_view selectors) const { return $self->create_view(parse_selectors(selectors)).release(); }
-  }
-
-  /**
-   Return the type of the layer.
-
-   Returns:
-     the layer type, e.g., `plain_text`.*/
-  virtual std::string_view type() const = 0;
-
-  /// The name of the layer.
-  std::string name;
-  /// The model which created the layer, if any.
-  std::string model;
-  /// The license of the layer data, if any.
-  std::string license;
-  /// The creation time of the layer as an ISO 8601 date-time in UTC, e.g., 2026-01-01T12:00:00Z.
-  std::string timestamp;
-
-  %extend {
-    /**
-     Check whether the layer matches the given selectors.
-
-     Args:
-       selectors: colon-separated `key=value` or `value` selectors, where a missing key means `type`;
-         a literal colon is written as `::`.
-
-     Returns:
-       whether the layer matches all the selectors.*/
-    bool matches(std::string_view selectors) const { return $self->matches(parse_selectors(selectors)); }
-  }
-
-  %extend {
-    /**
-     Format the layer as JSON.
-
-     Args:
-       indent: the number of spaces to indent the JSON with; a compact single-line JSON is produced when negative.
-
-     Returns:
-       the JSON representation of the layer.*/
-    std::string to_json(int indent = -1) const { return $self->to_json().dump(indent); }
-  }
-
-  /**
-   Format the layer as HTML.
-
-   Returns:
-     an HTML representation of the layer.*/
-  virtual std::string to_html() const = 0;
-};
-
-/**
- A layer containing a plain text.*/
-class PlainTextLayer : public Layer {
- public:
-  LINPIPE_PYI_SIGNATURE(PlainTextLayer.__init__(name: "str"=""))
-  /**
-   Create an empty plain text layer.
-
-   Args:
-     name: the name of the layer; the layer type is used when empty.*/
-  explicit PlainTextLayer(std::string_view name = "");
-
-  std::string_view type() const;
-  std::string to_html() const;
-
-  /// The text of the layer.
-  std::string text;
-};
-
-%typemap(pytyping) Version "Version";
-/**
- A class representing a LinPipe Version.*/
-class Version {
- public:
-  /// Major version number.
-  unsigned major;
-  /// Minor version number.
-  unsigned minor;
-  /// Patch version number.
-  unsigned patch;
-  /// Prerelease label; release version if empty, development version otherwise.
-  std::string prerelease;
-
-  /**
-   Format a Version as a string.
-
-   Returns:
-     the current version formatted as string.*/
-  std::string as_string() const;
-
-  /**
-   Returns the current version.
-
-   Returns:
-     a Version object representing the current version.*/
-  static Version current();
-};
+// The views must precede the layers, whose methods return views.
+%include "linpipe_views.i"
+%include "linpipe_layers.i"
+%include "linpipe_version.i"

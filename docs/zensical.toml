@@ -76,6 +76,11 @@ nav = [
     ] },
     { "Utilities" = [
       "api/linpipe_error.md",
+      { "Vectors" = [
+        "api/vectors/vector.md",
+        "api/vectors/layers.md",
+        "api/vectors/strings.md",
+      ] },
       "api/version.md",
     ] },
   ] },

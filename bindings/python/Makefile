@@ -26,7 +26,7 @@ $(call dynobj,linpipe_python) $(BINDING_MODULE): C_FLAGS:=$(BINDING_C_FLAGS)
 $(BINDING_MODULE): $(call dynobj,linpipe_python) $(BINDING_LINPIPE_OBJECTS)
 	$(call link_dynlib,$@,$^)
 
-linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i ../linpipe/linpipe.i
+linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i $(wildcard *.i ../linpipe/*.i) pyi_signatures.py
 	@$(call mkdir,linpipe)
 	swig $(SWIG_FLAGS) -python -outdir linpipe -o linpipe_python.cpp -builtin -pyi -typehints -doxygen -features doxygen:notranslate $<
 	@$(call mv,linpipe/linpipe.py,linpipe/__init__.py)

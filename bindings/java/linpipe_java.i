@@ -6,7 +6,6 @@
 // https://docs.oracle.com/en/java/javase/21/docs/specs/jni/types.html.
 // The typemaps must be defined after the standard ones and before linpipe.i.
 %include "std_string.i"
-%include "std_string_view.i"
 
 %define %linpipe_java_utf8(Type)
 %typemap(jni) Type "jbyteArray"
@@ -17,7 +16,6 @@
 %enddef
 %linpipe_java_utf8(std::string)
 %linpipe_java_utf8(const std::string&)
-%linpipe_java_utf8(std::string_view)
 
 %{
 static std::string linpipe_java_utf8_in(JNIEnv* jenv, jbyteArray input) {
@@ -34,9 +32,7 @@ static jbyteArray linpipe_java_utf8_out(JNIEnv* jenv, std::string_view output) {
 %}
 %typemap(in) std::string %{ $1 = linpipe_java_utf8_in(jenv, $input); %}
 %typemap(in) const std::string& (std::string temp) %{ temp = linpipe_java_utf8_in(jenv, $input); $1 = &temp; %}
-%typemap(in) std::string_view (std::string temp) %{ temp = linpipe_java_utf8_in(jenv, $input); $1 = temp; %}
-%typemap(freearg) std::string_view ""
-%typemap(out) std::string, std::string_view %{ $result = linpipe_java_utf8_out(jenv, $1); %}
+%typemap(out) std::string %{ $result = linpipe_java_utf8_out(jenv, $1); %}
 %typemap(out) const std::string& %{ $result = linpipe_java_utf8_out(jenv, *$1); %}
 
 // Java proxies are created in Java, so the factory asks C++ for the name of
@@ -44,7 +40,7 @@ static jbyteArray linpipe_java_utf8_out(JNIEnv* jenv, std::string_view output) {
 %define LINPIPE_FACTORY(Base, Types...)
 %javamethodmodifiers Base::swig_factory_class_name "protected";
 LINPIPE_FACTORY_CLASS_NAME(Base, Types)
-%typemap(javaout) Base* {
+%typemap(javaout) Base*, Base& {
     return Base.swig_factory_wrap($jnicall, $owner);
   }
 %typemap(javacode) Base %{
