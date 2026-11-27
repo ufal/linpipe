@@ -17,49 +17,49 @@ nav = [
     "get_started/installation.md",
     {"Pipeline Description" = "get_started/pipeline_description.md"},
     { "Tutorials" = [
-      { "Tutorial1" = "..." }, { "Tutorial2" = "..." }, { "Tutorial3" = "..." },
+      { "Tutorial1" = "..." }, { "Tutorial2" = "..." },
     ] },
   ] },
   { "Models" = [
     "models/index.md",
     { "Tokenization" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Morphosyntactic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Named Entity Recognition" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Privacy Filtering" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Coreference Resolution" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Semantic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
   ] },
   { "Training" = [
     "training/index.md",
     { "Tokenization" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Morphosyntactic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Named Entity Recognition" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Privacy Filtering" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Coreference Resolution" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
     { "Semantic Analysis" = [
-      { "Model1" = "..." }, { "Model2" = "..." }, { "Model3" = "..." },
+      { "Model1" = "..." }, { "Model2" = "..." },
     ] },
   ] },
   { "API Reference" = [
