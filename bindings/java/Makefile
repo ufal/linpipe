@@ -25,7 +25,7 @@ swig: linpipe_java.cpp
 
 $(call dynobj,linpipe_java) $(BINDING_MODULE): C_FLAGS:=$(BINDING_C_FLAGS)
 $(BINDING_MODULE): $(call dynobj,linpipe_java) $(BINDING_LINPIPE_OBJECTS)
-	$(call link_dynlib,$@,$^)
+	$(call link_dynlib,$@,$^,$(BINDING_LD_FLAGS))
 
 linpipe_java.cpp: linpipe_java.i $(wildcard ../linpipe/*.i) LinPipeError.java
 	@$(call mkdir,cz/cuni/mff/ufal/linpipe)
@@ -33,8 +33,12 @@ linpipe_java.cpp: linpipe_java.i $(wildcard ../linpipe/*.i) LinPipeError.java
 	@$(call cp,LinPipeError.java,cz/cuni/mff/ufal/linpipe/LinPipeError.java)
 
 linpipe.jar: linpipe_java.cpp
-	javac -source 8 -Xlint:-options $(wildcard cz/cuni/mff/ufal/linpipe/*.java)
+	javac --release 11 $(wildcard cz/cuni/mff/ufal/linpipe/*.java)
 	jar cf $@ $(patsubst %.java,%.class,$(wildcard cz/cuni/mff/ufal/linpipe/*.java))
+
+.PHONY: test
+test: $(BINDING_MODULE) linpipe.jar
+	$(MAKE) -C examples test
 
 .PHONY: clean
 clean:

@@ -9,14 +9,16 @@
 
 include ../linpipe/Makefile.common
 
+PYTHON ?= $(if $(filter win-%,$(PLATFORM)),python,python3)
 ifndef PYTHON_INCLUDE
-  PYTHON_INCLUDE := $(shell $(or $(PYTHON),python3) -c "import sysconfig; print(sysconfig.get_path('include'))")
+  PYTHON_INCLUDE := $(shell $(PYTHON) -c "import sysconfig; print(sysconfig.get_path('include'))")
 endif
 
-BINDING_MODULE=$(if $(filter macos-%,$(PLATFORM)),linpipe/_linpipe.so,$(call dynlib,linpipe/_linpipe))
+BINDING_MODULE=linpipe/_linpipe.$(if $(filter win-%,$(PLATFORM)),pyd,so)
 BINDING_C_FLAGS+=$(if $(PYTHON_INCLUDE),,$(error PYTHON_INCLUDE must be set to the directory containing Python.h))
 BINDING_C_FLAGS+=$(call include_dir,$(PYTHON_INCLUDE))
 BINDING_C_FLAGS+=$(if $(findstring -gcc-,$(PLATFORM))$(findstring -clang-,$(PLATFORM)),-w)
+BINDING_LD_FLAGS+=$(if $(filter win-vs-%,$(PLATFORM)),/LIBPATH:"$(shell $(PYTHON) -c "import os, sys; print(os.path.join(sys.base_exec_prefix, 'libs'))")")
 
 .PHONY: all swig
 all: $(BINDING_MODULE)
@@ -24,14 +26,18 @@ swig: linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi
 
 $(call dynobj,linpipe_python) $(BINDING_MODULE): C_FLAGS:=$(BINDING_C_FLAGS)
 $(BINDING_MODULE): $(call dynobj,linpipe_python) $(BINDING_LINPIPE_OBJECTS)
-	$(call link_dynlib,$@,$^)
+	$(call link_dynlib,$@,$^,$(BINDING_LD_FLAGS))
 
 linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i $(wildcard *.i ../linpipe/*.i) pyi_signatures.py
 	@$(call mkdir,linpipe)
 	swig $(SWIG_FLAGS) -python -outdir linpipe -o linpipe_python.cpp -builtin -pyi -typehints -doxygen -features doxygen:notranslate $<
 	@$(call mv,linpipe/linpipe.py,linpipe/__init__.py)
 	@$(call mv,linpipe/linpipe.pyi,linpipe/__init__.pyi)
-	$(or $(PYTHON),python3) pyi_signatures.py linpipe/__init__.pyi
+	$(PYTHON) pyi_signatures.py linpipe/__init__.pyi
+
+.PHONY: test
+test: $(BINDING_MODULE)
+	$(MAKE) -C examples test
 
 .PHONY: clean
 clean:
