@@ -9,8 +9,9 @@
 
 include ../linpipe/Makefile.common
 
+PYTHON ?= $(if $(filter win-%,$(PLATFORM)),python,python3)
 ifndef PYTHON_INCLUDE
-  PYTHON_INCLUDE := $(shell $(or $(PYTHON),python3) -c "import sysconfig; print(sysconfig.get_path('include'))")
+  PYTHON_INCLUDE := $(shell $(PYTHON) -c "import sysconfig; print(sysconfig.get_path('include'))")
 endif
 
 BINDING_MODULE=$(if $(filter macos-%,$(PLATFORM)),linpipe/_linpipe.so,$(call dynlib,linpipe/_linpipe))
@@ -31,7 +32,7 @@ linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i 
 	swig $(SWIG_FLAGS) -python -outdir linpipe -o linpipe_python.cpp -builtin -pyi -typehints -doxygen -features doxygen:notranslate $<
 	@$(call mv,linpipe/linpipe.py,linpipe/__init__.py)
 	@$(call mv,linpipe/linpipe.pyi,linpipe/__init__.pyi)
-	$(or $(PYTHON),python3) pyi_signatures.py linpipe/__init__.pyi
+	$(PYTHON) pyi_signatures.py linpipe/__init__.pyi
 
 .PHONY: clean
 clean:
