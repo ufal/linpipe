@@ -56,7 +56,7 @@ bool Layer::matches_selector(const Selector& selector) const {
   return false;
 }
 
-std::unique_ptr<View> Layer::create_view(std::span<const Selector> selectors) const {
+std::unique_ptr<View> Layer::create_view(std::span<const Selector> selectors, bool throw_on_error) const {
   auto provides = [selectors](const ViewProvider& provider) {
     return std::ranges::all_of(selectors, [&provider](const Selector& selector) {
       return std::ranges::any_of(provider.selectors, [&selector](const Selector& offered) {
@@ -67,10 +67,14 @@ std::unique_ptr<View> Layer::create_view(std::span<const Selector> selectors) co
 
   auto providers = views();
   auto provider = std::ranges::find_if(providers, provides);
-  if (provider == providers.end())
-    throw LinPipeError("No view of layer '{}' of type '{}' matches the given selectors", name, type());
-  if (std::ranges::any_of(std::next(provider), providers.end(), provides))
-    throw LinPipeError("Multiple views of layer '{}' of type '{}' match the given selectors", name, type());
+  if (provider == providers.end()) {
+    if (!throw_on_error) return nullptr;
+    throw LinPipeError("No view of layer '{}:type={}' matches the selectors '{}'", name, type(), selectors);
+  }
+  if (std::ranges::any_of(std::next(provider), providers.end(), provides)) {
+    if (!throw_on_error) return nullptr;
+    throw LinPipeError("Multiple views of layer '{}:type={}' match the selectors '{}'", name, type(), selectors);
+  }
 
   return provider->create(*this);
 }

@@ -50,4 +50,14 @@ TEST_CASE("parse_selectors") {
   CHECK_THROWS_AS(parse_selectors("=fr"), LinPipeError);
 }
 
+TEST_CASE("Selector formatting") {
+  CHECK(fmt::format("{}", Selector{"", "plain_text"}) == "plain_text");
+  CHECK(fmt::format("{}", Selector{"name", "a:b"}) == "name=a::b");
+
+  auto selectors = parse_selectors("plain_text:name=a::b:language=fr");
+  CHECK(fmt::format("{}", selectors) == "plain_text:name=a::b:language=fr");
+  CHECK(fmt::format("{}", std::span<const Selector>(selectors)) == "plain_text:name=a::b:language=fr");
+  CHECK(fmt::format("{}", std::vector<Selector>{}).empty());
+}
+
 } // namespace linpipe
