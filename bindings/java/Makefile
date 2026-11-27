@@ -33,7 +33,7 @@ linpipe_java.cpp: linpipe_java.i $(wildcard ../linpipe/*.i) LinPipeError.java
 	@$(call cp,LinPipeError.java,cz/cuni/mff/ufal/linpipe/LinPipeError.java)
 
 linpipe.jar: linpipe_java.cpp
-	javac -source 8 -Xlint:-options $(wildcard cz/cuni/mff/ufal/linpipe/*.java)
+	javac --release 11 $(wildcard cz/cuni/mff/ufal/linpipe/*.java)
 	jar cf $@ $(patsubst %.java,%.class,$(wildcard cz/cuni/mff/ufal/linpipe/*.java))
 
 .PHONY: clean
