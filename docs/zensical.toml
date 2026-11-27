@@ -63,7 +63,7 @@ nav = [
     ] },
   ] },
   { "API Reference" = [
-    "api_reference.md",
+    "api/index.md",
     "api/linpipe_error.md",
     "api/version.md",
     { "Layers" = [
