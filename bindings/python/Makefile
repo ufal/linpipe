@@ -14,10 +14,11 @@ ifndef PYTHON_INCLUDE
   PYTHON_INCLUDE := $(shell $(PYTHON) -c "import sysconfig; print(sysconfig.get_path('include'))")
 endif
 
-BINDING_MODULE=$(if $(filter macos-%,$(PLATFORM)),linpipe/_linpipe.so,$(call dynlib,linpipe/_linpipe))
+BINDING_MODULE=linpipe/_linpipe.$(if $(filter win-%,$(PLATFORM)),pyd,so)
 BINDING_C_FLAGS+=$(if $(PYTHON_INCLUDE),,$(error PYTHON_INCLUDE must be set to the directory containing Python.h))
 BINDING_C_FLAGS+=$(call include_dir,$(PYTHON_INCLUDE))
 BINDING_C_FLAGS+=$(if $(findstring -gcc-,$(PLATFORM))$(findstring -clang-,$(PLATFORM)),-w)
+BINDING_LD_FLAGS+=$(if $(filter win-vs-%,$(PLATFORM)),/LIBPATH:"$(shell $(PYTHON) -c "import os, sys; print(os.path.join(sys.base_exec_prefix, 'libs'))")")
 
 .PHONY: all swig
 all: $(BINDING_MODULE)
