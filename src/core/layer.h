@@ -32,9 +32,9 @@ class Layer {
   static std::unique_ptr<Layer> create_from_json(Json& json);
 
   virtual std::span<const ViewProvider> views() const = 0;
-  std::unique_ptr<View> create_view(std::span<const Selector> selectors) const;
+  std::unique_ptr<View> create_view(std::span<const Selector> selectors, bool throw_on_error = true) const;
   template<std::derived_from<View> T>
-  std::unique_ptr<T> create_view(std::span<const Selector> selectors) const;
+  std::unique_ptr<T> create_view(std::span<const Selector> selectors, bool throw_on_error = true) const;
 
   virtual std::string_view type() const = 0;
 
@@ -57,10 +57,13 @@ class Layer {
 };
 
 template<std::derived_from<View> T>
-std::unique_ptr<T> Layer::create_view(std::span<const Selector> selectors) const {
-  auto view = create_view(selectors);
-  if (!dynamic_cast<T*>(view.get()))
+std::unique_ptr<T> Layer::create_view(std::span<const Selector> selectors, bool throw_on_error) const {
+  auto view = create_view(selectors, throw_on_error);
+  if (!view) return nullptr;
+  if (!dynamic_cast<T*>(view.get())) {
+    if (!throw_on_error) return nullptr;
     throw LinPipeError("The view of layer '{}:name={}' matching the selectors '{}' is not a '{}' view", type(), name, selectors, T::TYPE);
+  }
   return std::unique_ptr<T>(static_cast<T*>(view.release()));
 }
 

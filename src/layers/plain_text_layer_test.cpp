@@ -77,6 +77,12 @@ TEST_CASE("PlainTextLayer Layer::create_view") {
   CHECK(view->text() == "hello world");
   CHECK(layer.create_view<View>({})->type() == "plain_text");
   CHECK_THROWS_AS(layer.create_view<OtherView>({}), LinPipeError);
+
+  CHECK(layer.create_view(std::vector<Selector>{{"", "plain_text"}}, false));
+  CHECK_FALSE(layer.create_view(std::vector<Selector>{{"", "other"}}, false));
+  CHECK(layer.create_view<PlainTextView>({}, false));
+  CHECK_FALSE(layer.create_view<PlainTextView>(std::vector<Selector>{{"", "other"}}, false));
+  CHECK_FALSE(layer.create_view<OtherView>({}, false));
 }
 
 TEST_CASE("PlainTextLayer Layer::create_from_json") {
