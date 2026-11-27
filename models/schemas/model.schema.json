@@ -33,6 +33,5 @@
       "minItems": 1
     }
   },
-  "required": ["class"],
   "unevaluatedProperties": false
 }
