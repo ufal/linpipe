@@ -157,8 +157,10 @@ inventories = [
 ]
 
 [project.plugins.mkdocstrings.handlers.python.options]
+docstring_options = { ignore_init_summary = true }
 docstring_section_style = "list"
 members_order = "source"
+merge_init_into_class = true
 group_by_category = false
 show_root_heading = true
 show_symbol_type_toc = true
