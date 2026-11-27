@@ -4,6 +4,9 @@ site_url = "https://linpipe.org/"
 repo_url = "https://github.com/ufal/linpipe"
 docs_dir = "src"
 site_dir = "site"
+copyright = """\
+  <img class="grant-logo" src="/images/eu_msmt_en.svg#only-light" alt="Co-funded by the European Union and Ministry of Education, Youth and Sports of the Czech Republic">\
+  <img class="grant-logo" src="/images/eu_msmt_en_inverse.svg#only-dark" alt="Co-funded by the European Union and Ministry of Education, Youth and Sports of the Czech Republic">"""
 
 nav = [
   { "LinPipe" = [
