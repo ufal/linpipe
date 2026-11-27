@@ -36,6 +36,10 @@ linpipe.jar: linpipe_java.cpp
 	javac --release 11 $(wildcard cz/cuni/mff/ufal/linpipe/*.java)
 	jar cf $@ $(patsubst %.java,%.class,$(wildcard cz/cuni/mff/ufal/linpipe/*.java))
 
+.PHONY: test
+test: $(BINDING_MODULE) linpipe.jar
+	$(MAKE) -C examples test
+
 .PHONY: clean
 clean:
 	@$(call rm,.build cz $(call all_dynlib,linpipe_java liblinpipe_java) linpipe.jar linpipe_java.cpp $(wildcard examples/*.class))

@@ -34,6 +34,10 @@ linpipe_python.cpp linpipe/__init__.py linpipe/__init__.pyi &: linpipe_python.i 
 	@$(call mv,linpipe/linpipe.pyi,linpipe/__init__.pyi)
 	$(PYTHON) pyi_signatures.py linpipe/__init__.pyi
 
+.PHONY: test
+test: $(BINDING_MODULE)
+	$(MAKE) -C examples test
+
 .PHONY: clean
 clean:
 	@$(call rm,.build linpipe_python.cpp linpipe)

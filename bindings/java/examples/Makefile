@@ -11,6 +11,9 @@ TARGETS = LinPipeVersion.class LinPipeLayers.class
 
 all: $(TARGETS)
 
+.PHONY: test
+test: $(TARGETS:.class=)
+
 %.class: %.java
 	javac -cp .. $<
 
