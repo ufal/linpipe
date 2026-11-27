@@ -18,6 +18,7 @@ layer.text = " ".join(sys.argv[1:]) or "Hello, world!"
 print("Layer as JSON:", layer.to_json(indent=2))
 
 view = layer.create_view("plain_text")
+assert isinstance(view, linpipe.PlainTextView)
 print(f"Text from a view of type {view.type()}: {view.text()}")
 
 copy = linpipe.Layer.create_from_json(layer.to_json())
