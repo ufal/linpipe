@@ -25,7 +25,7 @@ swig: linpipe_java.cpp
 
 $(call dynobj,linpipe_java) $(BINDING_MODULE): C_FLAGS:=$(BINDING_C_FLAGS)
 $(BINDING_MODULE): $(call dynobj,linpipe_java) $(BINDING_LINPIPE_OBJECTS)
-	$(call link_dynlib,$@,$^)
+	$(call link_dynlib,$@,$^,$(BINDING_LD_FLAGS))
 
 linpipe_java.cpp: linpipe_java.i $(wildcard ../linpipe/*.i) LinPipeError.java
 	@$(call mkdir,cz/cuni/mff/ufal/linpipe)

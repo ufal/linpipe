@@ -14,6 +14,7 @@ include ../../src/Makefile.include
 
 SWIG_FLAGS+=-O -c++ -outcurrentdir
 BINDING_C_FLAGS:=$(filter-out $(default_warnings) $(treat_warnings_as_errors),$(C_FLAGS))
+BINDING_LD_FLAGS:=$(if $(filter macos-%,$(PLATFORM)),$(strip -Wl,-undefined,dynamic_lookup))
 BINDING_LINPIPE_OBJECTS=$(addprefix ../../src/,$(call dynobj,$(LINPIPE_OBJECTS)))
 
 .PHONY: binding_linpipe_o
