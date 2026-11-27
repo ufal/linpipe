@@ -66,13 +66,21 @@ amd64 and aarch64 on all platforms.
 
 Apart from the LinPipe binary and a REST service, swig-based bindings are
 provided, with the Python one being the main entry point for the users.
-The main swig interface file is `bindings/linpipe/linpipe.i` and the Python
-bindings can be compiled by running `make -j4` in `bindings/python`.
-While there are other language bindings, don't build them automatically.
+The main swig interface file is `bindings/linpipe/linpipe.i`, which includes
+the other `bindings/linpipe/linpipe_*.i` files; the language-specific settings
+are in `bindings/LANGUAGE/linpipe_LANGUAGE.i`. The Python bindings can be
+compiled by running `make -j4` in `bindings/python`, Java ones by running
+`make -j4` in `bindings/java`; don't build other language bindings
+automatically.
 
-The main user-facing API is generated from the `bindings/linpipe/linpipe.i`,
+In the `.i` declarations, use `LINPIPE_STRING_VIEW` instead of
+`std::string_view` for parameters and return values; it is `std::string_view`
+where supported (like in Python; it avoids copies) with a `std::string` fallback.
+
+The main user-facing API is generated from the `bindings/linpipe/*.i` files,
 where comments with doxygen-like markup (`///` and `/**`) are exported verbatim
 as Google-style Python docstrings by swig and then processed by zensical.
+The generated `.pyi` stub is post-processed by `bindings/python/pyi_signatures.py`.
 
 A PyPI package `linpipe` is also provided, with build scripts in `bindings/pypi`.
 Currently there are no tests, but they are planned to be added later.
@@ -85,7 +93,8 @@ evaluation of LinPipe models is present in `training` subdirectory.
 ## Zensical Docs
 
 The `docs` directory contains LinPipe documentation that is built by zensical.
-Do not interfere with it unless told to.
+You can build the documentation by running `make` in `docs` to check that the
+documentation builds without issues.
 
 # Rules
 - Do not commit to the git repo unless told to.
@@ -94,5 +103,5 @@ Do not interfere with it unless told to.
   when necessary in a body after a blank line.
 - Never push to the GitHub repo under any circumstances.
 - Run tests and formatting and linting checks when modifying LinPipe C++.
-- Make Python bindings when modifying the swig interface files or LinPipe
-  public API interfaces.
+- Make Python and Java bindings and the documentation when modifying the swig
+  interface files or LinPipe public API interfaces.
